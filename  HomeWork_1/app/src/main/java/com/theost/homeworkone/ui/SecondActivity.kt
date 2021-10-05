@@ -10,20 +10,14 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.theost.homeworkone.R
 import com.theost.homeworkone.services.ContactService
 import com.theost.homeworkone.services.ContactService.Companion.CONTACTS_EXTRA
-import com.theost.homeworkone.services.ContactService.Companion.CONTACTS_FILTER
+import com.theost.homeworkone.services.ContactService.Companion.CONTACTS_ACTION
 
 class SecondActivity : AppCompatActivity() {
-
-    companion object {
-        fun createIntent(context: Context): Intent {
-            return Intent(context, SecondActivity::class.java)
-        }
-    }
 
     private val contactsReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val contacts = intent.getStringExtra(CONTACTS_EXTRA)
-            if (contacts != "")
+            if (contacts?.isNotEmpty() == true)
                 setResult(RESULT_OK, intent)
             else
                 setResult(RESULT_CANCELED)
@@ -37,7 +31,7 @@ class SecondActivity : AppCompatActivity() {
 
         LocalBroadcastManager.getInstance(this).registerReceiver(
             contactsReceiver,
-            IntentFilter(CONTACTS_FILTER)
+            IntentFilter(CONTACTS_ACTION)
         )
 
         startContactService()
@@ -52,4 +46,11 @@ class SecondActivity : AppCompatActivity() {
         super.onDestroy()
         LocalBroadcastManager.getInstance(this).unregisterReceiver(contactsReceiver)
     }
+
+    companion object {
+        fun createIntent(context: Context): Intent {
+            return Intent(context, SecondActivity::class.java)
+        }
+    }
+
 }

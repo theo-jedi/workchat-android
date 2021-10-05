@@ -9,15 +9,10 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 
 class ContactService : Service() {
 
-    companion object {
-        const val CONTACTS_EXTRA = "contacts"
-        const val CONTACTS_FILTER = "contacts-filter"
-    }
-
     override fun onStartCommand(i: Intent, flags: Int, startId: Int): Int {
         Thread {
             val contacts = getContacts()
-            val intent = Intent(CONTACTS_FILTER)
+            val intent = Intent(CONTACTS_ACTION)
             intent.putExtra(CONTACTS_EXTRA, contacts)
             LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
         }.start()
@@ -71,6 +66,11 @@ class ContactService : Service() {
         }
         cursor.close()
         return builder.toString()
+    }
+
+    companion object {
+        const val CONTACTS_EXTRA = "contacts"
+        const val CONTACTS_ACTION = "contacts-filter"
     }
 
 }
