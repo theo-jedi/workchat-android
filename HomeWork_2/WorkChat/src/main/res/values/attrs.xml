@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="MessageLayout">
+        <attr name="bubbleColor" format="string" />
+        <attr name="cornerRadius" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="EmojiView">
+        <attr name="emoji" format="string" />
+        <attr name="text" format="string" />
+        <attr name="emojiTextColor" format="color" />
+        <attr name="emojiTextSize" format="dimension" />
+        <attr name="emojiPadding" format="dimension" />
+        <attr name="emojiBackground" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="EmojiLayout">
+        <attr name="emojiHorizontalMargin" format="dimension" />
+        <attr name="emojiVerticalMargin" format="dimension" />
+        <attr name="percentWidth" format="float" />
+    </declare-styleable>
+</resources>
