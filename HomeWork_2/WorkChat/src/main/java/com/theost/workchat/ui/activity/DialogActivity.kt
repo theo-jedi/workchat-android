@@ -8,11 +8,12 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.widget.addTextChangedListener
 import com.theost.workchat.R
 import com.theost.workchat.databinding.ActivityDialogBinding
+import com.theost.workchat.ui.data.InputStatus
 
 class DialogActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityDialogBinding
-    private var isInputEmpty = true
+    private var inputStatus = InputStatus.EMPTY
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,13 +25,13 @@ class DialogActivity : AppCompatActivity() {
     }
 
     private fun onInputTextChanged(text: String) {
-        isInputEmpty = if (text.trim().isNotEmpty()) {
-            if (isInputEmpty)
+        inputStatus = if (text.trim().isNotEmpty()) {
+            if (inputStatus == InputStatus.EMPTY)
                 binding.inputLayout.actionButton.setImageResource(R.drawable.ic_send)
-            false
+            InputStatus.FILLED
         } else {
             binding.inputLayout.actionButton.setImageResource(R.drawable.ic_attach_file)
-            true
+            InputStatus.EMPTY
         }
     }
 
