@@ -11,9 +11,10 @@ import com.theost.workchat.databinding.ActivityHomeBinding
 import com.theost.workchat.ui.views.EmojiLayout
 import com.theost.workchat.ui.views.EmojiView
 
-private lateinit var binding: ActivityHomeBinding
-
 class HomeActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityHomeBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
@@ -28,6 +29,10 @@ class HomeActivity : AppCompatActivity() {
                 setPadding(28)
             }
             emojiLayout.addView(emojiView, emojiLayout.size)
+        }
+
+        binding.dialogActivityButton.setOnClickListener {
+            startActivity(DialogActivity.createIntent(this))
         }
     }
 

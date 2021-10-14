@@ -68,7 +68,7 @@ class EmojiView @JvmOverloads constructor(
         textSize = typedArray.getDimension(R.styleable.EmojiView_emojiTextSize, 40f)
         textColor = typedArray.getColor(
             R.styleable.EmojiView_emojiTextColor,
-            ContextCompat.getColor(context, R.color.light_gray)
+            ContextCompat.getColor(context, R.color.lighter_gray)
         )
         padding = typedArray.getDimension(R.styleable.EmojiView_emojiPadding, 28f).toInt()
         backgroundDrawable = typedArray.getResourceId(

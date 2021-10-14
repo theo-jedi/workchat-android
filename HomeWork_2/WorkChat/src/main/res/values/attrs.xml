@@ -5,6 +5,13 @@
         <attr name="cornerRadius" format="dimension" />
     </declare-styleable>
 
+    <declare-styleable name="DateView">
+        <attr name="dateText" format="string" />
+        <attr name="dateTextColor" format="string" />
+        <attr name="dateBubbleColor" format="color" />
+        <attr name="dateTextSize" format="dimension" />
+    </declare-styleable>
+
     <declare-styleable name="EmojiView">
         <attr name="emoji" format="string" />
         <attr name="text" format="string" />

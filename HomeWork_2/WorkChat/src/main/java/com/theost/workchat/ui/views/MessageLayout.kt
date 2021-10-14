@@ -39,7 +39,7 @@ class MessageLayout @JvmOverloads constructor(
         )
         bubbleColor = typedArray.getColor(
             R.styleable.MessageLayout_bubbleColor,
-            ContextCompat.getColor(context, R.color.dark_gray)
+            ContextCompat.getColor(context, R.color.black_2)
         )
         cornerRadius  = typedArray.getDimension(R.styleable.MessageLayout_cornerRadius, 50f)
         typedArray.recycle()
