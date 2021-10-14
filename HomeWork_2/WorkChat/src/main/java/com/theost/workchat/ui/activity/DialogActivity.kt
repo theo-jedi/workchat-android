@@ -24,13 +24,13 @@ class DialogActivity : AppCompatActivity() {
     }
 
     private fun onInputTextChanged(text: String) {
-        if (text.isNotEmpty()) {
+        isInputEmpty = if (text.trim().isNotEmpty()) {
             if (isInputEmpty)
                 binding.inputLayout.actionButton.setImageResource(R.drawable.ic_send)
-            isInputEmpty = false
+            false
         } else {
             binding.inputLayout.actionButton.setImageResource(R.drawable.ic_attach_file)
-            isInputEmpty = true
+            true
         }
     }
 
