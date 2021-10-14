@@ -5,19 +5,22 @@
     android:layout_height="wrap_content">
 
     <androidx.appcompat.widget.AppCompatImageView
-        android:layout_width="37dp"
-        android:layout_height="37dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        android:maxWidth="37dp"
+        android:maxHeight="37dp"
         android:src="@mipmap/ic_launcher_round" />
 
     <com.theost.workchat.ui.views.MessageLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
         android:paddingStart="12dp"
-        android:paddingEnd="12dp"
         android:paddingTop="8dp"
+        android:paddingEnd="12dp"
         android:paddingBottom="12dp"
-        app:cornerRadius="18dp"
-        android:layout_marginStart="8dp" />
+        app:cornerRadius="18dp" />
 
     <com.theost.workchat.ui.views.EmojiLayout
         android:id="@+id/emojiLayout"
@@ -33,13 +36,13 @@
             android:id="@+id/addButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="@drawable/bg_emoji_view"
+            android:contentDescription="@string/add_emoji"
             android:minWidth="56dp"
             android:minHeight="37dp"
             android:src="@drawable/ic_add"
-            android:background="@drawable/bg_emoji_view"
-            android:contentDescription="@string/add_emoji"
-            app:layout_constraintTop_toBottomOf="@id/message"
-            app:layout_constraintStart_toStartOf="parent"/>
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/message" />
 
     </com.theost.workchat.ui.views.EmojiLayout>
 

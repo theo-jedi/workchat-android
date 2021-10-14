@@ -30,7 +30,7 @@ class DialogActivity : AppCompatActivity() {
                 binding.inputLayout.actionButton.setImageResource(R.drawable.ic_send)
             InputStatus.FILLED
         } else {
-            binding.inputLayout.actionButton.setImageResource(R.drawable.ic_attach_file)
+            binding.inputLayout.actionButton.setImageResource(R.drawable.ic_attachment)
             InputStatus.EMPTY
         }
     }

@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <declare-styleable name="DialogLayout">
+        <attr name="avatar" format="string" />
+    </declare-styleable>
+
     <declare-styleable name="MessageLayout">
         <attr name="bubbleColor" format="string" />
         <attr name="cornerRadius" format="dimension" />

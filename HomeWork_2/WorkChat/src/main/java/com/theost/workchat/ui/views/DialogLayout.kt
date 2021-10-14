@@ -1,6 +1,8 @@
 package com.theost.workchat.ui.views
 
 import android.content.Context
+import android.content.res.TypedArray
+import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.ViewGroup
 import com.theost.workchat.R
@@ -12,8 +14,23 @@ class DialogLayout @JvmOverloads constructor(
     defStyleRes: Int = 0
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
+    var avatar: Drawable? = null
+        set(value) {
+            field = value
+            requestLayout()
+        }
+
     init {
         inflate(context, R.layout.dialog_layout, this)
+
+        val typedArray: TypedArray = context.obtainStyledAttributes(
+            attrs,
+            R.styleable.DialogLayout,
+            defStyleAttr,
+            defStyleRes
+        )
+        avatar = typedArray.getDrawable(R.styleable.DialogLayout_avatar)
+        typedArray.recycle()
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
