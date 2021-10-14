@@ -9,8 +9,7 @@
         android:layout_height="wrap_content"
         android:adjustViewBounds="true"
         android:maxWidth="37dp"
-        android:maxHeight="37dp"
-        android:src="@mipmap/ic_launcher_round" />
+        android:maxHeight="37dp" />
 
     <com.theost.workchat.ui.views.MessageLayout
         android:layout_width="wrap_content"
