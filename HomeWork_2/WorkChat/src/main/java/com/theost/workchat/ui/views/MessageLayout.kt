@@ -8,6 +8,7 @@ import android.util.AttributeSet
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import com.theost.workchat.R
+import com.theost.workchat.data.models.MessageType
 
 class MessageLayout @JvmOverloads constructor(
     context: Context,
@@ -16,13 +17,22 @@ class MessageLayout @JvmOverloads constructor(
     defStyleRes: Int = 0
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
+    private var incomeBubbleColor = ContextCompat.getColor(context, R.color.message_income_bubble)
+    private var outcomeMessageColor =
+        ContextCompat.getColor(context, R.color.message_outcome_bubble)
+
     var backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     var cornerRadius = 0f
         set(value) {
             field = value
             requestLayout()
         }
-    var bubbleColor = 0
+    var bubbleColor = -1
+        set(value) {
+            field = value
+            requestLayout()
+        }
+    var messageType: MessageType = MessageType.INCOME
         set(value) {
             field = value
             requestLayout()
@@ -37,14 +47,9 @@ class MessageLayout @JvmOverloads constructor(
             defStyleAttr,
             defStyleRes
         )
-        bubbleColor = typedArray.getColor(
-            R.styleable.MessageLayout_bubbleColor,
-            ContextCompat.getColor(context, R.color.black_2)
-        )
-        cornerRadius  = typedArray.getDimension(R.styleable.MessageLayout_cornerRadius, 50f)
+        bubbleColor = typedArray.getColor(R.styleable.MessageLayout_bubbleColor, -1)
+        cornerRadius = typedArray.getDimension(R.styleable.MessageLayout_cornerRadius, 50f)
         typedArray.recycle()
-
-        backgroundPaint.color = bubbleColor
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -67,7 +72,7 @@ class MessageLayout @JvmOverloads constructor(
         val nameMargin = (nameTextView.layoutParams as MarginLayoutParams)
 
         totalWidth += nameTextView.measuredWidth + nameMargin.rightMargin
-        totalHeight = maxOf(totalHeight, nameTextView.measuredHeight + nameMargin.bottomMargin)
+        totalHeight = maxOf(totalHeight, nameMargin.topMargin + nameTextView.measuredHeight + nameMargin.bottomMargin)
 
         measureChildWithMargins(
             timeTextView,
@@ -81,15 +86,34 @@ class MessageLayout @JvmOverloads constructor(
         val timeMargin = (timeTextView.layoutParams as MarginLayoutParams)
 
         totalWidth += timeMargin.leftMargin + timeTextView.measuredWidth
-        totalHeight = maxOf(totalHeight,timeTextView.measuredHeight + timeMargin.bottomMargin)
+        totalHeight = maxOf(totalHeight, timeMargin.topMargin + timeTextView.measuredHeight + nameMargin.bottomMargin)
 
-        measureChildWithMargins(messageTextView, widthMeasureSpec,0,heightMeasureSpec, totalHeight)
+        val heightUsed = if (messageType == MessageType.OUTCOME) 0 else totalHeight
+
+        measureChildWithMargins(
+            messageTextView,
+            widthMeasureSpec,
+            0,
+            heightMeasureSpec,
+            heightUsed
+        )
 
         // Support margin
         val messageMargin = (messageTextView.layoutParams as MarginLayoutParams)
 
-        totalWidth = maxOf(totalWidth, messageTextView.measuredWidth)
-        totalHeight += messageMargin.topMargin + messageTextView.measuredHeight
+        if (messageType == MessageType.OUTCOME) {
+            totalWidth = maxOf(
+                totalWidth,
+                messageTextView.measuredWidth + timeMargin.leftMargin + timeTextView.measuredWidth
+            )
+            totalHeight = maxOf(
+                messageMargin.topMargin + messageTextView.measuredHeight,
+                timeMargin.topMargin + timeTextView.measuredHeight
+            )
+        } else {
+            totalWidth = maxOf(totalWidth, messageTextView.measuredWidth)
+            totalHeight += messageMargin.topMargin + messageTextView.measuredHeight
+        }
 
         val resultWidth = resolveSize(paddingLeft + totalWidth + paddingRight, widthMeasureSpec)
         val resultHeight = resolveSize(paddingTop + totalHeight + paddingBottom, heightMeasureSpec)
@@ -97,6 +121,15 @@ class MessageLayout @JvmOverloads constructor(
     }
 
     override fun dispatchDraw(canvas: Canvas) {
+        if (bubbleColor != -1) {
+            backgroundPaint.color = bubbleColor
+        } else {
+            when (messageType) {
+                MessageType.INCOME -> backgroundPaint.color = incomeBubbleColor
+                MessageType.OUTCOME -> backgroundPaint.color = outcomeMessageColor
+            }
+        }
+
         canvas.drawRoundRect(
             0f,
             0f,
@@ -133,11 +166,16 @@ class MessageLayout @JvmOverloads constructor(
             paddingTop + timeMargin.topMargin + timeTextView.measuredWidth
         )
 
+        val messageTop = if (messageType == MessageType.OUTCOME)
+                paddingTop + messageMargin.topMargin
+            else
+                nameTextView.bottom + nameMargin.bottomMargin + messageMargin.topMargin
+
         messageTextView.layout(
             paddingLeft + messageMargin.leftMargin,
-            nameTextView.bottom + messageMargin.topMargin,
+            messageTop,
             paddingLeft + messageMargin.leftMargin + messageTextView.measuredWidth,
-            nameTextView.bottom + messageMargin.topMargin + nameTextView.measuredHeight
+            messageTop + nameTextView.measuredHeight
         )
     }
 

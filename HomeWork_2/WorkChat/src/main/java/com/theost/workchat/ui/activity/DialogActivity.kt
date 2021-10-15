@@ -16,6 +16,7 @@ import com.theost.workchat.R
 import com.theost.workchat.databinding.ActivityDialogBinding
 import com.theost.workchat.data.models.InputStatus
 import com.theost.workchat.data.models.Message
+import com.theost.workchat.data.models.MessageType
 import com.theost.workchat.data.repositories.MessagesRepository
 import com.theost.workchat.data.repositories.ReactionsRepository
 import com.theost.workchat.data.repositories.UsersRepository
@@ -57,15 +58,18 @@ class DialogActivity : AppCompatActivity() {
             if (item is Message) {
                 binding.messagesList.addView(MessageView(this).apply {
                     // todo fix these stranger things
-                    findViewById<TextView>(R.id.messageName).text =
-                        UsersRepository.getUser(item.userId)?.name
-                            ?: getString(R.string.deleted_name)
+                    val type = if (item.userId == userId) MessageType.OUTCOME else MessageType.INCOME
+                    messageType = type
+                    findViewById<MessageLayout>(R.id.messageLayout).apply { messageType = type }
+                    if (type != MessageType.OUTCOME) findViewById<TextView>(R.id.messageName).text =
+                        UsersRepository.getUser(item.userId)?.name.orEmpty()
                     findViewById<TextView>(R.id.messageTime).text = DateUtils.getTime(item.date)
                     findViewById<TextView>(R.id.messageText).text = item.text
                     val reactionLayout = findViewById<ReactionLayout>(R.id.reactionLayout)
-                    reactionLayout.findViewById<ImageButton>(R.id.addEmojiButton).setOnClickListener {
-                        pickReaction(item.id)
-                    }
+                    reactionLayout.findViewById<ImageButton>(R.id.addEmojiButton)
+                        .setOnClickListener {
+                            pickReaction(item.id)
+                        }
                     val reactions = ReactionsRepository.getReactions(item.id).sortedBy { it.id }
                     reactions.forEach { reaction ->
                         reactionLayout.addView(ReactionView(context).apply {
@@ -122,7 +126,9 @@ class DialogActivity : AppCompatActivity() {
 
     private fun sendReaction(messageId: Int, reaction: ListReaction) {
         val isSent = ReactionsRepository.addReaction(reaction.id, userId, messageId, reaction.emoji)
-        if (isSent) { loadData() }
+        if (isSent) {
+            loadData()
+        }
     }
 
     private fun getMessageText(): String {

@@ -6,6 +6,7 @@ import android.util.AttributeSet
 import android.view.ViewGroup
 import android.widget.ImageView
 import com.theost.workchat.R
+import com.theost.workchat.data.models.MessageType
 
 class MessageView @JvmOverloads constructor(
     context: Context,
@@ -15,6 +16,11 @@ class MessageView @JvmOverloads constructor(
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
     var avatar: Int = 0
+        set(value) {
+            field = value
+            requestLayout()
+        }
+    var messageType: MessageType = MessageType.INCOME
         set(value) {
             field = value
             requestLayout()

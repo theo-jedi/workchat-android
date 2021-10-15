@@ -21,16 +21,6 @@ class HomeActivity : AppCompatActivity() {
         binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val reactionLayout = binding.message.findViewById<ReactionLayout>(R.id.reactionLayout)
-        findViewById<ImageView>(R.id.addEmojiButton).setOnClickListener {
-            val reactionView = ReactionView(this).apply {
-                emoji = "\uD83D\uDE0B"
-                count = 1
-                setPadding(28)
-            }
-            reactionLayout.addView(reactionView, reactionLayout.size)
-        }
-
         binding.dialogActivityButton.setOnClickListener {
             startActivity(DialogActivity.createIntent(this, 0))
         }

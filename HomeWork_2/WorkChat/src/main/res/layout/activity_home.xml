@@ -7,12 +7,13 @@
     android:padding="10dp"
     tools:context=".ui.activity.HomeActivity">
 
-    <com.theost.workchat.ui.views.MessageView
-        android:id="@+id/message"
-        android:layout_width="wrap_content"
+    <androidx.appcompat.widget.AppCompatTextView
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:avatar="@mipmap/ic_launcher_round"
-        app:layout_constraintLeft_toLeftOf="parent"
+        android:text="@string/app_name"
+        android:textColor="@color/white"
+        android:textSize="40sp"
+        android:gravity="center"
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.button.MaterialButton
