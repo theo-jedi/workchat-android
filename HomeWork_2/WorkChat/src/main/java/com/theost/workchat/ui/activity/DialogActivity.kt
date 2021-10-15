@@ -58,13 +58,15 @@ class DialogActivity : AppCompatActivity() {
             if (item is Message) {
                 binding.messagesList.addView(MessageView(this).apply {
                     // todo fix these stranger things
-                    setOnLongClickListener {
-                        pickReaction(item.id)
-                        true
-                    }
                     val type = if (item.userId == userId) MessageType.OUTCOME else MessageType.INCOME
                     messageType = type
-                    findViewById<MessageLayout>(R.id.messageLayout).apply { messageType = type }
+                    findViewById<MessageLayout>(R.id.messageLayout).apply {
+                        messageType = type
+                        setOnLongClickListener {
+                            pickReaction(item.id)
+                            true
+                        }
+                    }
                     findViewById<TextView>(R.id.messageName).text = UsersRepository.getUser(item.userId)?.name.orEmpty()
                     findViewById<TextView>(R.id.messageTime).text = DateUtils.getTime(item.date)
                     findViewById<TextView>(R.id.messageText).text = item.text

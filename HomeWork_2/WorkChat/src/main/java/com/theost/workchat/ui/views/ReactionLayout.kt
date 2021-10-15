@@ -75,7 +75,7 @@ class ReactionLayout @JvmOverloads constructor(
         for (i in 0 until childCount) {
             val child = getChildAt(i)
             if (currentX != 0) currentX += reactionHorizontalMargin
-            val isNextRow = currentX + child.measuredWidth > width
+            val isNextRow = currentX + child.measuredWidth > measuredWidth // todo
             if (isNextRow) {
                 currentX = 0
                 currentY += reactionVerticalMargin + child.measuredHeight
