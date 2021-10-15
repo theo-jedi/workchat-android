@@ -7,7 +7,7 @@
     android:padding="10dp"
     tools:context=".ui.activity.HomeActivity">
 
-    <com.theost.workchat.ui.views.DialogLayout
+    <com.theost.workchat.ui.views.MessageView
         android:id="@+id/message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

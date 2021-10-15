@@ -21,18 +21,18 @@
         android:paddingBottom="12dp"
         app:cornerRadius="18dp" />
 
-    <com.theost.workchat.ui.views.EmojiLayout
-        android:id="@+id/emojiLayout"
+    <com.theost.workchat.ui.views.ReactionLayout
+        android:id="@+id/reactionLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        app:emojiHorizontalMargin="10dp"
-        app:emojiVerticalMargin="10dp"
+        app:reactionHorizontalMargin="10dp"
+        app:reactionVerticalMargin="10dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/message">
 
         <androidx.appcompat.widget.AppCompatImageButton
-            android:id="@+id/addButton"
+            android:id="@+id/addEmojiButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_emoji_view"
@@ -43,6 +43,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/message" />
 
-    </com.theost.workchat.ui.views.EmojiLayout>
+    </com.theost.workchat.ui.views.ReactionLayout>
 
 </merge>
