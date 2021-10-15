@@ -152,12 +152,14 @@ class MessageLayout @JvmOverloads constructor(
         val timeMargin = (timeTextView.layoutParams as MarginLayoutParams)
         val messageMargin = (messageTextView.layoutParams as MarginLayoutParams)
 
-        nameTextView.layout(
-            paddingLeft + nameMargin.leftMargin,
-            paddingTop + nameMargin.topMargin,
-            paddingLeft + nameMargin.leftMargin + nameTextView.measuredWidth,
-            paddingTop + nameMargin.topMargin + nameTextView.measuredHeight
-        )
+        if (messageType == MessageType.INCOME) {
+            nameTextView.layout(
+                paddingLeft + nameMargin.leftMargin,
+                paddingTop + nameMargin.topMargin,
+                paddingLeft + nameMargin.leftMargin + nameTextView.measuredWidth,
+                paddingTop + nameMargin.topMargin + nameTextView.measuredHeight
+            )
+        }
 
         timeTextView.layout(
             width - paddingRight - timeTextView.measuredWidth,
