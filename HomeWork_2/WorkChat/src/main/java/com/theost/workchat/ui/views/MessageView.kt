@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import com.theost.workchat.R
 
-class DialogLayout @JvmOverloads constructor(
+class MessageView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
@@ -21,15 +21,15 @@ class DialogLayout @JvmOverloads constructor(
         }
 
     init {
-        inflate(context, R.layout.dialog_layout, this)
+        inflate(context, R.layout.item_message, this)
 
         val typedArray: TypedArray = context.obtainStyledAttributes(
             attrs,
-            R.styleable.DialogLayout,
+            R.styleable.MessageView,
             defStyleAttr,
             defStyleRes
         )
-        avatar = typedArray.getResourceId(R.styleable.DialogLayout_avatar, 0)
+        avatar = typedArray.getResourceId(R.styleable.MessageView_avatar, 0)
         typedArray.recycle()
 
         if (avatar != 0) {
@@ -41,7 +41,7 @@ class DialogLayout @JvmOverloads constructor(
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val avatarImageView = getChildAt(0)
         val messageLayout = getChildAt(1)
-        val emojiLayout = getChildAt(2)
+        val reactionLayout = getChildAt(2)
 
         var totalWidth = 0
         var totalHeight = 0
@@ -78,7 +78,7 @@ class DialogLayout @JvmOverloads constructor(
         totalHeight = maxOf(totalHeight, messageLayout.measuredHeight + messageMargin.bottomMargin)
 
         measureChildWithMargins(
-            emojiLayout,
+            reactionLayout,
             widthMeasureSpec,
             avatarImageView.measuredWidth,
             heightMeasureSpec,
@@ -86,10 +86,10 @@ class DialogLayout @JvmOverloads constructor(
         )
 
         // Support margin
-        val emojiMargin = (emojiLayout.layoutParams as MarginLayoutParams)
+        val emojiMargin = (reactionLayout.layoutParams as MarginLayoutParams)
 
-        totalWidth = maxOf(totalWidth, avatarImageView.measuredWidth + avatarMargin.rightMargin + messageMargin.leftMargin + emojiLayout.measuredWidth)
-        totalHeight += emojiMargin.topMargin + emojiLayout.measuredHeight
+        totalWidth = maxOf(totalWidth, avatarImageView.measuredWidth + avatarMargin.rightMargin + messageMargin.leftMargin + reactionLayout.measuredWidth)
+        totalHeight += emojiMargin.topMargin + reactionLayout.measuredHeight
 
         val resultWidth = resolveSize(paddingLeft + totalWidth + paddingRight, widthMeasureSpec)
         val resultHeight = resolveSize(paddingTop + totalHeight + paddingBottom, heightMeasureSpec)
@@ -99,12 +99,12 @@ class DialogLayout @JvmOverloads constructor(
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         val avatarImageView = getChildAt(0)
         val messageLayout = getChildAt(1)
-        val emojiLayout = getChildAt(2)
+        val reactionLayout = getChildAt(2)
 
         // Support margin
         val avatarMargin = (avatarImageView.layoutParams as MarginLayoutParams)
         val messageMargin = (messageLayout.layoutParams as MarginLayoutParams)
-        val emojiMargin = (emojiLayout.layoutParams as MarginLayoutParams)
+        val emojiMargin = (reactionLayout.layoutParams as MarginLayoutParams)
 
         avatarImageView.layout(
             paddingLeft,
@@ -120,11 +120,11 @@ class DialogLayout @JvmOverloads constructor(
             paddingTop + messageLayout.measuredHeight
         )
 
-        emojiLayout.layout(
+        reactionLayout.layout(
             avatarImageView.right + avatarMargin.rightMargin + messageMargin.leftMargin,
             messageLayout.bottom + messageMargin.bottomMargin + emojiMargin.topMargin,
-            avatarImageView.right + avatarMargin.rightMargin + messageMargin.leftMargin + emojiLayout.measuredWidth,
-            messageLayout.bottom + messageMargin.bottomMargin + emojiMargin.topMargin + emojiLayout.measuredHeight
+            avatarImageView.right + avatarMargin.rightMargin + messageMargin.leftMargin + reactionLayout.measuredWidth,
+            messageLayout.bottom + messageMargin.bottomMargin + emojiMargin.topMargin + reactionLayout.measuredHeight
         )
     }
 

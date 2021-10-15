@@ -8,8 +8,9 @@ import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.core.view.setPadding
 import com.theost.workchat.R
+import com.theost.workchat.data.repositories.ReactionsRepository
 
-class EmojiView @JvmOverloads constructor(
+class ReactionView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
@@ -58,21 +59,21 @@ class EmojiView @JvmOverloads constructor(
     init {
         val typedArray: TypedArray = context.obtainStyledAttributes(
             attrs,
-            R.styleable.EmojiView,
+            R.styleable.ReactionView,
             defStyleAttr,
             defStyleRes
         )
 
-        emoji = typedArray.getString(R.styleable.EmojiView_emoji).orEmpty()
-        count = typedArray.getInt(R.styleable.EmojiView_text, 0)
-        textSize = typedArray.getDimension(R.styleable.EmojiView_emojiTextSize, 40f)
+        emoji = typedArray.getString(R.styleable.ReactionView_emoji).orEmpty()
+        count = typedArray.getInt(R.styleable.ReactionView_text, 0)
+        textSize = typedArray.getDimension(R.styleable.ReactionView_reactionTextSize, 40f)
         textColor = typedArray.getColor(
-            R.styleable.EmojiView_emojiTextColor,
+            R.styleable.ReactionView_reactionTextColor,
             ContextCompat.getColor(context, R.color.lighter_gray)
         )
-        padding = typedArray.getDimension(R.styleable.EmojiView_emojiPadding, 28f).toInt()
+        padding = typedArray.getDimension(R.styleable.ReactionView_reactionPadding, 28f).toInt()
         backgroundDrawable = typedArray.getResourceId(
-            R.styleable.EmojiView_emojiBackground,
+            R.styleable.ReactionView_reactionBackground,
             R.drawable.bg_emoji_view
         )
         typedArray.recycle()
@@ -140,6 +141,7 @@ class EmojiView @JvmOverloads constructor(
     }
 
     override fun onClick(view: View) {
+        // todo callback to add or remove reaction
         isSelected = !isSelected
     }
 }

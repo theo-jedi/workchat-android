@@ -1,5 +1,6 @@
 package com.theost.workchat.ui.views
 
+import android.R.attr
 import android.content.Context
 import android.content.res.TypedArray
 import android.graphics.Canvas
@@ -10,6 +11,12 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.core.content.ContextCompat
 import com.theost.workchat.R
+import android.view.ViewGroup.MarginLayoutParams
+import android.R.attr.right
+
+import android.R.attr.left
+import android.view.ViewGroup
+
 
 class DateView @JvmOverloads constructor(
     context: Context,
@@ -38,6 +45,21 @@ class DateView @JvmOverloads constructor(
             field = value
             requestLayout()
         }
+    var margins = 0
+        set(value) {
+            field = value
+            requestLayout()
+        }
+    var paddingsVertical = 0
+        set(value) {
+            field = value
+            requestLayout()
+        }
+    var paddingsHorizontal = 0
+        set(value) {
+            field = value
+            requestLayout()
+        }
 
     private val textCoordinate = PointF()
     private val textBounds = Rect()
@@ -52,6 +74,9 @@ class DateView @JvmOverloads constructor(
         )
         text = typedArray.getString(R.styleable.DateView_dateText).orEmpty()
         textSize = typedArray.getDimension(R.styleable.DateView_dateTextSize, 34f)
+        margins = typedArray.getInteger(R.styleable.DateView_dateMargins, 24)
+        paddingsVertical = typedArray.getInteger(R.styleable.DateView_datePaddingsVertical, 24)
+        paddingsHorizontal = typedArray.getInteger(R.styleable.DateView_datePaddingsHorizontal, 56)
         bubbleColor = typedArray.getColor(
             R.styleable.DateView_dateBubbleColor,
             ContextCompat.getColor(context, R.color.black_4)
@@ -64,10 +89,12 @@ class DateView @JvmOverloads constructor(
         textPaint.textAlign = Paint.Align.CENTER
         typedArray.recycle()
 
-        setPadding(56, 24, 56, 24)
+        setPadding(paddingsHorizontal, paddingsVertical, paddingsHorizontal, paddingsVertical)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        (layoutParams as MarginLayoutParams).setMargins(0, margins, 0, margins)
+
         textPaint.getTextBounds(text, 0, text.length, textBounds)
 
         val resultWidth =
@@ -87,9 +114,9 @@ class DateView @JvmOverloads constructor(
         // Draw background
         textPaint.color = bubbleColor
         canvas.drawRoundRect(
+            textCoordinate.x - textBounds.width(),
             0f,
-            0f,
-            width.toFloat(),
+            textCoordinate.x + textBounds.width(),
             height.toFloat(),
             height.toFloat(),
             height.toFloat(),
