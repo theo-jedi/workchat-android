@@ -1,4 +1,4 @@
-package com.theost.workchat.ui.data
+package com.theost.workchat.data.models
 
 enum class InputStatus {
     EMPTY, FILLED
