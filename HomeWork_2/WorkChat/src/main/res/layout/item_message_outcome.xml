@@ -4,18 +4,9 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content">
 
-    <androidx.appcompat.widget.AppCompatImageView
+    <com.theost.workchat.ui.views.OutcomeMessageLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:adjustViewBounds="true"
-        android:maxWidth="37dp"
-        android:maxHeight="37dp" />
-
-    <com.theost.workchat.ui.views.MessageLayout
-        android:id="@+id/messageLayout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
         android:paddingStart="12dp"
         android:paddingTop="8dp"
         android:paddingEnd="12dp"
@@ -33,7 +24,7 @@
         app:layout_constraintTop_toBottomOf="@+id/message">
 
         <androidx.appcompat.widget.AppCompatImageButton
-            android:id="@+id/addEmojiButton"
+            android:id="@+id/addReaction"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_emoji_view"

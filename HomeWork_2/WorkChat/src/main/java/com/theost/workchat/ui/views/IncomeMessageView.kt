@@ -5,43 +5,82 @@ import android.content.res.TypedArray
 import android.util.AttributeSet
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.core.content.ContextCompat
 import com.theost.workchat.R
-import com.theost.workchat.data.models.MessageType
 
-class MessageView @JvmOverloads constructor(
+class IncomeMessageView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
     defStyleRes: Int = 0
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
-    var avatar: Int = 0
+    var avatar: Int = PARAMETER_UNSET
         set(value) {
             field = value
-            requestLayout()
+            val avatarImageView = getChildAt(0) as ImageView
+            if (avatar != PARAMETER_UNSET) avatarImageView.setImageResource(value)
         }
-    var messageType: MessageType = MessageType.INCOME
+    var username: String = ""
         set(value) {
             field = value
-            requestLayout()
+            val messageLayout = getChildAt(1) as IncomeMessageLayout
+            messageLayout.username = value
+        }
+    var time: String = ""
+        set(value) {
+            field = value
+            val messageLayout = getChildAt(1) as IncomeMessageLayout
+            messageLayout.time = value
+        }
+    var message: String = ""
+        set(value) {
+            field = value
+            val messageLayout = getChildAt(1) as IncomeMessageLayout
+            messageLayout.message = value
+        }
+    var bubble: Int = PARAMETER_UNSET
+        set(value) {
+            field = value
+            val messageLayout = getChildAt(1) as IncomeMessageLayout
+            messageLayout.bubble = value
+        }
+    var corners: Float = CORNERS_DEFAULT
+        set(value) {
+            field = value
+            val messageLayout = getChildAt(1) as IncomeMessageLayout
+            messageLayout.corners = value
         }
 
     init {
-        inflate(context, R.layout.item_message, this)
+        inflate(context, R.layout.item_message_income, this)
 
         val typedArray: TypedArray = context.obtainStyledAttributes(
             attrs,
-            R.styleable.MessageView,
+            R.styleable.IncomeMessageView,
             defStyleAttr,
             defStyleRes
         )
-        avatar = typedArray.getResourceId(R.styleable.MessageView_avatar, 0)
+        avatar = typedArray.getResourceId(R.styleable.IncomeMessageView_avatar, PARAMETER_UNSET)
+        username = typedArray.getString(R.styleable.IncomeMessageView_username).orEmpty()
+        message = typedArray.getString(R.styleable.IncomeMessageView_message).orEmpty()
+        time = typedArray.getString(R.styleable.IncomeMessageView_time).orEmpty()
+        bubble = typedArray.getColor(R.styleable.IncomeMessageView_bubble, PARAMETER_UNSET)
+        corners = typedArray.getDimension(R.styleable.IncomeMessageView_corners, CORNERS_DEFAULT)
         typedArray.recycle()
 
-        if (avatar != 0) {
-            val avatarImageView = getChildAt(0) as ImageView
-            avatarImageView.setImageResource(avatar)
-        }
+        if (bubble == PARAMETER_UNSET) bubble =
+            ContextCompat.getColor(context, R.color.message_bubble_income)
+
+        val messageLayout = getChildAt(1) as IncomeMessageLayout
+        messageLayout.username = username
+        messageLayout.message = message
+        messageLayout.time = time
+        messageLayout.bubble = bubble
+        messageLayout.corners = corners
+
+        val avatarImageView = getChildAt(0) as ImageView
+        if (avatar != PARAMETER_UNSET) avatarImageView.setImageResource(avatar)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -92,10 +131,10 @@ class MessageView @JvmOverloads constructor(
         )
 
         // Support margin
-        val emojiMargin = (reactionLayout.layoutParams as MarginLayoutParams)
+        val reactionMargin = (reactionLayout.layoutParams as MarginLayoutParams)
 
         totalWidth = maxOf(totalWidth, avatarImageView.measuredWidth + avatarMargin.rightMargin + messageMargin.leftMargin + reactionLayout.measuredWidth)
-        totalHeight += emojiMargin.topMargin + reactionLayout.measuredHeight
+        totalHeight += reactionMargin.topMargin + reactionLayout.measuredHeight
 
         val resultWidth = resolveSize(paddingLeft + totalWidth + paddingRight, widthMeasureSpec)
         val resultHeight = resolveSize(paddingTop + totalHeight + paddingBottom, heightMeasureSpec)
@@ -110,7 +149,7 @@ class MessageView @JvmOverloads constructor(
         // Support margin
         val avatarMargin = (avatarImageView.layoutParams as MarginLayoutParams)
         val messageMargin = (messageLayout.layoutParams as MarginLayoutParams)
-        val emojiMargin = (reactionLayout.layoutParams as MarginLayoutParams)
+        val reactionMargin = (reactionLayout.layoutParams as MarginLayoutParams)
 
         avatarImageView.layout(
             paddingLeft,
@@ -128,9 +167,9 @@ class MessageView @JvmOverloads constructor(
 
         reactionLayout.layout(
             avatarImageView.right + avatarMargin.rightMargin + messageMargin.leftMargin,
-            messageLayout.bottom + messageMargin.bottomMargin + emojiMargin.topMargin,
+            messageLayout.bottom + messageMargin.bottomMargin + reactionMargin.topMargin,
             avatarImageView.right + avatarMargin.rightMargin + messageMargin.leftMargin + reactionLayout.measuredWidth,
-            messageLayout.bottom + messageMargin.bottomMargin + emojiMargin.topMargin + reactionLayout.measuredHeight
+            messageLayout.bottom + messageMargin.bottomMargin + reactionMargin.topMargin + reactionLayout.measuredHeight
         )
     }
 
@@ -144,6 +183,11 @@ class MessageView @JvmOverloads constructor(
 
     override fun generateLayoutParams(p: LayoutParams): LayoutParams {
         return MarginLayoutParams(p)
+    }
+
+    companion object {
+        private const val PARAMETER_UNSET = -1
+        private const val CORNERS_DEFAULT = 50f
     }
 
 }

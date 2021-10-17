@@ -1,6 +1,7 @@
 package com.theost.workchat.data.repositories
 
 import com.theost.workchat.data.models.Reaction
+import java.util.*
 
 /* Todo RxJava */
 object ReactionsRepository {
@@ -31,6 +32,7 @@ object ReactionsRepository {
         if (databaseReaction == null) {
             reaction = Reaction(
                 id = id,
+                date = Date().time,
                 messageId = messageId,
                 emoji = emoji,
                 userIds = mutableListOf(userId)
@@ -40,6 +42,7 @@ object ReactionsRepository {
             userIds.addAll(databaseReaction.userIds)
             reaction = Reaction(
                 id = databaseReaction.id,
+                date = databaseReaction.date,
                 messageId = databaseReaction.messageId,
                 emoji = databaseReaction.emoji,
                 userIds = userIds.toList()
@@ -57,6 +60,7 @@ object ReactionsRepository {
             userIds.removeAll { it == userId }
             val reaction = Reaction(
                 id = databaseReaction.id,
+                date = databaseReaction.date,
                 messageId = databaseReaction.messageId,
                 emoji = databaseReaction.emoji,
                 userIds = userIds.toList()

@@ -18,6 +18,6 @@
     <color name="message_background">@color/black_3</color>
     <color name="input_background">@color/black_4</color>
 
-    <color name="message_income_bubble">@color/black_2</color>
-    <color name="message_outcome_bubble">@color/green</color>
+    <color name="message_bubble_income">@color/black_2</color>
+    <color name="message_bubble_outcome">@color/green</color>
 </resources>
