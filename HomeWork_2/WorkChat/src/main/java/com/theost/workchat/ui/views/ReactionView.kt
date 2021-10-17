@@ -76,7 +76,7 @@ class ReactionView @JvmOverloads constructor(
         padding = typedArray.getDimension(R.styleable.ReactionView_reactionPadding, PADDING_DEFAULT).toInt()
         backgroundDrawable = typedArray.getResourceId(
             R.styleable.ReactionView_reactionBackground,
-            R.drawable.bg_emoji_view
+            R.drawable.bg_reaction_view
         )
         typedArray.recycle()
 

@@ -27,7 +27,7 @@
             android:id="@+id/addReaction"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_emoji_view"
+            android:background="@drawable/bg_reaction_view"
             android:contentDescription="@string/add_emoji"
             android:minWidth="56dp"
             android:minHeight="37dp"

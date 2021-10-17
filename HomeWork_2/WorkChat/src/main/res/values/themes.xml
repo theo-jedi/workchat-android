@@ -24,6 +24,6 @@
     </style>
 
     <style name="Theme.WorkChat.BottomSheet.Modal" parent="Widget.Design.BottomSheet.Modal">
-        <item name="android:background">@drawable/bg_emoji_dialog</item>
+        <item name="android:background">@drawable/bg_reaction_dialog</item>
     </style>
 </resources>
