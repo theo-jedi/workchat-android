@@ -2,13 +2,15 @@ package com.theost.workchat.ui.views
 
 import android.content.Context
 import android.content.res.TypedArray
-import android.graphics.*
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.PointF
+import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.core.view.setPadding
 import com.theost.workchat.R
-import com.theost.workchat.data.repositories.ReactionsRepository
 
 class ReactionView @JvmOverloads constructor(
     context: Context,
@@ -66,12 +68,12 @@ class ReactionView @JvmOverloads constructor(
 
         emoji = typedArray.getString(R.styleable.ReactionView_emoji).orEmpty()
         count = typedArray.getInt(R.styleable.ReactionView_text, 0)
-        textSize = typedArray.getDimension(R.styleable.ReactionView_reactionTextSize, 40f)
+        textSize = typedArray.getDimension(R.styleable.ReactionView_reactionTextSize, SIZE_DEFAULT)
         textColor = typedArray.getColor(
             R.styleable.ReactionView_reactionTextColor,
             ContextCompat.getColor(context, R.color.lighter_gray)
         )
-        padding = typedArray.getDimension(R.styleable.ReactionView_reactionPadding, 28f).toInt()
+        padding = typedArray.getDimension(R.styleable.ReactionView_reactionPadding, PADDING_DEFAULT).toInt()
         backgroundDrawable = typedArray.getResourceId(
             R.styleable.ReactionView_reactionBackground,
             R.drawable.bg_emoji_view
@@ -136,12 +138,16 @@ class ReactionView @JvmOverloads constructor(
         canvas.drawText(count.toString(), textCoordinate.x, textCoordinate.y, textPaint)
     }
 
-    companion object {
-        private val SUPPORTED_DRAWABLE_STATE = intArrayOf(android.R.attr.state_selected)
-    }
-
     override fun onClick(view: View) {
         // todo callback to add or remove reaction
         isSelected = !isSelected
     }
+
+    companion object {
+        private val SUPPORTED_DRAWABLE_STATE = intArrayOf(android.R.attr.state_selected)
+
+        private const val SIZE_DEFAULT = 40f
+        private const val PADDING_DEFAULT = 28f
+    }
+
 }

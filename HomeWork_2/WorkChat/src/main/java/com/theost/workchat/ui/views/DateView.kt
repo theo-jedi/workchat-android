@@ -1,6 +1,5 @@
 package com.theost.workchat.ui.views
 
-import android.R.attr
 import android.content.Context
 import android.content.res.TypedArray
 import android.graphics.Canvas
@@ -9,13 +8,9 @@ import android.graphics.PointF
 import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.View
+import android.view.ViewGroup.MarginLayoutParams
 import androidx.core.content.ContextCompat
 import com.theost.workchat.R
-import android.view.ViewGroup.MarginLayoutParams
-import android.R.attr.right
-
-import android.R.attr.left
-import android.view.ViewGroup
 
 
 class DateView @JvmOverloads constructor(
@@ -73,10 +68,10 @@ class DateView @JvmOverloads constructor(
             defStyleRes
         )
         text = typedArray.getString(R.styleable.DateView_dateText).orEmpty()
-        textSize = typedArray.getDimension(R.styleable.DateView_dateTextSize, 34f)
-        margins = typedArray.getInteger(R.styleable.DateView_dateMargins, 24)
-        paddingsVertical = typedArray.getInteger(R.styleable.DateView_datePaddingsVertical, 24)
-        paddingsHorizontal = typedArray.getInteger(R.styleable.DateView_datePaddingsHorizontal, 56)
+        textSize = typedArray.getDimension(R.styleable.DateView_dateTextSize, SIZE_DEFAULT)
+        margins = typedArray.getInteger(R.styleable.DateView_dateMargins, MARGINS_DEFAULT)
+        paddingsVertical = typedArray.getInteger(R.styleable.DateView_datePaddingsVertical, PADDING_VERTICAL_DEFAULT)
+        paddingsHorizontal = typedArray.getInteger(R.styleable.DateView_datePaddingsHorizontal, PADDING_HORIZONTAL_DEFAULT)
         bubbleColor = typedArray.getColor(
             R.styleable.DateView_dateBubbleColor,
             ContextCompat.getColor(context, R.color.black_4)
@@ -126,6 +121,13 @@ class DateView @JvmOverloads constructor(
         // Draw text
         textPaint.color = textColor
         canvas.drawText(text, textCoordinate.x, textCoordinate.y, textPaint)
+    }
+
+    companion object {
+        private const val SIZE_DEFAULT = 34f
+        private const val MARGINS_DEFAULT = 24
+        private const val PADDING_VERTICAL_DEFAULT = 24
+        private const val PADDING_HORIZONTAL_DEFAULT = 56
     }
 
 }

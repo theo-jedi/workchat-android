@@ -166,9 +166,9 @@ class IncomeMessageView @JvmOverloads constructor(
         )
 
         reactionLayout.layout(
-            avatarImageView.right + avatarMargin.rightMargin + messageMargin.leftMargin,
+            messageLayout.left,
             messageLayout.bottom + messageMargin.bottomMargin + reactionMargin.topMargin,
-            avatarImageView.right + avatarMargin.rightMargin + messageMargin.leftMargin + reactionLayout.measuredWidth,
+            messageLayout.left + reactionLayout.measuredWidth,
             messageLayout.bottom + messageMargin.bottomMargin + reactionMargin.topMargin + reactionLayout.measuredHeight
         )
     }

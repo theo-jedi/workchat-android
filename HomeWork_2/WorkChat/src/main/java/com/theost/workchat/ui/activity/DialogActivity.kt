@@ -88,7 +88,7 @@ class DialogActivity : AppCompatActivity() {
                     this.message = message.text
                     this.time = DateUtils.getTime(message.date)
                     loadReactions(this, message, reactions)
-                    invalidate()
+                    requestLayout()
                 }
             )
         }
