@@ -17,7 +17,7 @@ class ReactionView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
     defStyleRes: Int = 0
-) : View(context, attrs, defStyleAttr, defStyleRes), View.OnClickListener {
+) : View(context, attrs, defStyleAttr, defStyleRes) {
 
     var emoji = ""
         set(value) {
@@ -86,8 +86,6 @@ class ReactionView @JvmOverloads constructor(
         textPaint.textSize = textSize
         textPaint.color = textColor
         textPaint.textAlign = Paint.Align.CENTER
-
-        setOnClickListener(this)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -136,11 +134,6 @@ class ReactionView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         canvas.drawText(emoji, emojiCoordinate.x, emojiCoordinate.y, textPaint)
         canvas.drawText(count.toString(), textCoordinate.x, textCoordinate.y, textPaint)
-    }
-
-    override fun onClick(view: View) {
-        // todo callback to add or remove reaction
-        isSelected = !isSelected
     }
 
     companion object {

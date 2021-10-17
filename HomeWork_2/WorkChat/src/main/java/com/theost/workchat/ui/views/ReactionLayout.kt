@@ -44,24 +44,39 @@ class ReactionLayout @JvmOverloads constructor(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val width = (getSize(widthMeasureSpec) - paddingLeft - paddingRight - reactionHorizontalMargin) * percentWidth
+        val width = (getSize(widthMeasureSpec) - paddingLeft - paddingRight) * percentWidth
 
         var totalWidth = 0
         var totalHeight = 0
-        var currentWidth = 0
+        var currentX = 0
+        var currentY = 0
+        var rowMaxY = 0
 
         for (i in 0 until childCount) {
             val child = getChildAt(i)
+
             child.measure(widthMeasureSpec, heightMeasureSpec)
-            if (currentWidth != 0) currentWidth += reactionHorizontalMargin
-            if (currentWidth + child.measuredWidth > width) {
-                currentWidth = 0
-                totalHeight += reactionVerticalMargin + child.measuredHeight
-            } else {
-                currentWidth += child.measuredWidth
-                totalWidth = maxOf(totalWidth, currentWidth)
-                totalHeight = maxOf(totalHeight, reactionVerticalMargin + child.measuredHeight)
+
+            if (currentX + child.measuredWidth + reactionHorizontalMargin * 2 > width) {
+                currentX = 0
+                currentY += rowMaxY
             }
+
+            val isFirstRow = currentY == 0
+            val isFirstColumn = currentX == 0
+
+            if (!isFirstColumn) currentX += reactionHorizontalMargin
+            currentX += child.measuredWidth
+
+            println(isFirstRow)
+            rowMaxY = if (!isFirstRow) {
+                maxOf(rowMaxY, reactionVerticalMargin + child.measuredHeight)
+            } else {
+                maxOf(rowMaxY, child.measuredHeight)
+            }
+
+            totalWidth += currentX
+            totalHeight = maxOf(totalHeight, currentY + rowMaxY)
         }
 
         val resultWidth = resolveSize(paddingStart + totalWidth + paddingEnd, widthMeasureSpec)
@@ -72,21 +87,36 @@ class ReactionLayout @JvmOverloads constructor(
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         var currentX = 0
         var currentY = 0
+        var rowMaxY = 0
+
         for (i in 0 until childCount) {
             val child = getChildAt(i)
-            if (currentX != 0) currentX += reactionHorizontalMargin
-            val isNextRow = currentX + child.measuredWidth > measuredWidth // todo
-            if (isNextRow) {
+
+            if (currentX + child.measuredWidth + reactionHorizontalMargin * 2 > measuredWidth) {
                 currentX = 0
-                currentY += reactionVerticalMargin + child.measuredHeight
+                currentY += rowMaxY
             }
-            child.layout(
-                currentX,
-                currentY,
-                currentX + child.measuredWidth,
-                currentY + child.measuredHeight
-            )
+
+            val isFirstRow = currentY == 0
+            val isFirstColumn = currentX == 0
+
+            val top = if (isFirstRow) currentY else currentY + reactionVerticalMargin
+            val left = if (isFirstColumn) currentX else currentX + reactionHorizontalMargin
+
+            if (!isFirstColumn) currentX += reactionHorizontalMargin
             currentX += child.measuredWidth
+            rowMaxY = if (!isFirstRow) {
+                maxOf(rowMaxY, reactionVerticalMargin + child.measuredHeight)
+            } else {
+                maxOf(rowMaxY, child.measuredHeight)
+            }
+
+            child.layout(
+                left,
+                top,
+                left + child.measuredWidth,
+                top + child.measuredHeight
+            )
         }
     }
 

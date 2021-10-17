@@ -77,6 +77,10 @@ class DialogActivity : AppCompatActivity() {
                     this.message = message.text
                     this.time = DateUtils.getTime(message.date)
                     loadReactions(this, message, reactions)
+                    findViewById<View>(R.id.messageLayout).setOnLongClickListener {
+                        pickReaction(message.id)
+                        true
+                    }
                 }
             )
         } else {
@@ -88,7 +92,10 @@ class DialogActivity : AppCompatActivity() {
                     this.message = message.text
                     this.time = DateUtils.getTime(message.date)
                     loadReactions(this, message, reactions)
-                    requestLayout()
+                    findViewById<View>(R.id.messageLayout).setOnLongClickListener {
+                        pickReaction(message.id)
+                        true
+                    }
                 }
             )
         }
@@ -105,6 +112,10 @@ class DialogActivity : AppCompatActivity() {
                         emoji = reaction.emoji
                         count = reaction.userIds.size
                         isSelected = userId in reaction.userIds
+                        setOnClickListener { reactionView ->
+                            reactionView.isSelected = !reactionView.isSelected
+                            editReaction(reaction.id, message.id)
+                        }
                     }, size - 1
                 )
             }
@@ -151,6 +162,20 @@ class DialogActivity : AppCompatActivity() {
     private fun sendReaction(messageId: Int, reaction: ListReaction) {
         val isSent = ReactionsRepository.addReaction(reaction.id, userId, messageId, reaction.emoji)
         if (isSent) {
+            loadData()
+        }
+    }
+
+    private fun editReaction(reactionId: Int, messageId: Int) {
+        val isSent = ReactionsRepository.editReaction(reactionId, userId, messageId)
+        if (isSent) {
+            loadData()
+        }
+    }
+
+    private fun deleteReaction(reactionId: Int, messageId: Int) {
+        val isRemoved = ReactionsRepository.removeReaction(reactionId, messageId, userId)
+        if (isRemoved) {
             loadData()
         }
     }
