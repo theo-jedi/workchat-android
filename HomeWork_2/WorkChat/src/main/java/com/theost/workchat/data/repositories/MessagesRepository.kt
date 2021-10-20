@@ -1,14 +1,17 @@
 package com.theost.workchat.data.repositories
 
 import com.theost.workchat.data.models.Message
+import com.theost.workchat.utils.DateUtils
 import java.util.*
 
 /* Todo RxJava */
 object MessagesRepository {
 
     private val messages = mutableListOf(
-        Message(0, 1, 0, "Hello there!", Date()),
-        Message(1, 2, 0, "General Kenobi!", Date())
+        Message(0, 1, 0, "Hello there!", DateUtils.getRandomDateBefore()),
+        Message(1, 2, 0, "General Kenobi!", DateUtils.getRandomDateBefore()),
+        Message(2, 2, 0, "Fine addition to my collection!", DateUtils.getRandomDateBefore()),
+        Message(3, 1, 0, ":)", DateUtils.getRandomDateBefore())
     )
 
     fun getMessages(dialogId: Int): List<Message> {

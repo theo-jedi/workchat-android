@@ -42,6 +42,7 @@ object ReactionsRepository {
                 userIds = mutableListOf(userId)
             )
         } else {
+            if (databaseReaction.userIds.contains(userId)) return false
             val userIds = mutableSetOf(userId)
             userIds.addAll(databaseReaction.userIds)
             reaction = Reaction(

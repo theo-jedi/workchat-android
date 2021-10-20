@@ -8,6 +8,9 @@ import android.graphics.PointF
 import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.View
+import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.ViewGroup.MarginLayoutParams
 import androidx.core.content.ContextCompat
 import com.theost.workchat.R
@@ -40,7 +43,7 @@ class DateView @JvmOverloads constructor(
             field = value
             requestLayout()
         }
-    var margins = 0
+    var marginTop = 0
         set(value) {
             field = value
             requestLayout()
@@ -69,7 +72,7 @@ class DateView @JvmOverloads constructor(
         )
         text = typedArray.getString(R.styleable.DateView_dateText).orEmpty()
         textSize = typedArray.getDimension(R.styleable.DateView_dateTextSize, SIZE_DEFAULT)
-        margins = typedArray.getInteger(R.styleable.DateView_dateMargins, MARGINS_DEFAULT)
+        marginTop = typedArray.getInteger(R.styleable.DateView_dateMargins, context.resources.getDimension(R.dimen.message_margin).toInt())
         paddingsVertical = typedArray.getInteger(R.styleable.DateView_datePaddingsVertical, PADDING_VERTICAL_DEFAULT)
         paddingsHorizontal = typedArray.getInteger(R.styleable.DateView_datePaddingsHorizontal, PADDING_HORIZONTAL_DEFAULT)
         bubbleColor = typedArray.getColor(
@@ -85,10 +88,11 @@ class DateView @JvmOverloads constructor(
         typedArray.recycle()
 
         setPadding(paddingsHorizontal, paddingsVertical, paddingsHorizontal, paddingsVertical)
+        layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        (layoutParams as MarginLayoutParams).setMargins(0, margins, 0, margins)
+        (layoutParams as MarginLayoutParams).setMargins(0, marginTop, 0, 0)
 
         textPaint.getTextBounds(text, 0, text.length, textBounds)
 
@@ -125,7 +129,6 @@ class DateView @JvmOverloads constructor(
 
     companion object {
         private const val SIZE_DEFAULT = 34f
-        private const val MARGINS_DEFAULT = 24
         private const val PADDING_VERTICAL_DEFAULT = 24
         private const val PADDING_HORIZONTAL_DEFAULT = 56
     }

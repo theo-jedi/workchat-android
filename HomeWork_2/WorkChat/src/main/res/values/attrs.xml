@@ -5,6 +5,7 @@
     <attr name="time" format="string" />
     <attr name="bubble" format="color" />
     <attr name="corners" format="dimension" />
+    <attr name="margins" format="dimension" />
 
     <declare-styleable name="IncomeMessageView">
         <attr name="avatar" format="string" />
@@ -13,6 +14,7 @@
         <attr name="time" />
         <attr name="bubble" />
         <attr name="corners" />
+        <attr name="margins" />
     </declare-styleable>
 
     <declare-styleable name="OutcomeMessageView">
@@ -21,6 +23,7 @@
         <attr name="time" />
         <attr name="bubble" />
         <attr name="corners" />
+        <attr name="margins" />
     </declare-styleable>
 
     <declare-styleable name="DateView">

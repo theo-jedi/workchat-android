@@ -51,6 +51,11 @@ class IncomeMessageView @JvmOverloads constructor(
             val messageLayout = getChildAt(1) as IncomeMessageLayout
             messageLayout.corners = value
         }
+    var marginTop = 0
+        set(value) {
+            field = value
+            requestLayout()
+        }
 
     init {
         inflate(context, R.layout.item_message_income, this)
@@ -67,6 +72,7 @@ class IncomeMessageView @JvmOverloads constructor(
         time = typedArray.getString(R.styleable.IncomeMessageView_time).orEmpty()
         bubble = typedArray.getColor(R.styleable.IncomeMessageView_bubble, PARAMETER_UNSET)
         corners = typedArray.getDimension(R.styleable.IncomeMessageView_corners, CORNERS_DEFAULT)
+        marginTop = typedArray.getInteger(R.styleable.IncomeMessageView_margins, context.resources.getDimension(R.dimen.message_margin).toInt())
         typedArray.recycle()
 
         if (bubble == PARAMETER_UNSET) bubble =
@@ -84,6 +90,8 @@ class IncomeMessageView @JvmOverloads constructor(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        (layoutParams as MarginLayoutParams).setMargins(0, marginTop, 0, 0)
+
         val avatarImageView = getChildAt(0)
         val messageLayout = getChildAt(1)
         val reactionLayout = getChildAt(2)
@@ -134,7 +142,7 @@ class IncomeMessageView @JvmOverloads constructor(
         val reactionMargin = (reactionLayout.layoutParams as MarginLayoutParams)
 
         totalWidth = maxOf(totalWidth, avatarImageView.measuredWidth + avatarMargin.rightMargin + messageMargin.leftMargin + reactionLayout.measuredWidth)
-        totalHeight += reactionMargin.topMargin + reactionLayout.measuredHeight
+        if (reactionLayout.measuredHeight != 0) totalHeight += reactionMargin.topMargin + reactionLayout.measuredHeight
 
         val resultWidth = resolveSize(paddingLeft + totalWidth + paddingRight, widthMeasureSpec)
         val resultHeight = resolveSize(paddingTop + totalHeight + paddingBottom, heightMeasureSpec)

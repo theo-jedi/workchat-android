@@ -3,6 +3,7 @@ package com.theost.workchat.ui.widgets
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.theost.workchat.data.models.ListReaction
 import com.theost.workchat.databinding.ItemReactionBinding
 
 class ReactionAdapterDelegate(private val clickListener: (reaction: ListReaction) -> Unit) : AdapterDelegate {

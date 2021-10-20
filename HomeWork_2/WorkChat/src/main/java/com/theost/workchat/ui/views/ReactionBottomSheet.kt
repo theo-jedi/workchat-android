@@ -5,7 +5,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.theost.workchat.databinding.ReactionsBottomSheetBinding
 import com.theost.workchat.ui.widgets.BaseAdapter
 import com.theost.workchat.ui.widgets.DelegateItem
-import com.theost.workchat.ui.widgets.ListReaction
+import com.theost.workchat.data.models.ListReaction
 import com.theost.workchat.ui.widgets.ReactionAdapterDelegate
 
 class ReactionBottomSheet(

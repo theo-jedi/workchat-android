@@ -38,6 +38,11 @@ class OutcomeMessageView @JvmOverloads constructor(
             val messageLayout = getChildAt(0) as OutcomeMessageLayout
             messageLayout.corners = corners
         }
+    var marginTop = 0
+        set(value) {
+            field = value
+            requestLayout()
+        }
 
     init {
         inflate(context, R.layout.item_message_outcome, this)
@@ -48,10 +53,11 @@ class OutcomeMessageView @JvmOverloads constructor(
             defStyleAttr,
             defStyleRes
         )
-        message = typedArray.getString(R.styleable.IncomeMessageView_message).orEmpty()
-        time = typedArray.getString(R.styleable.IncomeMessageView_time).orEmpty()
-        bubble = typedArray.getColor(R.styleable.IncomeMessageView_bubble, PARAMETER_UNSET)
-        corners = typedArray.getDimension(R.styleable.IncomeMessageView_corners, CORNERS_DEFAULT)
+        message = typedArray.getString(R.styleable.OutcomeMessageView_message).orEmpty()
+        time = typedArray.getString(R.styleable.OutcomeMessageView_time).orEmpty()
+        bubble = typedArray.getColor(R.styleable.OutcomeMessageView_bubble, PARAMETER_UNSET)
+        corners = typedArray.getDimension(R.styleable.OutcomeMessageView_corners, CORNERS_DEFAULT)
+        marginTop = typedArray.getInteger(R.styleable.OutcomeMessageView_margins, context.resources.getDimension(R.dimen.message_margin).toInt())
         typedArray.recycle()
 
         if (bubble == PARAMETER_UNSET) bubble =
@@ -65,6 +71,8 @@ class OutcomeMessageView @JvmOverloads constructor(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        (layoutParams as MarginLayoutParams).setMargins(0, marginTop, 0, 0)
+
         val messageLayout = getChildAt(0)
         val reactionLayout = getChildAt(1)
 
@@ -97,7 +105,7 @@ class OutcomeMessageView @JvmOverloads constructor(
         val reactionMargin = (reactionLayout.layoutParams as MarginLayoutParams)
 
         totalWidth = maxOf(totalWidth, reactionMargin.leftMargin + reactionLayout.measuredWidth)
-        totalHeight += reactionMargin.topMargin + reactionLayout.measuredHeight
+        if (reactionLayout.measuredHeight != 0) totalHeight += reactionMargin.topMargin + reactionLayout.measuredHeight
 
         val resultWidth = resolveSize(paddingLeft + totalWidth + paddingRight, widthMeasureSpec)
         val resultHeight = resolveSize(paddingTop + totalHeight + paddingBottom, heightMeasureSpec)

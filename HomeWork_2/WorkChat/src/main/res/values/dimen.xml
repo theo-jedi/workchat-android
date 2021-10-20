@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="message_margin">10dp</dimen>
+    <dimen name="emoji_view_width">55dp</dimen>
+    <dimen name="emoji_view_height">37dp</dimen>
+</resources>

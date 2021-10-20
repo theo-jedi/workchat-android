@@ -113,9 +113,9 @@ class ReactionLayout @JvmOverloads constructor(
 
             child.layout(
                 left,
-                top,
+                paddingTop + top,
                 left + child.measuredWidth,
-                top + child.measuredHeight
+                paddingTop + top + child.measuredHeight
             )
         }
     }
