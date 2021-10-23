@@ -100,7 +100,7 @@ class DialogFragment : Fragment() {
                     listItems.add(
                         ListMessage(
                             item.id,
-                            R.mipmap.ic_launcher_round,
+                            R.mipmap.sample_avatar,
                             UsersRepository.getUser(item.userId)?.name
                                 ?: getString(R.string.deleted_user),
                             item.text,

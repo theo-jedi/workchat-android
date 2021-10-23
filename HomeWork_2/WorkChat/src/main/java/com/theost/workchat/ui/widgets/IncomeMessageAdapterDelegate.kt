@@ -35,7 +35,7 @@ class IncomeMessageAdapterDelegate(private val actionListener: (messageId: Int, 
         RecyclerView.ViewHolder(messageView) {
 
         fun bind(listMessage: ListMessage) {
-            messageView.avatar = listMessage.avatar ?: R.mipmap.ic_launcher_round
+            if (listMessage.avatar != null) messageView.avatar = listMessage.avatar
             messageView.username = listMessage.username
             messageView.message = listMessage.message
             messageView.time = listMessage.time

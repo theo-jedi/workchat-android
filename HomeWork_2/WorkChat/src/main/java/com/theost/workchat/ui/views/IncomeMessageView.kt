@@ -5,6 +5,7 @@ import android.content.res.TypedArray
 import android.util.AttributeSet
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import com.theost.workchat.R
 
@@ -18,7 +19,7 @@ class IncomeMessageView @JvmOverloads constructor(
     var avatar: Int = PARAMETER_UNSET
         set(value) {
             field = value
-            val avatarImageView = getChildAt(0) as ImageView
+            val avatarImageView = (getChildAt(0) as CardView).getChildAt(0) as ImageView
             if (avatar != PARAMETER_UNSET) avatarImageView.setImageResource(value)
         }
     var username: String = ""
@@ -85,7 +86,7 @@ class IncomeMessageView @JvmOverloads constructor(
         messageLayout.bubble = bubble
         messageLayout.corners = corners
 
-        val avatarImageView = getChildAt(0) as ImageView
+        val avatarImageView = (getChildAt(0) as CardView).getChildAt(0) as ImageView
         if (avatar != PARAMETER_UNSET) avatarImageView.setImageResource(avatar)
     }
 
