@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.theost.workchat.R
 import com.theost.workchat.databinding.FragmentProfileBinding
-import com.theost.workchat.ui.widgets.ToolbarHolder
 
 class ProfileFragment :  Fragment() {
 
@@ -27,10 +26,10 @@ class ProfileFragment :  Fragment() {
     }
 
     private fun configureToolbar() {
-        activity?.let { activity ->
-            val toolbarHolder = activity as ToolbarHolder
-            toolbarHolder.setToolbarTitle(getString(R.string.profile))
-            toolbarHolder.showToolbar()
+        binding.toolbarLayout.toolbar.title = getString(R.string.profile)
+        binding.toolbarLayout.toolbar.setNavigationIcon(R.drawable.ic_back)
+        binding.toolbarLayout.toolbar.setNavigationOnClickListener {
+            activity?.onBackPressed()
         }
     }
 

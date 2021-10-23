@@ -4,6 +4,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <include android:id="@+id/toolbarLayout"
+        layout="@layout/toolbar" />
+
     <androidx.cardview.widget.CardView
         android:layout_width="185dp"
         android:layout_height="185dp"

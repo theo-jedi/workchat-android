@@ -74,10 +74,10 @@ class DialogFragment : Fragment() {
     }
 
     private fun configureToolbar() {
-        activity?.let { activity ->
-            val toolbarHolder = activity as ToolbarHolder
-            toolbarHolder.setToolbarTitle("#$dialogId")
-            toolbarHolder.showToolbar()
+        binding.toolbarLayout.toolbar.title = "#$dialogId"
+        binding.toolbarLayout.toolbar.setNavigationIcon(R.drawable.ic_back)
+        binding.toolbarLayout.toolbar.setNavigationOnClickListener {
+            activity?.onBackPressed()
         }
     }
 
