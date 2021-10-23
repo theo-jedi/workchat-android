@@ -25,6 +25,7 @@ class DialogFragment : Fragment() {
     private val viewModel: DialogViewModel by viewModels()
     private val adapter = BaseAdapter()
     private var inputStatus = InputStatus.EMPTY
+    private var scrollStatus = ScrollStatus.STAY
     private var dialogId: Int = 0
     private var userId: Int = 0
 
@@ -116,6 +117,11 @@ class DialogFragment : Fragment() {
             }
         }
         adapter.submitList(listItems)
+
+        if (scrollStatus == ScrollStatus.WAITING) {
+            scrollStatus = ScrollStatus.STAY
+            binding.messagesList.smoothScrollToPosition(adapter.itemCount + 1)
+        }
     }
 
     private fun onInputTextChanged(text: String) {
@@ -140,9 +146,9 @@ class DialogFragment : Fragment() {
         val message = getMessageText()
         val isSent = MessagesRepository.addMessage(userId, dialogId, message)
         if (isSent) {
-            loadData()
+            scrollStatus = ScrollStatus.WAITING
             binding.inputLayout.messageInput.setText("")
-            binding.messagesList.smoothScrollToPosition(adapter.itemCount)
+            loadData()
         } else {
             // todo send error bubble
             Toast.makeText(context, "Error, try again!", Toast.LENGTH_SHORT).show()
