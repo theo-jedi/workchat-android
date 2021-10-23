@@ -14,9 +14,8 @@
     <color name="black_4">#282828</color>
     <color name="black_5">#464646</color>
 
-    <color name="background">@color/black_1</color>
-    <color name="message_background">@color/black_3</color>
-    <color name="input_background">@color/black_4</color>
+    <color name="background_dark">@color/black_1</color>
+    <color name="background_light">@color/black_3</color>
 
     <color name="message_bubble_income">@color/black_2</color>
     <color name="message_bubble_outcome">@color/green</color>

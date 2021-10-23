@@ -11,7 +11,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.WorkChat">
         <activity
-            android:name=".ui.activity.HomeActivity"
+            android:name=".ui.activity.MessengerActivity"
             android:windowSoftInputMode="adjustResize"
             tools:ignore="IntentFilterExportedReceiver">
             <intent-filter>
@@ -20,10 +20,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:theme="@style/Theme.WorkChat.Dialogs"
-            android:name=".ui.activity.DialogActivity"
-            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>

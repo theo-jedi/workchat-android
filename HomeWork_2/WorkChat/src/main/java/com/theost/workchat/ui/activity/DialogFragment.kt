@@ -1,39 +1,44 @@
 package com.theost.workchat.ui.activity
 
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
-import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import com.theost.workchat.R
 import com.theost.workchat.data.models.*
 import com.theost.workchat.data.repositories.MessagesRepository
 import com.theost.workchat.data.repositories.ReactionsRepository
 import com.theost.workchat.data.repositories.UsersRepository
-import com.theost.workchat.databinding.ActivityDialogBinding
+import com.theost.workchat.databinding.FragmentDialogBinding
 import com.theost.workchat.ui.views.ReactionBottomSheet
 import com.theost.workchat.ui.widgets.*
 import com.theost.workchat.utils.DateUtils
 
-class DialogActivity : AppCompatActivity() {
+class DialogFragment : Fragment() {
 
-    private lateinit var binding: ActivityDialogBinding
     private val viewModel: DialogViewModel by viewModels()
     private val adapter = BaseAdapter()
     private var inputStatus = InputStatus.EMPTY
     private var dialogId: Int = 0
     private var userId: Int = 0
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-        binding = ActivityDialogBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    private var _binding: FragmentDialogBinding? = null
+    private val binding get() = _binding!!
 
-        dialogId = intent.getIntExtra(DIALOG_ID_EXTRA, 0)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        super.onCreate(savedInstanceState)
+        _binding = FragmentDialogBinding.inflate(layoutInflater)
+        configureToolbar()
 
         binding.inputLayout.messageInput.addTextChangedListener { onInputTextChanged(it.toString()) }
         binding.inputLayout.actionButton.setOnClickListener { onInputActionClicked() }
@@ -49,9 +54,30 @@ class DialogActivity : AppCompatActivity() {
             addDelegate(DateAdapterDelegate())
         }
 
-        viewModel.allData.observe(this) { setData(it.first, it.second) }
-
+        viewModel.allData.observe(viewLifecycleOwner) { setData(it.first, it.second) }
         loadData()
+
+        return binding.root
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        dialogId = savedInstanceState?.getInt(DIALOG_ID_EXTRA)
+            ?: (arguments?.getInt(DIALOG_ID_EXTRA) ?: 0)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
+    }
+
+    private fun configureToolbar() {
+        activity?.let { activity ->
+            val toolbarHolder = activity as ToolbarHolder
+            toolbarHolder.setToolbarTitle("#$dialogId")
+            toolbarHolder.showToolbar()
+        }
     }
 
     private fun loadData() {
@@ -119,7 +145,7 @@ class DialogActivity : AppCompatActivity() {
             binding.messagesList.smoothScrollToPosition(adapter.itemCount)
         } else {
             // todo send error bubble
-            Toast.makeText(this, "Error, try again!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Error, try again!", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -131,9 +157,11 @@ class DialogActivity : AppCompatActivity() {
     }
 
     private fun pickReaction(messageId: Int) {
-        ReactionBottomSheet(this) { reaction ->
-            sendReaction(messageId, reaction)
-        }.build().show()
+        if (!isDetached) {
+            ReactionBottomSheet(requireActivity()) { reaction ->
+                sendReaction(messageId, reaction)
+            }.build().show()
+        }
     }
 
     private fun sendReaction(messageId: Int, reaction: ListReaction) {
@@ -157,10 +185,12 @@ class DialogActivity : AppCompatActivity() {
     companion object {
         private const val DIALOG_ID_EXTRA = "dialog_id"
 
-        fun createIntent(context: Context, dialogId: Int): Intent {
-            val intent = Intent(context, DialogActivity::class.java)
-            intent.putExtra(DIALOG_ID_EXTRA, dialogId)
-            return intent
+        fun newFragment(dialogId: Int): Fragment {
+            val fragment = DialogFragment()
+            val bundle = Bundle()
+            bundle.putInt(DIALOG_ID_EXTRA, dialogId)
+            fragment.arguments = bundle
+            return fragment
         }
     }
 
