@@ -5,8 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -22,12 +20,13 @@ import com.theost.workchat.utils.DateUtils
 
 class DialogFragment : Fragment() {
 
-    private val viewModel: DialogViewModel by viewModels()
     private val adapter = BaseAdapter()
     private var inputStatus = InputStatus.EMPTY
     private var scrollStatus = ScrollStatus.STAY
     private var dialogId: Int = 0
     private var userId: Int = 0
+
+    private val viewModel: DialogViewModel by viewModels()
 
     private var _binding: FragmentDialogBinding? = null
     private val binding get() = _binding!!
@@ -44,8 +43,7 @@ class DialogFragment : Fragment() {
         binding.inputLayout.messageInput.addTextChangedListener { onInputTextChanged(it.toString()) }
         binding.inputLayout.actionButton.setOnClickListener { onInputActionClicked() }
 
-        binding.messagesList.adapter = adapter
-        adapter.apply {
+        binding.messagesList.adapter = adapter.apply {
             addDelegate(IncomeMessageAdapterDelegate() { messageId, reactionId, actionType ->
                 onMessageAction(messageId, reactionId, actionType)
             })
@@ -55,6 +53,7 @@ class DialogFragment : Fragment() {
             addDelegate(DateAdapterDelegate())
         }
 
+        viewModel.dialogTitle.observe(viewLifecycleOwner) { setToolbarTitle(it) }
         viewModel.allData.observe(viewLifecycleOwner) { setData(it.first, it.second) }
         loadData()
 
@@ -74,11 +73,14 @@ class DialogFragment : Fragment() {
     }
 
     private fun configureToolbar() {
-        binding.toolbarLayout.toolbar.title = "#$dialogId"
         binding.toolbarLayout.toolbar.setNavigationIcon(R.drawable.ic_back)
         binding.toolbarLayout.toolbar.setNavigationOnClickListener {
             activity?.onBackPressed()
         }
+    }
+
+    private fun setToolbarTitle(title: String) {
+        binding.toolbarLayout.toolbar.title = title
     }
 
     private fun loadData() {

@@ -40,11 +40,12 @@ class ReactionBottomSheet(
             ListReaction(1013,"\uD83D\uDE1E")
         )
 
-        binding.reactionsList.adapter = adapter
-        adapter.addDelegate(ReactionAdapterDelegate { reaction ->
-            callback(reaction)
-            dialog.dismiss()
-        })
+        binding.reactionsList.adapter = adapter.apply {
+            addDelegate(ReactionAdapterDelegate { reaction ->
+                callback(reaction)
+                dialog.dismiss()
+            })
+        }
 
         adapter.submitList(reactionList)
 

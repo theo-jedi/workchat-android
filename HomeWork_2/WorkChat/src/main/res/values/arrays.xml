@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="topic_backgrounds">
+        <item>#2A9D8F</item>
+        <item>#E9C46A</item>
+        <item>#ED6A5E</item>
+        <item>#3976A7</item>
+    </string-array>
+</resources>

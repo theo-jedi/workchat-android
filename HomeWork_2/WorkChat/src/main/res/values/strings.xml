@@ -4,6 +4,7 @@
 
     <string name="search">Поиск</string>
     <string name="channels">Каналы</string>
+    <string name="people">Люди</string>
 
     <string name="add_emoji">Добавить эмоджи</string>
     <string name="write_message">Написать…</string>
@@ -12,7 +13,12 @@
     <string name="deleted_user">Неизвестно</string>
     <string name="deleted_message">Сообщение удалено</string>
 
-    <string name="sample_username">Имя Фамилия</string>
-    <string name="sample_about">In a meeting</string>
-    <string name="sample_status">online</string>
+    <string name="online">В сети</string>
+    <string name="offline">Не в сети</string>
+
+    <string name="sample_username">Theo Jedi</string>
+    <string name="sample_email">myemail@company.com</string>
+    <string name="sample_channel">#general</string>
+    <string name="sample_topic">Testing</string>
+    <string name="sample_topic_count">100</string>
 </resources>

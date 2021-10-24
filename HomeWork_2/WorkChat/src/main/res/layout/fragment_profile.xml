@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <include android:id="@+id/toolbarLayout"
+    <include
+        android:id="@+id/toolbarLayout"
         layout="@layout/toolbar" />
 
     <androidx.cardview.widget.CardView
@@ -42,8 +43,8 @@
         android:id="@+id/userAbout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/sample_about"
-        android:textColor="@color/lighter_gray"
+        android:text="@string/sample_email"
+        android:textColor="@color/light_gray"
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -53,7 +54,8 @@
         android:id="@+id/userStatus"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/sample_status"
+        android:layout_marginTop="2dp"
+        android:text="@string/online"
         android:textColor="@color/green"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -61,11 +63,13 @@
         app:layout_constraintTop_toBottomOf="@+id/userAbout" />
 
     <com.google.android.material.button.MaterialButton
+        android:id="@+id/userLogout"
         style="@style/Theme.WorkChat.RoundButton"
         android:layout_width="150dp"
         android:layout_height="60dp"
         android:text="@string/log_out"
         android:textSize="16sp"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

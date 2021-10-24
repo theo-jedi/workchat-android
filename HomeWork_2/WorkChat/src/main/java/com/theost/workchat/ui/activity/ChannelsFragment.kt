@@ -1,20 +1,25 @@
 package com.theost.workchat.ui.activity
 
-import android.app.SearchManager
-import android.content.Context
-import android.content.Context.SEARCH_SERVICE
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
-import android.widget.ImageView
-import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
-import com.theost.workchat.R
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
+import com.theost.workchat.data.models.ChannelsType
 import com.theost.workchat.databinding.FragmentChannelsBinding
+import com.theost.workchat.ui.widgets.BaseAdapter
+import com.theost.workchat.ui.widgets.ChannelAdapterDelegate
+import com.theost.workchat.ui.widgets.TopicListener
 
 class ChannelsFragment : Fragment() {
+
+    private var channelsType = ChannelsType.ALL
+    private val userId = 0
+    private val adapter = BaseAdapter()
+
+    private val viewModel: ChannelsViewModel by viewModels()
 
     private var _binding: FragmentChannelsBinding? = null
     private val binding get() = _binding!!
@@ -26,48 +31,38 @@ class ChannelsFragment : Fragment() {
     ): View {
         super.onCreate(savedInstanceState)
         _binding = FragmentChannelsBinding.inflate(layoutInflater)
-        configureToolbar()
+
+        binding.channelsList.adapter = adapter.apply {
+            addDelegate(ChannelAdapterDelegate() { topicId ->
+                (activity as TopicListener).showTopicDialog(topicId)
+            })
+        }
+
+        viewModel.allData.observe(viewLifecycleOwner) { adapter.submitList(it)}
+        viewModel.loadData(userId, channelsType)
 
         return binding.root
     }
 
-    private fun configureToolbar() {
-        binding.toolbarLayout.toolbar.title = getString(R.string.channels)
-        val searchMenuItem = binding.toolbarLayout.toolbar.menu.findItem(R.id.actionSearch)
-        val searchView = searchMenuItem.actionView as SearchView
-        val searchManager = context?.getSystemService(SEARCH_SERVICE) as SearchManager
-        searchMenuItem.isVisible = true
-        searchView.apply {
-            findViewById<ImageView>(R.id.search_close_btn).setImageResource(R.drawable.ic_close)
-            setSearchableInfo(searchManager.getSearchableInfo(activity?.componentName))
-            setIconifiedByDefault(false)
-            setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-                override fun onQueryTextSubmit(query: String): Boolean {
-                    activity?.currentFocus?.let { view ->
-                        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-                        imm?.hideSoftInputFromWindow(view.windowToken, 0)
-                    }
-                    return true
-                }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-                override fun onQueryTextChange(newText: String): Boolean {
-                    onQueryChanged(newText)
-                    return true
-                }
-
-            })
-        }
+        channelsType = savedInstanceState?.getSerializable(CHANNELS_TYPE_EXTRA) as? ChannelsType
+            ?: (arguments?.getSerializable(CHANNELS_TYPE_EXTRA) ?: 0) as ChannelsType
     }
 
-    private fun onQueryChanged(query: String) {
-        // todo
-        println(query)
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
     }
 
     companion object {
-        fun newFragment(): Fragment {
+        private const val CHANNELS_TYPE_EXTRA = "channels_type"
+
+        fun newFragment(channelsType: ChannelsType): Fragment {
             val fragment = ChannelsFragment()
             val bundle = Bundle()
+            bundle.putSerializable(CHANNELS_TYPE_EXTRA, channelsType)
             fragment.arguments = bundle
             return fragment
         }
