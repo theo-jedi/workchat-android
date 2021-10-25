@@ -1,10 +1,14 @@
 package com.theost.workchat.ui.fragments
 
 import android.os.Bundle
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -26,8 +30,8 @@ import com.theost.workchat.data.repositories.UsersRepository
 import com.theost.workchat.databinding.FragmentDialogBinding
 import com.theost.workchat.ui.adapters.core.BaseAdapter
 import com.theost.workchat.ui.adapters.delegates.DateAdapterDelegate
-import com.theost.workchat.ui.adapters.delegates.IncomeMessageAdapterDelegate
-import com.theost.workchat.ui.adapters.delegates.OutcomeMessageAdapterDelegate
+import com.theost.workchat.ui.adapters.delegates.MessageIncomeAdapterDelegate
+import com.theost.workchat.ui.adapters.delegates.MessageOutcomeAdapterDelegate
 import com.theost.workchat.ui.interfaces.DelegateItem
 import com.theost.workchat.ui.viewmodels.DialogViewModel
 import com.theost.workchat.ui.views.ReactionBottomSheet
@@ -53,22 +57,24 @@ class DialogFragment : Fragment() {
     ): View {
         super.onCreate(savedInstanceState)
         _binding = FragmentDialogBinding.inflate(layoutInflater)
+
         configureToolbar()
 
+        binding.emptyLayout.emptyView.text = getString(R.string.no_messages)
         binding.inputLayout.messageInput.addTextChangedListener { onInputTextChanged(it.toString()) }
         binding.inputLayout.actionButton.setOnClickListener { onInputActionClicked() }
 
         binding.messagesList.adapter = adapter.apply {
-            addDelegate(IncomeMessageAdapterDelegate() { messageId, reactionId, actionType ->
+            addDelegate(MessageIncomeAdapterDelegate() { messageId, reactionId, actionType ->
                 onMessageAction(messageId, reactionId, actionType)
             })
-            addDelegate(OutcomeMessageAdapterDelegate() { messageId, reactionId, actionType ->
+            addDelegate(MessageOutcomeAdapterDelegate() { messageId, reactionId, actionType ->
                 onMessageAction(messageId, reactionId, actionType)
             })
             addDelegate(DateAdapterDelegate())
         }
 
-        viewModel.dialogTitle.observe(viewLifecycleOwner) { setToolbarTitle(it) }
+        viewModel.dialogInfo.observe(viewLifecycleOwner) { setDialogInfo(it.first, it.second) }
         viewModel.allData.observe(viewLifecycleOwner) { setData(it.first, it.second) }
         loadData()
 
@@ -94,7 +100,14 @@ class DialogFragment : Fragment() {
         }
     }
 
-    private fun setToolbarTitle(title: String) {
+    private fun setDialogInfo(channel: String, topic: String) {
+        val title = SpannableString("$channel $topic")
+        title.setSpan(
+            ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.green)),
+            channel.length,
+            title.length,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
         binding.toolbarLayout.toolbar.title = title
     }
 
@@ -138,6 +151,12 @@ class DialogFragment : Fragment() {
         if (scrollStatus == ScrollStatus.WAITING) {
             scrollStatus = ScrollStatus.STAY
             binding.messagesList.smoothScrollToPosition(adapter.itemCount + 1)
+        }
+
+        if (listItems.isEmpty()) {
+            binding.emptyLayout.emptyView.visibility = View.VISIBLE
+        } else {
+            binding.emptyLayout.emptyView.visibility = View.GONE
         }
     }
 

@@ -1,6 +1,5 @@
 package com.theost.workchat.ui.adapters.delegates
 
-import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -16,8 +15,14 @@ class TopicAdapterDelegate(private val clickListener: (topicId: Int) -> Unit) :
         val binding = ItemTopicBinding.inflate(
             LayoutInflater.from(parent.context), parent, false
         )
-        val backgroundColors = parent.context.resources.getStringArray(R.array.topic_backgrounds)
-        return ViewHolder(binding, backgroundColors, clickListener)
+        val backgrounds = mutableListOf<Int>()
+        parent.context.resources.obtainTypedArray(R.array.topic_backgrounds).let { typedArray ->
+            (0 until typedArray.length()).forEach { item ->
+                backgrounds.add(typedArray.getResourceId(item, 0))
+            }
+            typedArray.recycle()
+        }
+        return ViewHolder(binding, backgrounds, clickListener)
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, item: Any, position: Int) {
@@ -28,16 +33,16 @@ class TopicAdapterDelegate(private val clickListener: (topicId: Int) -> Unit) :
 
     class ViewHolder(
         private val binding: ItemTopicBinding,
-        private val backgroundColors: Array<String>,
+        private val backgrounds: List<Int>,
         private val clickListener: (profileId: Int) -> Unit
     ) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(listItem: ListTopic) {
-            binding.root.setOnClickListener { clickListener(listItem.id) }
-            binding.root.setBackgroundColor(Color.parseColor(backgroundColors[adapterPosition % backgroundColors.size]))
             binding.topicName.text = listItem.name
             binding.topicCount.text = listItem.count.toString()
+            binding.root.setOnClickListener { clickListener(listItem.id) }
+            binding.root.setBackgroundResource(backgrounds[adapterPosition % backgrounds.size])
         }
 
     }

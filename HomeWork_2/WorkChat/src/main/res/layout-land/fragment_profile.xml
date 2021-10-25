@@ -12,12 +12,12 @@
         android:id="@+id/avatarLayout"
         android:layout_width="185dp"
         android:layout_height="185dp"
-        android:layout_marginBottom="15dp"
+        android:layout_marginEnd="30dp"
         android:backgroundTint="@android:color/transparent"
         app:cardCornerRadius="15dp"
-        app:layout_constraintBottom_toBottomOf="@+id/guidelineCenter"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintBottom_toBottomOf="@id/guidelineBottom"
+        app:layout_constraintEnd_toStartOf="@id/guidelineCenter"
+        app:layout_constraintTop_toBottomOf="@id/toolbarLayout">
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/userAvatar"
@@ -36,9 +36,8 @@
         android:layout_height="wrap_content"
         android:text="@string/sample_username"
         android:textSize="32sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/guidelineCenter" />
+        app:layout_constraintStart_toStartOf="@id/guidelineCenter"
+        app:layout_constraintTop_toTopOf="@id/avatarLayout" />
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/userAbout"
@@ -47,8 +46,7 @@
         android:text="@string/sample_email"
         android:textColor="@color/light_gray"
         android:textSize="20sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toStartOf="@id/guidelineCenter"
         app:layout_constraintTop_toBottomOf="@+id/userName" />
 
     <androidx.appcompat.widget.AppCompatTextView
@@ -59,8 +57,7 @@
         android:text="@string/online"
         android:textColor="@color/green"
         android:textSize="16sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toStartOf="@id/guidelineCenter"
         app:layout_constraintTop_toBottomOf="@+id/userAbout" />
 
     <com.google.android.material.button.MaterialButton
@@ -71,16 +68,28 @@
         android:text="@string/log_out"
         android:textSize="16sp"
         android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/userStatus" />
+        app:layout_constraintBottom_toBottomOf="@id/avatarLayout"
+        app:layout_constraintStart_toStartOf="@id/guidelineCenter" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guidelineCenter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         app:layout_constraintGuide_percent="0.5" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineEnd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_end="50dp" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineBottom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_end="@dimen/navigation_bar_height" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

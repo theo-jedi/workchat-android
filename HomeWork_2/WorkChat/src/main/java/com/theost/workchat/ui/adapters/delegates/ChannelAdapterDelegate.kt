@@ -1,8 +1,10 @@
 package com.theost.workchat.ui.adapters.delegates
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import androidx.transition.TransitionManager
 import com.theost.workchat.data.models.ui.ListChannel
 import com.theost.workchat.databinding.ItemChannelBinding
 import com.theost.workchat.ui.adapters.core.BaseAdapter

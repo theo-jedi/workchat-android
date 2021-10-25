@@ -3,6 +3,7 @@ package com.theost.workchat.utils
 import android.animation.ObjectAnimator
 import android.app.Activity
 import android.content.Context
+import android.graphics.drawable.TransitionDrawable
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 
@@ -31,7 +32,7 @@ object DisplayUtils {
             "rotation",
             180f,
             0f)
-            .apply { duration = 300 }
+            .apply { duration = 280 }
             .start()
     }
 

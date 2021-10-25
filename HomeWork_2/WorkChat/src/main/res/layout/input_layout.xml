@@ -15,6 +15,7 @@
         android:layout_height="wrap_content"
         android:background="@drawable/bg_message_fields"
         android:hint="@string/write_message"
+        android:imeOptions="flagNoExtractUi"
         android:inputType="text"
         android:maxLines="1"
         android:paddingStart="20dp"

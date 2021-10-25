@@ -21,4 +21,5 @@
     <string name="sample_channel">#general</string>
     <string name="sample_topic">Testing</string>
     <string name="sample_topic_count">100</string>
+    <string name="no_messages">Нет сообщений</string>
 </resources>

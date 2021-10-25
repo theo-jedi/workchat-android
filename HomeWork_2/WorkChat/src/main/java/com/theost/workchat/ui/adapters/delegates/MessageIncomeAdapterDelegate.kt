@@ -15,7 +15,7 @@ import com.theost.workchat.ui.views.ReactionLayout
 import com.theost.workchat.ui.views.ReactionView
 
 
-class IncomeMessageAdapterDelegate(private val actionListener: (messageId: Int, reactionId: Int, actionType: MessageAction) -> Unit) :
+class MessageIncomeAdapterDelegate(private val actionListener: (messageId: Int, reactionId: Int, actionType: MessageAction) -> Unit) :
     AdapterDelegate {
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
         val messageView = MessageIncomeView(parent.context)

@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.FragmentManager
 import com.theost.workchat.R
 import com.theost.workchat.databinding.ActivityMessengerBinding
 import com.theost.workchat.ui.fragments.DialogFragment
@@ -30,9 +29,9 @@ class MessengerActivity : FragmentActivity(), NavigationHolder, PeopleListener, 
             if (it.itemId != navigationPrevSelectedId) {
                 navigationPrevSelectedId = it.itemId
                 when (it.itemId) {
-                    R.id.navChannels -> navigateFragment(StreamsFragment.newFragment())
-                    R.id.navPeople -> navigateFragment(PeopleFragment.newFragment())
-                    R.id.navProfile -> navigateFragment(ProfileFragment.newFragment(0))
+                    R.id.navChannels -> navigateFragment(StreamsFragment.newFragment(), "channels")
+                    R.id.navPeople -> navigateFragment(PeopleFragment.newFragment(), "people")
+                    R.id.navProfile -> navigateFragment(ProfileFragment.newFragment(0), "profile")
                 }
             }
             true
@@ -68,14 +67,15 @@ class MessengerActivity : FragmentActivity(), NavigationHolder, PeopleListener, 
         startFragment(DialogFragment.newFragment(topicId))
     }
 
-    private fun navigateFragment(fragment: Fragment) {
+    private fun navigateFragment(fragment: Fragment, tag: String) {
         DisplayUtils.hideKeyboard(this)
 
-        supportFragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
-        supportFragmentManager.beginTransaction()
-            .add(R.id.fragmentContainer, fragment)
-            .addToBackStack(null)
-            .commit()
+        if (supportFragmentManager.findFragmentByTag(tag) == null) {
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, fragment)
+                .addToBackStack(tag)
+                .commit()
+        }
     }
 
     private fun startFragment(fragment: Fragment) {

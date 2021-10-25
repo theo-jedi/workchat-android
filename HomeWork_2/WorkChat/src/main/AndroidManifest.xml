@@ -12,6 +12,7 @@
         android:theme="@style/Theme.WorkChat">
         <activity
             android:name=".ui.activities.MessengerActivity"
+            android:configChanges="orientation|screenSize"
             android:windowSoftInputMode="adjustResize"
             tools:ignore="IntentFilterExportedReceiver">
             <intent-filter>

@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.theost.workchat.data.models.core.MessageDate
 import com.theost.workchat.data.models.core.Reaction
+import com.theost.workchat.data.repositories.ChannelsRepository
 import com.theost.workchat.data.repositories.MessagesRepository
 import com.theost.workchat.data.repositories.ReactionsRepository
 import com.theost.workchat.data.repositories.TopicsRepository
@@ -15,12 +16,15 @@ class DialogViewModel : ViewModel() {
     private val _allData = MutableLiveData<Pair<List<Any>, List<Reaction>>>()
     val allData: LiveData<Pair<List<Any>, List<Reaction>>> = _allData
 
-    private val _dialogTitle = MutableLiveData<String>()
-    val dialogTitle: LiveData<String> = _dialogTitle
+    private val _dialogInfo = MutableLiveData<Pair<String, String>>()
+    val dialogInfo: LiveData<Pair<String, String>> = _dialogInfo
 
     fun loadData(dialogId: Int) {
-        val dialog = TopicsRepository.getTopics().find { it.id == dialogId }
-        if (dialog != null) _dialogTitle.postValue(dialog.name)
+        TopicsRepository.getTopics().find { it.id == dialogId }?.let { topic ->
+            ChannelsRepository.getChannels().find { it.id == topic.channelId }?.let { channel ->
+                _dialogInfo.postValue(Pair(channel.name, topic.name))
+            }
+        }
         val items = mutableListOf<Any>()
         val messages = MessagesRepository.getMessages(dialogId).sortedBy { it.date }
         val reactions = mutableListOf<Reaction>()
