@@ -75,10 +75,14 @@ class MessengerActivity : FragmentActivity(), NavigationHolder, PeopleListener, 
     private fun navigateFragment(fragment: Fragment, tag: String) {
         DisplayUtils.hideKeyboard(this)
 
-        val transitionFragment = supportFragmentManager.findFragmentByTag(tag) ?: fragment
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainer, transitionFragment, tag)
-            .commit()
+        if (supportFragmentManager.findFragmentByTag(tag) == null) {
+            if (supportFragmentManager.backStackEntryCount > 0) supportFragmentManager.popBackStack()
+
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, fragment, tag)
+                .addToBackStack(tag)
+                .commit()
+        }
     }
 
     private fun startFragment(fragment: Fragment) {
