@@ -1,6 +1,6 @@
 package com.theost.workchat.data.repositories
 
-import com.theost.workchat.data.models.Topic
+import com.theost.workchat.data.models.core.Topic
 
 object TopicsRepository {
 

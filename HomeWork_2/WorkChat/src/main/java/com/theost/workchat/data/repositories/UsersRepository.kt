@@ -1,7 +1,7 @@
 package com.theost.workchat.data.repositories
 
 import com.theost.workchat.R
-import com.theost.workchat.data.models.User
+import com.theost.workchat.data.models.core.User
 
 /* Todo RxJava */
 object UsersRepository {

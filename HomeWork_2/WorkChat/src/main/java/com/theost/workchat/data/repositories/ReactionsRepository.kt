@@ -1,6 +1,6 @@
 package com.theost.workchat.data.repositories
 
-import com.theost.workchat.data.models.Reaction
+import com.theost.workchat.data.models.core.Reaction
 import java.util.*
 
 /* Todo RxJava */

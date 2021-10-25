@@ -1,6 +1,6 @@
 package com.theost.workchat.data.repositories
 
-import com.theost.workchat.data.models.Channel
+import com.theost.workchat.data.models.core.Channel
 
 /* Todo RxJava */
 object ChannelsRepository {

@@ -7,7 +7,7 @@
     <attr name="corners" format="dimension" />
     <attr name="margins" format="dimension" />
 
-    <declare-styleable name="IncomeMessageView">
+    <declare-styleable name="MessageIncomeView">
         <attr name="avatar" format="string" />
         <attr name="username" />
         <attr name="message" />
@@ -17,7 +17,7 @@
         <attr name="margins" />
     </declare-styleable>
 
-    <declare-styleable name="OutcomeMessageView">
+    <declare-styleable name="MessageOutcomeView">
         <attr name="username" />
         <attr name="message" />
         <attr name="time" />

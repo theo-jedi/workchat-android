@@ -1,6 +1,6 @@
 package com.theost.workchat.data.repositories
 
-import com.theost.workchat.data.models.Message
+import com.theost.workchat.data.models.core.Message
 import com.theost.workchat.utils.DateUtils
 import java.util.*
 

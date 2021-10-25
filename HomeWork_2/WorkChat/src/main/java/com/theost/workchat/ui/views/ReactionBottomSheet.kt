@@ -2,11 +2,11 @@ package com.theost.workchat.ui.views
 
 import android.app.Activity
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.theost.workchat.data.models.ListReaction
+import com.theost.workchat.data.models.ui.ListReaction
 import com.theost.workchat.databinding.ReactionsBottomSheetBinding
-import com.theost.workchat.ui.widgets.BaseAdapter
-import com.theost.workchat.ui.widgets.DelegateItem
-import com.theost.workchat.ui.widgets.ReactionAdapterDelegate
+import com.theost.workchat.ui.adapters.core.BaseAdapter
+import com.theost.workchat.ui.interfaces.DelegateItem
+import com.theost.workchat.ui.adapters.delegates.ReactionAdapterDelegate
 
 class ReactionBottomSheet(
     activity: Activity,
