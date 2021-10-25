@@ -50,7 +50,6 @@
             android:id="@+id/userName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/sample_username"
             android:textSize="18sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -59,7 +58,6 @@
             android:id="@+id/userAbout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/sample_email"
             android:textColor="@color/light_gray"
             android:textSize="14sp"
             app:layout_constraintStart_toStartOf="parent"

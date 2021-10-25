@@ -16,10 +16,5 @@
     <string name="online">В сети</string>
     <string name="offline">Не в сети</string>
 
-    <string name="sample_username">Theo Jedi</string>
-    <string name="sample_email">myemail@company.com</string>
-    <string name="sample_channel">#general</string>
-    <string name="sample_topic">Testing</string>
-    <string name="sample_topic_count">100</string>
     <string name="no_messages">Нет сообщений</string>
 </resources>
