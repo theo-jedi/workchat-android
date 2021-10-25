@@ -2,6 +2,7 @@ package com.theost.workchat.ui.activities
 
 import android.os.Bundle
 import android.view.View
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.theost.workchat.R
@@ -17,7 +18,8 @@ import com.theost.workchat.utils.DisplayUtils
 
 class MessengerActivity : FragmentActivity(), NavigationHolder, PeopleListener, TopicListener {
 
-    private var navigationPrevSelectedId = 0
+    private var userId = 0
+
     private lateinit var binding: ActivityMessengerBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,35 +28,38 @@ class MessengerActivity : FragmentActivity(), NavigationHolder, PeopleListener, 
         setContentView(binding.root)
 
         binding.bottomNavigation.setOnItemSelectedListener {
-            if (it.itemId != navigationPrevSelectedId) {
-                navigationPrevSelectedId = it.itemId
-                when (it.itemId) {
-                    R.id.navChannels -> navigateFragment(StreamsFragment.newFragment(), "channels")
-                    R.id.navPeople -> navigateFragment(PeopleFragment.newFragment(), "people")
-                    R.id.navProfile -> navigateFragment(ProfileFragment.newFragment(0), "profile")
-                }
-            }
+            onNavigationItemSelected(it.itemId)
             true
         }
         binding.bottomNavigation.selectedItemId = R.id.navChannels
     }
 
     override fun onBackPressed() {
-        if (supportFragmentManager.backStackEntryCount != 1) {
+        DisplayUtils.hideKeyboard(this)
+
+        if (supportFragmentManager.backStackEntryCount > 1) {
             super.onBackPressed()
         } else {
             finish()
         }
     }
 
+    private fun onNavigationItemSelected(itemId: Int) {
+        when (itemId) {
+            R.id.navChannels -> navigateFragment(StreamsFragment.newFragment(), "channels")
+            R.id.navPeople -> navigateFragment(PeopleFragment.newFragment(), "people")
+            R.id.navProfile -> navigateFragment(ProfileFragment.newFragment(userId), "profile")
+        }
+    }
+
     override fun showNavigation() {
-        binding.bottomNavigation.animate()
+        if (!binding.bottomNavigation.isVisible) binding.bottomNavigation.animate()
             .withStartAction { binding.bottomNavigation.visibility = View.VISIBLE }
             .translationY(0f).duration = 150
     }
 
     override fun hideNavigation() {
-        binding.bottomNavigation.animate()
+        if (binding.bottomNavigation.isVisible) binding.bottomNavigation.animate()
             .withEndAction { binding.bottomNavigation.visibility = View.GONE }
             .translationY(binding.bottomNavigation.height.toFloat()).duration = 150
     }
@@ -70,12 +75,10 @@ class MessengerActivity : FragmentActivity(), NavigationHolder, PeopleListener, 
     private fun navigateFragment(fragment: Fragment, tag: String) {
         DisplayUtils.hideKeyboard(this)
 
-        if (supportFragmentManager.findFragmentByTag(tag) == null) {
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.fragmentContainer, fragment)
-                .addToBackStack(tag)
-                .commit()
-        }
+        val transitionFragment = supportFragmentManager.findFragmentByTag(tag) ?: fragment
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, transitionFragment, tag)
+            .commit()
     }
 
     private fun startFragment(fragment: Fragment) {
@@ -89,7 +92,7 @@ class MessengerActivity : FragmentActivity(), NavigationHolder, PeopleListener, 
                 R.anim.slide_from_left,
                 R.anim.slide_to_right
             )
-            .replace(R.id.fragmentContainer, fragment)
+            .replace(R.id.fragmentContainer, fragment, null)
             .addToBackStack(null)
             .commit()
     }

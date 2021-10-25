@@ -11,19 +11,17 @@ import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.theost.workchat.R
-import com.theost.workchat.data.models.ui.ListUser
 import com.theost.workchat.databinding.FragmentPeopleBinding
-import com.theost.workchat.ui.viewmodels.PeopleViewModel
 import com.theost.workchat.ui.adapters.core.BaseAdapter
-import com.theost.workchat.ui.interfaces.NavigationHolder
 import com.theost.workchat.ui.adapters.delegates.PeopleAdapterDelegate
+import com.theost.workchat.ui.interfaces.NavigationHolder
 import com.theost.workchat.ui.interfaces.PeopleListener
+import com.theost.workchat.ui.viewmodels.PeopleViewModel
 import com.theost.workchat.utils.DisplayUtils
 
 class PeopleFragment : Fragment() {
 
     private var userId: Int = 0
-    private var usersList: List<ListUser> = listOf()
     private val adapter = BaseAdapter()
 
     private val viewModel: PeopleViewModel by viewModels()
@@ -41,7 +39,7 @@ class PeopleFragment : Fragment() {
         configureToolbar()
 
         binding.usersList.adapter = adapter.apply {
-            addDelegate(PeopleAdapterDelegate() { profileId ->
+            addDelegate(PeopleAdapterDelegate { profileId ->
                 (activity as PeopleListener).onProfileSelected(profileId)
             })
         }

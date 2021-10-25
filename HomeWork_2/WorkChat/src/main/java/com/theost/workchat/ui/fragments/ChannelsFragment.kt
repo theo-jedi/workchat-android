@@ -11,9 +11,10 @@ import com.theost.workchat.databinding.FragmentChannelsBinding
 import com.theost.workchat.ui.viewmodels.ChannelsViewModel
 import com.theost.workchat.ui.adapters.core.BaseAdapter
 import com.theost.workchat.ui.adapters.delegates.ChannelAdapterDelegate
+import com.theost.workchat.ui.interfaces.SearchHandler
 import com.theost.workchat.ui.interfaces.TopicListener
 
-class ChannelsFragment : Fragment() {
+class ChannelsFragment : Fragment(), SearchHandler {
 
     private var channelsType = ChannelsType.ALL
     private val userId = 0
@@ -54,6 +55,10 @@ class ChannelsFragment : Fragment() {
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
+    }
+
+    override fun onSearch(query: String) {
+        viewModel.filterData(query)
     }
 
     companion object {

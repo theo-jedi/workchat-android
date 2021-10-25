@@ -15,11 +15,18 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.theost.workchat.R
 import com.theost.workchat.data.models.state.ChannelsType
 import com.theost.workchat.databinding.FragmentStreamsBinding
-import com.theost.workchat.ui.interfaces.NavigationHolder
 import com.theost.workchat.ui.adapters.core.StreamsAdapter
+import com.theost.workchat.ui.interfaces.NavigationHolder
+import com.theost.workchat.ui.interfaces.SearchHandler
 import com.theost.workchat.utils.DisplayUtils
 
 class StreamsFragment : Fragment() {
+
+    private lateinit var channelsPages: ViewPager2
+    private lateinit var channelsPagesCallback: ViewPager2.OnPageChangeCallback
+    private lateinit var searchView: SearchView
+
+    private var currentPagesPosition = -1
 
     private var _binding: FragmentStreamsBinding? = null
     private val binding get() = _binding!!
@@ -33,10 +40,20 @@ class StreamsFragment : Fragment() {
         _binding = FragmentStreamsBinding.inflate(layoutInflater)
         configureToolbar()
 
-        val channelsPages = binding.root.findViewById<ViewPager2>(R.id.channelsPages)
-        val channelsTabs = binding.root.findViewById<TabLayout>(R.id.channelsTabs)
         val channelsTypes = ChannelsType.values()
+        val channelsTabs = binding.root.findViewById<TabLayout>(R.id.channelsTabs)
+        channelsPages = binding.root.findViewById(R.id.channelsPages)
         channelsPages.adapter = StreamsAdapter(requireActivity(), channelsTypes)
+
+        channelsPagesCallback = object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                searchView.setQuery("", false)
+                currentPagesPosition = channelsPages.currentItem
+            }
+        }
+        channelsPages.registerOnPageChangeCallback(channelsPagesCallback)
+        currentPagesPosition = channelsPages.currentItem
+
         TabLayoutMediator(channelsTabs, channelsPages) { tab, position ->
             tab.text = channelsTypes[position].uiName
         }.attach()
@@ -46,6 +63,7 @@ class StreamsFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
+        channelsPages.unregisterOnPageChangeCallback(channelsPagesCallback)
         _binding = null
     }
 
@@ -53,8 +71,8 @@ class StreamsFragment : Fragment() {
         (activity as NavigationHolder).showNavigation()
         binding.toolbarLayout.toolbar.title = getString(R.string.channels)
         val searchMenuItem = binding.toolbarLayout.toolbar.menu.findItem(R.id.actionSearch)
-        val searchView = searchMenuItem.actionView as SearchView
         val searchManager = context?.getSystemService(SEARCH_SERVICE) as SearchManager
+        searchView = searchMenuItem.actionView as SearchView
         searchMenuItem.isVisible = true
         searchView.apply {
             findViewById<ImageView>(R.id.search_close_btn).setImageResource(R.drawable.ic_close)
@@ -76,7 +94,8 @@ class StreamsFragment : Fragment() {
     }
 
     private fun onQueryChanged(query: String) {
-        // viewModel.filterData(query)
+        activity?.supportFragmentManager?.findFragmentByTag("f$currentPagesPosition")
+            .let { fragment -> (fragment as? SearchHandler)?.onSearch(query) }
     }
 
     companion object {
