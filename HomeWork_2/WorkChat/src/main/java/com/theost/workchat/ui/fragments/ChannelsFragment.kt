@@ -11,6 +11,7 @@ import com.theost.workchat.databinding.FragmentChannelsBinding
 import com.theost.workchat.ui.viewmodels.ChannelsViewModel
 import com.theost.workchat.ui.adapters.core.BaseAdapter
 import com.theost.workchat.ui.adapters.delegates.ChannelAdapterDelegate
+import com.theost.workchat.ui.adapters.delegates.TopicAdapterDelegate
 import com.theost.workchat.ui.interfaces.SearchHandler
 import com.theost.workchat.ui.interfaces.TopicListener
 
@@ -34,7 +35,10 @@ class ChannelsFragment : Fragment(), SearchHandler {
         _binding = FragmentChannelsBinding.inflate(layoutInflater)
 
         binding.channelsList.adapter = adapter.apply {
-            addDelegate(ChannelAdapterDelegate() { topicId ->
+            addDelegate(ChannelAdapterDelegate() { channelId, isSelected ->
+                viewModel.updateTopics(channelId, isSelected)
+            })
+            addDelegate(TopicAdapterDelegate() { topicId ->
                 (activity as TopicListener).showTopicDialog(topicId)
             })
         }

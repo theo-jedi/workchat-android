@@ -25,8 +25,7 @@ class ReactionAdapterDelegate(private val clickListener: (reaction: ListReaction
     class ViewHolder(
         private val binding: ItemReactionBinding,
         private val clickListener: (reaction: ListReaction) -> Unit
-    ) :
-        RecyclerView.ViewHolder(binding.root) {
+    ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(listItem: ListReaction) {
             binding.emoji.text = listItem.emoji

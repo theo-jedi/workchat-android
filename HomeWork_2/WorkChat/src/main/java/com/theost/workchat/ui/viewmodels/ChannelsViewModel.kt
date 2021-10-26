@@ -17,6 +17,7 @@ class ChannelsViewModel : ViewModel() {
     val allData: LiveData<List<DelegateItem>> = _allData
 
     private var channelsList = listOf<ListChannel>()
+    private var topicsList = listOf<ListTopic>()
 
     fun loadData(userId: Int, channelsType: ChannelsType) {
         var channels = ChannelsRepository.getChannels()
@@ -33,11 +34,41 @@ class ChannelsViewModel : ViewModel() {
             ListChannel(
                 id = channel.id,
                 name = channel.name,
-                topics = topics.filter { it.channelId == channel.id }.map { topic ->
-                    ListTopic(id = topic.id, name = topic.name, topic.count)
-                })
+                topics = topics.filter { it.channelId == channel.id }.map { it.id },
+                isSelected = false
+            )
+        }
+        topicsList = topics.map { topic ->
+            ListTopic(id = topic.id, name = topic.name, topic.count)
         }
         _allData.postValue(channelsList)
+    }
+
+    fun updateTopics(channelId: Int, isSelected: Boolean) {
+        if (!isSelected) {
+            val channelIndex = channelsList.indexOfFirst { it.id == channelId }
+            val channel = channelsList[channelIndex].let {
+                ListChannel(
+                    id = it.id,
+                    name = it.name,
+                    topics = it.topics,
+                    true
+                )
+            }
+            val list = mutableListOf<DelegateItem>().apply {
+                addAll(channelsList)
+                removeAt(channelIndex)
+                add(channelIndex, channel)
+                channel.topics.reversed().forEach { topicId ->
+                    topicsList.find { it.id == topicId }?.let { topic ->
+                        add(channelIndex + 1, topic)
+                    }
+                }
+            }
+            _allData.postValue(list)
+        } else {
+            _allData.postValue(channelsList)
+        }
     }
 
     fun filterData(filter: String) {

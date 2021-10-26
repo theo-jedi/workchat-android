@@ -8,8 +8,9 @@ import com.theost.workchat.data.models.ui.ListTopic
 import com.theost.workchat.databinding.ItemTopicBinding
 import com.theost.workchat.ui.interfaces.AdapterDelegate
 
-class TopicAdapterDelegate(private val clickListener: (topicId: Int) -> Unit) :
-    AdapterDelegate {
+class TopicAdapterDelegate(private val clickListener: (topicId: Int) -> Unit) : AdapterDelegate {
+
+    private var positionOffset = 0
 
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
         val binding = ItemTopicBinding.inflate(
@@ -35,8 +36,7 @@ class TopicAdapterDelegate(private val clickListener: (topicId: Int) -> Unit) :
         private val binding: ItemTopicBinding,
         private val backgrounds: List<Int>,
         private val clickListener: (profileId: Int) -> Unit
-    ) :
-        RecyclerView.ViewHolder(binding.root) {
+    ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(listItem: ListTopic) {
             binding.topicName.text = listItem.name

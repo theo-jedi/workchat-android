@@ -27,8 +27,7 @@ class PeopleAdapterDelegate(private val clickListener: (profileId: Int) -> Unit)
     class ViewHolder(
         private val binding: ItemPeopleBinding,
         private val clickListener: (profileId: Int) -> Unit
-    ) :
-        RecyclerView.ViewHolder(binding.root) {
+    ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(listItem: ListUser) {
             binding.root.setOnClickListener { clickListener(listItem.id) }
