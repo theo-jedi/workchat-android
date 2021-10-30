@@ -44,6 +44,7 @@ class PeopleFragment : Fragment() {
             })
         }
 
+        viewModel.loadingStatus.observe(viewLifecycleOwner) { /* todo */ }
         viewModel.allData.observe(viewLifecycleOwner) { adapter.submitList(it) }
         viewModel.loadData(userId)
 
@@ -76,7 +77,6 @@ class PeopleFragment : Fragment() {
                     onQueryChanged(newText)
                     return true
                 }
-
             })
         }
     }

@@ -6,9 +6,9 @@ import android.widget.ImageView
 import androidx.core.view.size
 import androidx.recyclerview.widget.RecyclerView
 import com.theost.workchat.R
-import com.theost.workchat.data.models.ui.ListMessage
 import com.theost.workchat.data.models.state.MessageAction
 import com.theost.workchat.data.models.state.MessageType
+import com.theost.workchat.data.models.ui.ListMessage
 import com.theost.workchat.ui.interfaces.AdapterDelegate
 import com.theost.workchat.ui.views.MessageOutcomeView
 import com.theost.workchat.ui.views.ReactionLayout
@@ -73,7 +73,7 @@ class MessageOutcomeAdapterDelegate(private val actionListener: (messageId: Int,
                         isSelected = reaction.isSelected
                         setOnClickListener { reactionView ->
                             reactionView.isSelected = !reactionView.isSelected
-                            actionListener(reaction.id, listMessage.id, MessageAction.REACTION_EDIT)
+                            actionListener(listMessage.id, reaction.id, MessageAction.REACTION_REMOVE)
                         }
                     }, reactionLayout.size - 1
                 )

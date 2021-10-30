@@ -8,12 +8,12 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.theost.workchat.data.models.state.ChannelsType
 import com.theost.workchat.databinding.FragmentChannelsBinding
-import com.theost.workchat.ui.viewmodels.ChannelsViewModel
 import com.theost.workchat.ui.adapters.core.BaseAdapter
 import com.theost.workchat.ui.adapters.delegates.ChannelAdapterDelegate
 import com.theost.workchat.ui.adapters.delegates.TopicAdapterDelegate
 import com.theost.workchat.ui.interfaces.SearchHandler
 import com.theost.workchat.ui.interfaces.TopicListener
+import com.theost.workchat.ui.viewmodels.ChannelsViewModel
 
 class ChannelsFragment : Fragment(), SearchHandler {
 
@@ -43,6 +43,7 @@ class ChannelsFragment : Fragment(), SearchHandler {
             })
         }
 
+        viewModel.loadingStatus.observe(viewLifecycleOwner) { /* todo */ }
         viewModel.allData.observe(viewLifecycleOwner) { adapter.submitList(it)}
         viewModel.loadData(userId, channelsType)
 

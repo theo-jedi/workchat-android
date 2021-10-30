@@ -1,6 +1,9 @@
 package com.theost.workchat.data.repositories
 
+import com.theost.workchat.data.models.core.RxResource
 import com.theost.workchat.data.models.core.Topic
+import io.reactivex.rxjava3.core.Single
+import io.reactivex.rxjava3.schedulers.Schedulers
 
 object TopicsRepository {
 
@@ -17,8 +20,23 @@ object TopicsRepository {
         Topic(9, 2,"#world", 23)
     )
 
-    fun getTopics(): List<Topic> {
-        return topics
+    fun getTopics(): Single<RxResource<List<Topic>>> {
+        return Single.just(topics.toList())
+            .map { RxResource.success(it) }
+            .onErrorReturn { RxResource.error(it, null) }
+            .doOnSuccess {
+                if (it.data != null) {
+                    topics.clear()
+                    topics.addAll(it.data)
+                }
+            }.subscribeOn(Schedulers.io())
+    }
+
+    fun getTopic(id: Int): Single<RxResource<Topic>> {
+        return Single.just(topics.toList())
+            .map { list -> RxResource.success(list.find { it.id == id }) }
+            .onErrorReturn { RxResource.error(it, null) }
+            .subscribeOn(Schedulers.io())
     }
 
 }

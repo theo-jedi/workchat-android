@@ -9,8 +9,8 @@ import androidx.fragment.app.viewModels
 import com.theost.workchat.R
 import com.theost.workchat.data.models.core.User
 import com.theost.workchat.databinding.FragmentProfileBinding
-import com.theost.workchat.ui.viewmodels.ProfileViewModel
 import com.theost.workchat.ui.interfaces.NavigationHolder
+import com.theost.workchat.ui.viewmodels.ProfileViewModel
 
 class ProfileFragment : Fragment() {
 
@@ -33,6 +33,7 @@ class ProfileFragment : Fragment() {
         configureToolbar()
         configureLayout()
 
+        viewModel.loadingStatus.observe(viewLifecycleOwner) { /* todo */ }
         viewModel.allData.observe(viewLifecycleOwner) { setData(it) }
         viewModel.loadData(profileId)
 
