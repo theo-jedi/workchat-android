@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.theost.workchat.R
 import com.theost.workchat.data.models.core.User
+import com.theost.workchat.data.models.state.ResourceStatus
 import com.theost.workchat.databinding.FragmentProfileBinding
 import com.theost.workchat.ui.interfaces.NavigationHolder
 import com.theost.workchat.ui.viewmodels.ProfileViewModel
@@ -31,9 +32,15 @@ class ProfileFragment : Fragment() {
         _binding = FragmentProfileBinding.inflate(layoutInflater)
 
         configureToolbar()
-        configureLayout()
 
-        viewModel.loadingStatus.observe(viewLifecycleOwner) { /* todo */ }
+        viewModel.loadingStatus.observe(viewLifecycleOwner) { status ->
+            when (status) {
+                ResourceStatus.SUCCESS -> hideShimmerLayout()
+                ResourceStatus.ERROR -> { /* todo */ }
+                ResourceStatus.LOADING ->  {}
+                else -> {}
+            }
+        }
         viewModel.allData.observe(viewLifecycleOwner) { setData(it) }
         viewModel.loadData(profileId)
 
@@ -74,6 +81,16 @@ class ProfileFragment : Fragment() {
         binding.userAbout.text = user?.about
         binding.userAvatar.setImageResource(user?.avatar ?: R.mipmap.sample_avatar)
         binding.userStatus.visibility = if (user?.status == true) View.VISIBLE else View.INVISIBLE
+    }
+
+    private fun hideShimmerLayout() {
+        binding.shimmerLayout.shimmer.visibility = View.GONE
+        binding.avatarLayout.visibility = View.VISIBLE
+        binding.userName.visibility = View.VISIBLE
+        binding.userAbout.visibility = View.VISIBLE
+        binding.userStatus.visibility = View.VISIBLE
+
+        configureLayout()
     }
 
     companion object {

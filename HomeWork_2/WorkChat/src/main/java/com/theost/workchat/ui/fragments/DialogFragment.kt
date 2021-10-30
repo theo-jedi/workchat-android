@@ -61,7 +61,14 @@ class DialogFragment : Fragment() {
             addDelegate(DateAdapterDelegate())
         }
 
-        viewModel.loadingStatus.observe(viewLifecycleOwner) { /* todo */ }
+        viewModel.loadingStatus.observe(viewLifecycleOwner) { status ->
+            when (status) {
+                ResourceStatus.SUCCESS -> binding.loadingBar.visibility = View.GONE
+                ResourceStatus.ERROR -> { /* todo */ }
+                ResourceStatus.LOADING ->  {}
+                else -> {}
+            }
+        }
         viewModel.sendingMessageStatus.observe(viewLifecycleOwner) { status ->
             when (status) {
                 ResourceStatus.LOADING -> { onMessageSend() }

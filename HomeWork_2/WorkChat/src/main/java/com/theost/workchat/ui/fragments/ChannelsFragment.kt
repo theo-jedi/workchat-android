@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.theost.workchat.data.models.state.ChannelsType
+import com.theost.workchat.data.models.state.ResourceStatus
 import com.theost.workchat.databinding.FragmentChannelsBinding
 import com.theost.workchat.ui.adapters.core.BaseAdapter
 import com.theost.workchat.ui.adapters.delegates.ChannelAdapterDelegate
@@ -43,7 +44,14 @@ class ChannelsFragment : Fragment(), SearchHandler {
             })
         }
 
-        viewModel.loadingStatus.observe(viewLifecycleOwner) { /* todo */ }
+        viewModel.loadingStatus.observe(viewLifecycleOwner) { status ->
+            when (status) {
+                ResourceStatus.SUCCESS -> hideShimmerLayout()
+                ResourceStatus.ERROR -> { /* todo */ }
+                ResourceStatus.LOADING ->  {}
+                else -> {}
+            }
+        }
         viewModel.allData.observe(viewLifecycleOwner) { adapter.submitList(it)}
         viewModel.loadData(userId, channelsType)
 
@@ -64,6 +72,11 @@ class ChannelsFragment : Fragment(), SearchHandler {
 
     override fun onSearch(query: String) {
         viewModel.filterData(query)
+    }
+
+    private fun hideShimmerLayout() {
+        binding.shimmerLayout.shimmer.visibility = View.GONE
+        binding.channelsList.visibility = View.VISIBLE
     }
 
     companion object {

@@ -11,6 +11,7 @@ import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.theost.workchat.R
+import com.theost.workchat.data.models.state.ResourceStatus
 import com.theost.workchat.databinding.FragmentPeopleBinding
 import com.theost.workchat.ui.adapters.core.BaseAdapter
 import com.theost.workchat.ui.adapters.delegates.PeopleAdapterDelegate
@@ -44,7 +45,14 @@ class PeopleFragment : Fragment() {
             })
         }
 
-        viewModel.loadingStatus.observe(viewLifecycleOwner) { /* todo */ }
+        viewModel.loadingStatus.observe(viewLifecycleOwner) { status ->
+            when (status) {
+                ResourceStatus.SUCCESS -> hideShimmerLayout()
+                ResourceStatus.ERROR -> { /* todo */ }
+                ResourceStatus.LOADING ->  {}
+                else -> {}
+            }
+        }
         viewModel.allData.observe(viewLifecycleOwner) { adapter.submitList(it) }
         viewModel.loadData(userId)
 
@@ -83,6 +91,11 @@ class PeopleFragment : Fragment() {
 
     private fun onQueryChanged(query: String) {
         viewModel.filterData(query)
+    }
+
+    private fun hideShimmerLayout() {
+        binding.shimmerLayout.shimmer.visibility = View.GONE
+        binding.usersList.visibility = View.VISIBLE
     }
 
     companion object {
