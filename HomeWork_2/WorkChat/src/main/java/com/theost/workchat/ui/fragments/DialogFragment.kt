@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import com.google.android.material.snackbar.Snackbar
 import com.theost.workchat.R
 import com.theost.workchat.data.models.state.InputStatus
 import com.theost.workchat.data.models.state.MessageAction
@@ -63,8 +64,8 @@ class DialogFragment : Fragment() {
 
         viewModel.loadingStatus.observe(viewLifecycleOwner) { status ->
             when (status) {
-                ResourceStatus.SUCCESS -> binding.loadingBar.visibility = View.GONE
-                ResourceStatus.ERROR -> { /* todo */ }
+                ResourceStatus.SUCCESS -> { onDataLoaded() }
+                ResourceStatus.ERROR -> { showLoadingError() }
                 ResourceStatus.LOADING ->  {}
                 else -> {}
             }
@@ -73,14 +74,17 @@ class DialogFragment : Fragment() {
             when (status) {
                 ResourceStatus.LOADING -> { onMessageSend() }
                 ResourceStatus.SUCCESS -> { onMessageSent() }
-                ResourceStatus.ERROR -> { /* todo show error */ }
+                ResourceStatus.ERROR -> {
+                    showMessageActionButton()
+                    showSendingError()
+                }
                 else -> {}
             }
         }
         viewModel.sendingReactionStatus.observe(viewLifecycleOwner) { status ->
             when (status) {
                 ResourceStatus.SUCCESS -> { loadData() }
-                ResourceStatus.ERROR -> { /* todo show error */ }
+                ResourceStatus.ERROR -> { showSendingError() }
                 else -> {}
             }
         }
@@ -128,6 +132,7 @@ class DialogFragment : Fragment() {
     }
 
     private fun loadData() {
+        onDataLoading()
         viewModel.loadData(dialogId, userId)
     }
 
@@ -178,11 +183,47 @@ class DialogFragment : Fragment() {
     }
 
     private fun onMessageSent() {
-        binding.inputLayout.actionButton.visibility = View.VISIBLE
-        binding.inputLayout.loadingBar.visibility = View.GONE
         binding.inputLayout.messageInput.setText("")
         scrollStatus = ScrollStatus.WAITING
+        showMessageActionButton()
         loadData()
+    }
+
+    private fun onDataLoading() {
+        binding.loadingBar.visibility = View.VISIBLE
+        binding.inputLayout.actionButton.animate().alpha(0.2f)
+        binding.inputLayout.messageInput.animate().alpha(0.4f)
+        binding.inputLayout.actionButton.isEnabled = false
+        binding.inputLayout.messageInput.isEnabled = false
+    }
+
+    private fun onDataLoaded() {
+        binding.loadingBar.visibility = View.GONE
+        binding.inputLayout.actionButton.animate().alpha(1.0f)
+        binding.inputLayout.messageInput.animate().alpha(1.0f)
+        binding.inputLayout.actionButton.isEnabled = true
+        binding.inputLayout.messageInput.isEnabled = true
+    }
+
+    private fun showMessageActionButton() {
+        binding.inputLayout.actionButton.visibility = View.VISIBLE
+        binding.inputLayout.loadingBar.visibility = View.GONE
+    }
+
+    private fun showSendingError() {
+        Snackbar.make(binding.root, getString(R.string.network_error), Snackbar.LENGTH_INDEFINITE)
+            .apply {
+                anchorView = binding.inputLayout.messageInput
+                setAction(R.string.hide) {}
+            }.show()
+    }
+
+    private fun showLoadingError() {
+        Snackbar.make(binding.root, getString(R.string.network_error), Snackbar.LENGTH_INDEFINITE)
+            .apply {
+                anchorView = binding.inputLayout.messageInput
+                setAction(R.string.retry) { loadData() }
+            }.show()
     }
 
     companion object {

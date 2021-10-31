@@ -16,4 +16,8 @@
     <string name="offline">Не в сети</string>
 
     <string name="no_messages">Нет сообщений</string>
+    <string name="hide">Скрыть</string>
+    <string name="retry">Повторить</string>
+
+    <string name="network_error">Ошибка. Проверьте подключение к интернету!</string>
 </resources>

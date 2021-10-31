@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import com.google.android.material.snackbar.Snackbar
 import com.theost.workchat.R
 import com.theost.workchat.data.models.core.User
 import com.theost.workchat.data.models.state.ResourceStatus
@@ -36,13 +37,13 @@ class ProfileFragment : Fragment() {
         viewModel.loadingStatus.observe(viewLifecycleOwner) { status ->
             when (status) {
                 ResourceStatus.SUCCESS -> hideShimmerLayout()
-                ResourceStatus.ERROR -> { /* todo */ }
+                ResourceStatus.ERROR -> { showLoadingError() }
                 ResourceStatus.LOADING ->  {}
                 else -> {}
             }
         }
         viewModel.allData.observe(viewLifecycleOwner) { setData(it) }
-        viewModel.loadData(profileId)
+        loadData()
 
         return binding.root
     }
@@ -71,6 +72,10 @@ class ProfileFragment : Fragment() {
         }
     }
 
+    private fun loadData() {
+        viewModel.loadData(profileId)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
@@ -91,6 +96,12 @@ class ProfileFragment : Fragment() {
         binding.userStatus.visibility = View.VISIBLE
 
         configureLayout()
+    }
+
+    private fun showLoadingError() {
+        Snackbar.make(binding.root, getString(R.string.network_error), Snackbar.LENGTH_INDEFINITE)
+            .setAction(R.string.retry) { loadData() }
+            .show()
     }
 
     companion object {
