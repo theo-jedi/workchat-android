@@ -41,7 +41,7 @@ class DialogViewModel : ViewModel() {
             ChannelsRepository.getChannel(dialogId),
             TopicsRepository.getTopic(dialogId),
             MessagesRepository.getMessages(dialogId),
-            ReactionsRepository.getReactions(dialogId),
+            ReactionsRepository.getDialogReactions(dialogId),
             UsersRepository.getUsers()
         ) { channelsResource, topicsResource, messagesResource, reactionsResource, usersResource ->
             val error = messagesResource.error ?: channelsResource.error ?: topicsResource.error

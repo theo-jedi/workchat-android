@@ -8,7 +8,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
-import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.google.android.material.snackbar.Snackbar
@@ -23,7 +22,6 @@ import com.theost.workchat.ui.adapters.delegates.DateAdapterDelegate
 import com.theost.workchat.ui.adapters.delegates.MessageIncomeAdapterDelegate
 import com.theost.workchat.ui.adapters.delegates.MessageOutcomeAdapterDelegate
 import com.theost.workchat.ui.viewmodels.DialogViewModel
-import com.theost.workchat.ui.views.ReactionBottomSheet
 
 class DialogFragment : Fragment() {
 
@@ -167,9 +165,9 @@ class DialogFragment : Fragment() {
 
     private fun pickReaction(messageId: Int) {
         if (!isDetached) {
-            ReactionBottomSheet(requireActivity()) { reaction ->
+            ReactionBottomSheetFragment.newFragment { reaction ->
                 viewModel.updateReaction(dialogId, messageId, reaction.id, reaction.emoji)
-            }.build().show()
+            }.show(requireActivity().supportFragmentManager, null)
         }
     }
 

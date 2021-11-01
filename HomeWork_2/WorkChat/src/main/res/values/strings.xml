@@ -16,6 +16,7 @@
     <string name="offline">Не в сети</string>
 
     <string name="no_messages">Нет сообщений</string>
+    <string name="no_reactions">Нет доступных реакций</string>
     <string name="hide">Скрыть</string>
     <string name="retry">Повторить</string>
 
