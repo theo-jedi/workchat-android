@@ -18,8 +18,13 @@ class ProfileViewModel : ViewModel() {
     fun loadData(profileId: Int) {
         _loadingStatus.postValue(ResourceStatus.LOADING)
         UsersRepository.getUser(profileId).subscribe({ resource ->
-            _allData.postValue(resource.data)
-            _loadingStatus.postValue(resource.status)
+            if (resource.data != null) {
+                _allData.postValue(resource.data)
+                _loadingStatus.postValue(resource.status)
+            } else {
+                resource.error?.printStackTrace()
+                _loadingStatus.postValue(ResourceStatus.ERROR)
+            }
         }, {
             it.printStackTrace()
             _loadingStatus.postValue(ResourceStatus.ERROR)

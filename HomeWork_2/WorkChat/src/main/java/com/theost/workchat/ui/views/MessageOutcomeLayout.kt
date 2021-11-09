@@ -3,6 +3,8 @@ package com.theost.workchat.ui.views
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.text.SpannableString
+import android.text.Spanned
 import android.util.AttributeSet
 import android.view.ViewGroup
 import android.widget.TextView
@@ -15,7 +17,7 @@ class MessageOutcomeLayout @JvmOverloads constructor(
     defStyleRes: Int = 0
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
-    var message: String = ""
+    var message: Spanned = SpannableString("")
         set(value) {
             field = value
             val messageTextView = getChildAt(0) as TextView

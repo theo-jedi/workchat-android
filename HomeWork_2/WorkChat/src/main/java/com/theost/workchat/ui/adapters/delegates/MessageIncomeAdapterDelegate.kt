@@ -14,7 +14,6 @@ import com.theost.workchat.ui.views.MessageIncomeView
 import com.theost.workchat.ui.views.ReactionLayout
 import com.theost.workchat.ui.views.ReactionView
 
-
 class MessageIncomeAdapterDelegate(private val actionListener: (messageId: Int, reactionId: Int, actionType: MessageAction) -> Unit) :
     AdapterDelegate {
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
@@ -36,9 +35,9 @@ class MessageIncomeAdapterDelegate(private val actionListener: (messageId: Int, 
         RecyclerView.ViewHolder(messageIncomeView) {
 
         fun bind(listMessage: ListMessage) {
-            if (listMessage.avatar != null) messageIncomeView.avatar = listMessage.avatar
-            messageIncomeView.username = listMessage.username
-            messageIncomeView.message = listMessage.message
+            messageIncomeView.avatar = listMessage.avatar
+            messageIncomeView.username = listMessage.name
+            messageIncomeView.message = listMessage.text
             messageIncomeView.time = listMessage.time
             messageIncomeView.findViewById<View>(R.id.messageLayout).setOnLongClickListener {
                 actionListener(listMessage.id, 0, MessageAction.REACTION_ADD)

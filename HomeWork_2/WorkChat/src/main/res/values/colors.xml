@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="green">#2A9D8F</color>
+    <color name="orange">#EE964B</color>
     <color name="yellow">#E9C46A</color>
-    <color name="orange">#ED6A5E</color>
+    <color name="red">#ED6A5E</color>
     <color name="pink">#A5508E</color>
     <color name="purple">#6F73D2</color>
 

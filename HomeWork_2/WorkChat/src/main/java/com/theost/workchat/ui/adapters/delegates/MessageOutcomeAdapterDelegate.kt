@@ -36,7 +36,7 @@ class MessageOutcomeAdapterDelegate(private val actionListener: (messageId: Int,
         RecyclerView.ViewHolder(messageOutcomeView) {
 
         fun bind(listMessage: ListMessage) {
-            messageOutcomeView.message = listMessage.message
+            messageOutcomeView.message = listMessage.text
             messageOutcomeView.time = listMessage.time
             messageOutcomeView.findViewById<View>(R.id.messageLayout).setOnLongClickListener {
                 actionListener(listMessage.id, 0, MessageAction.REACTION_ADD)

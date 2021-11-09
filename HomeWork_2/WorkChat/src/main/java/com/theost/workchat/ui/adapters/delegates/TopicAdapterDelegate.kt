@@ -8,9 +8,7 @@ import com.theost.workchat.data.models.ui.ListTopic
 import com.theost.workchat.databinding.ItemTopicBinding
 import com.theost.workchat.ui.interfaces.AdapterDelegate
 
-class TopicAdapterDelegate(private val clickListener: (topicId: Int) -> Unit) : AdapterDelegate {
-
-    private var positionOffset = 0
+class TopicAdapterDelegate(private val clickListener: (topicName: String) -> Unit) : AdapterDelegate {
 
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
         val binding = ItemTopicBinding.inflate(
@@ -35,13 +33,13 @@ class TopicAdapterDelegate(private val clickListener: (topicId: Int) -> Unit) : 
     class ViewHolder(
         private val binding: ItemTopicBinding,
         private val backgrounds: List<Int>,
-        private val clickListener: (profileId: Int) -> Unit
+        private val clickListener: (topicName: String) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(listItem: ListTopic) {
             binding.topicName.text = listItem.name
             binding.topicCount.text = listItem.count.toString()
-            binding.root.setOnClickListener { clickListener(listItem.id) }
+            binding.root.setOnClickListener { clickListener(listItem.name) }
             binding.root.setBackgroundResource(backgrounds[adapterPosition % backgrounds.size])
         }
 

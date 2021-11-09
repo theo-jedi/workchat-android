@@ -3,6 +3,8 @@ package com.theost.workchat.ui.views
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.text.SpannableString
+import android.text.Spanned
 import android.util.AttributeSet
 import android.view.ViewGroup
 import android.widget.TextView
@@ -27,7 +29,7 @@ class MessageIncomeLayout @JvmOverloads constructor(
             val timeTextView = getChildAt(1) as TextView
             timeTextView.text = value
         }
-    var message: String = ""
+    var message: Spanned = SpannableString("")
         set(value) {
             field = value
             val messageTextView = getChildAt(2) as TextView
@@ -157,7 +159,7 @@ class MessageIncomeLayout @JvmOverloads constructor(
             maxOf(nameTextView.bottom, timeTextView.bottom) + maxOf(
                 nameMargin.bottomMargin,
                 timeMargin.bottomMargin
-            ) + nameMargin.topMargin + nameTextView.measuredHeight
+            ) + messageMargin.topMargin + messageTextView.measuredHeight
         )
     }
 

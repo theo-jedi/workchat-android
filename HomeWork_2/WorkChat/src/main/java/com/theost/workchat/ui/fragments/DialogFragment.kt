@@ -29,8 +29,10 @@ class DialogFragment : Fragment() {
     private val adapter = BaseAdapter()
     private var inputStatus = InputStatus.EMPTY
     private var scrollStatus = ScrollStatus.STAY
-    private var dialogId: Int = 0
-    private var userId: Int = 0
+
+    private var channelId: Int = 0
+    private var channelName: String = ""
+    private var topicName: String = ""
 
     private val viewModel: DialogViewModel by viewModels()
 
@@ -87,7 +89,7 @@ class DialogFragment : Fragment() {
                 else -> {}
             }
         }
-        viewModel.dialogInfo.observe(viewLifecycleOwner) { setDialogInfo(it.first, it.second) }
+        viewModel.titleData.observe(viewLifecycleOwner) { configureTitle(it.first, it.second)}
         viewModel.allData.observe(viewLifecycleOwner) { list ->
             adapter.submitList(list)
             binding.emptyLayout.emptyView.visibility = if (list.isNotEmpty()) View.GONE else View.VISIBLE
@@ -103,8 +105,10 @@ class DialogFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        dialogId = savedInstanceState?.getInt(DIALOG_ID_EXTRA)
-            ?: (arguments?.getInt(DIALOG_ID_EXTRA) ?: 0)
+        channelName = savedInstanceState?.getString(CHANNEL_NAME_EXTRA)
+            ?: (arguments?.getString(CHANNEL_NAME_EXTRA) ?: "")
+        topicName = savedInstanceState?.getString(TOPIC_NAME_EXTRA)
+            ?: (arguments?.getString(TOPIC_NAME_EXTRA) ?: "")
     }
 
     override fun onDestroy() {
@@ -119,11 +123,11 @@ class DialogFragment : Fragment() {
         }
     }
 
-    private fun setDialogInfo(channel: String, topic: String) {
-        val title = SpannableString("$channel $topic")
+    private fun configureTitle(channel: String, topic: String) {
+        val title = SpannableString("#$channel #$topic")
         title.setSpan(
             ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.green)),
-            channel.length,
+            channel.length + 1,
             title.length,
             Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
         )
@@ -132,7 +136,7 @@ class DialogFragment : Fragment() {
 
     private fun loadData() {
         onDataLoading()
-        viewModel.loadData(dialogId, userId)
+        viewModel.loadMessages(channelName, topicName)
     }
 
     private fun onInputTextChanged(text: String) {
@@ -160,14 +164,14 @@ class DialogFragment : Fragment() {
     private fun onMessageAction(messageId: Int, reactionId: Int, actionType: MessageAction) {
         when (actionType) {
             MessageAction.REACTION_ADD -> pickReaction(messageId)
-            MessageAction.REACTION_REMOVE -> viewModel.updateReaction(dialogId, messageId, reactionId)
+            MessageAction.REACTION_REMOVE -> {} // todo viewModel.updateReaction(dialogId, messageId, reactionId)
         }
     }
 
     private fun pickReaction(messageId: Int) {
         if (!isDetached) {
             ReactionBottomSheetFragment.newFragment { reaction ->
-                viewModel.updateReaction(dialogId, messageId, reaction.id, reaction.emoji)
+                //todo viewModel.updateReaction(dialogId, messageId, reaction.id, reaction.emoji)
             }.show(requireActivity().supportFragmentManager, null)
         }
     }
@@ -226,12 +230,14 @@ class DialogFragment : Fragment() {
     }
 
     companion object {
-        private const val DIALOG_ID_EXTRA = "dialog_id"
+        private const val CHANNEL_NAME_EXTRA = "channel_name"
+        private const val TOPIC_NAME_EXTRA = "topic_name"
 
-        fun newFragment(dialogId: Int): Fragment {
+        fun newFragment(channelName: String, topicName: String): Fragment {
             val fragment = DialogFragment()
             val bundle = Bundle()
-            bundle.putInt(DIALOG_ID_EXTRA, dialogId)
+            bundle.putString(CHANNEL_NAME_EXTRA, channelName)
+            bundle.putString(TOPIC_NAME_EXTRA, topicName)
             fragment.arguments = bundle
             return fragment
         }

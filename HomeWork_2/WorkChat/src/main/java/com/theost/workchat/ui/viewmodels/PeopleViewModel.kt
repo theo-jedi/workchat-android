@@ -21,19 +21,24 @@ class PeopleViewModel : ViewModel() {
     fun loadData(userId: Int) {
 
         UsersRepository.getUsers().subscribe({ resource ->
-            usersList = resource.data!!
-                .filterNot { it.id == userId }
-                .map { user ->
-                    ListUser(
-                        user.id,
-                        user.name,
-                        user.about,
-                        user.avatar,
-                        user.status
-                    )
-                }
-            _allData.postValue(usersList)
-            _loadingStatus.postValue(resource.status)
+            if (resource.data != null) {
+                usersList = resource.data
+                    .filterNot { it.id == userId }
+                    .map { user ->
+                        ListUser(
+                            user.id,
+                            user.name,
+                            user.about,
+                            user.avatarUrl,
+                            user.isActive
+                        )
+                    }
+                _allData.postValue(usersList)
+                _loadingStatus.postValue(resource.status)
+            } else {
+                resource.error?.printStackTrace()
+                _loadingStatus.postValue(ResourceStatus.ERROR)
+            }
         }, {
             it.printStackTrace()
             _loadingStatus.postValue(ResourceStatus.ERROR)

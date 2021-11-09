@@ -73,19 +73,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/userAbout" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/userLogout"
-        style="@style/Theme.WorkChat.RoundButton"
-        android:layout_width="150dp"
-        android:layout_height="60dp"
-        android:text="@string/log_out"
-        android:textSize="16sp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/userStatus" />
-
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guidelineCenter"
         android:layout_width="wrap_content"

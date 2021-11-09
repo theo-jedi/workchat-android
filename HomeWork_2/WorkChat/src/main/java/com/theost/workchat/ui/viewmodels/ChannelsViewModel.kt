@@ -3,16 +3,13 @@ package com.theost.workchat.ui.viewmodels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.theost.workchat.data.models.core.RxResource
 import com.theost.workchat.data.models.state.ChannelsType
 import com.theost.workchat.data.models.state.ResourceStatus
 import com.theost.workchat.data.models.ui.ListChannel
 import com.theost.workchat.data.models.ui.ListTopic
 import com.theost.workchat.data.repositories.ChannelsRepository
 import com.theost.workchat.data.repositories.TopicsRepository
-import com.theost.workchat.data.repositories.UsersRepository
 import com.theost.workchat.ui.interfaces.DelegateItem
-import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.schedulers.Schedulers
 
 class ChannelsViewModel : ViewModel() {
@@ -24,51 +21,26 @@ class ChannelsViewModel : ViewModel() {
     val loadingStatus: LiveData<ResourceStatus> = _loadingStatus
 
     private var channelsList = listOf<ListChannel>()
-    private var topicsList = listOf<ListTopic>()
 
-    fun loadData(userId: Int, channelsType: ChannelsType) {
+    fun loadData(channelsType: ChannelsType) {
         _loadingStatus.postValue(ResourceStatus.LOADING)
-        Single.zip(
-            ChannelsRepository.getChannels(),
-            TopicsRepository.getTopics(),
-            UsersRepository.getUser(userId)
-        ) { channelsResource, topicsResource, usersResource ->
-            val error = channelsResource.error ?: topicsResource.error ?: usersResource.error
-            if (error == null) {
-                RxResource.success(
-                    Triple(
-                        channelsResource.data,
-                        topicsResource.data,
-                        usersResource.data
+        ChannelsRepository.getChannels(channelsType).subscribeOn(Schedulers.io()).subscribe({ resource ->
+            if (resource.data != null) {
+                val channels = resource.data
+                channelsList = channels.map { channel ->
+                    ListChannel(
+                        id = channel.id,
+                        name = channel.name,
+                        topics = listOf(),
+                        isSelected = false
                     )
-                )
-            } else {
-                RxResource.error(error, null)
-            }
-        }.subscribeOn(Schedulers.io()).subscribe({ resource ->
-            val data = resource.data as Triple
-            var channels = data.first!!
-            val topics = data.second!!
-            val user = data.third!!
-            if (channelsType == ChannelsType.SUBSCRIBED) {
-                val channelsSubscribedList = user.channelsIds
-                channels = channels.filter { channel ->
-                    channelsSubscribedList.contains(channel.id)
                 }
+                _allData.postValue(channelsList)
+                _loadingStatus.postValue(resource.status)
+            } else {
+                resource.error?.printStackTrace()
+                _loadingStatus.postValue(ResourceStatus.ERROR)
             }
-            channelsList = channels.map { channel ->
-                ListChannel(
-                    id = channel.id,
-                    name = channel.name,
-                    topics = topics.filter { it.channelId == channel.id }.map { it.id },
-                    isSelected = false
-                )
-            }
-            topicsList = topics.map { topic ->
-                ListTopic(id = topic.id, name = topic.name, topic.count)
-            }
-            _allData.postValue(channelsList)
-            _loadingStatus.postValue(resource.status)
         }, {
             it.printStackTrace()
             _loadingStatus.postValue(ResourceStatus.ERROR)
@@ -76,29 +48,39 @@ class ChannelsViewModel : ViewModel() {
     }
 
     fun updateTopics(channelId: Int, isSelected: Boolean) {
+        val itemsList = mutableListOf<DelegateItem>().apply { addAll(channelsList) }
         if (!isSelected) {
-            val channelIndex = channelsList.indexOfFirst { it.id == channelId }
-            val channel = channelsList[channelIndex].let {
-                ListChannel(
-                    id = it.id,
-                    name = it.name,
-                    topics = it.topics,
-                    true
-                )
-            }
-            val list = mutableListOf<DelegateItem>().apply {
-                addAll(channelsList)
-                removeAt(channelIndex)
-                add(channelIndex, channel)
-                channel.topics.reversed().forEach { topicId ->
-                    topicsList.find { it.id == topicId }?.let { topic ->
-                        add(channelIndex + 1, topic)
-                    }
+            TopicsRepository.getTopics(channelId).subscribe({ resource ->
+                if (resource.data != null) {
+                    val topics = resource.data
+                    val index = itemsList.indexOfFirst { it is ListChannel && it.id == channelId }
+                    val channel = itemsList[index] as ListChannel
+                    itemsList.removeAt(index)
+                    itemsList.add(index, ListChannel(
+                        id = channel.id,
+                        name = channel.name,
+                        topics = channel.topics,
+                        isSelected = true
+                    ))
+                    val topicsList = topics.map { topic ->
+                        ListTopic(
+                            name = topic.name,
+                            count = topic.count
+                        )
+                    }.reversed()
+                    itemsList.addAll(index + 1, topicsList)
+                    _allData.postValue(itemsList)
+                    _loadingStatus.postValue(resource.status)
+                } else {
+                    resource.error?.printStackTrace()
+                    _loadingStatus.postValue(ResourceStatus.ERROR)
                 }
-            }
-            _allData.postValue(list)
+            }, {
+                it.printStackTrace()
+                _loadingStatus.postValue(ResourceStatus.ERROR)
+            })
         } else {
-            _allData.postValue(channelsList)
+            _allData.postValue(itemsList)
         }
     }
 

@@ -2,6 +2,8 @@ package com.theost.workchat.ui.views
 
 import android.content.Context
 import android.content.res.TypedArray
+import android.text.SpannableString
+import android.text.Spanned
 import android.util.AttributeSet
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
@@ -14,7 +16,7 @@ class MessageOutcomeView @JvmOverloads constructor(
     defStyleRes: Int = 0
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
-    var message: String = ""
+    var message: Spanned = SpannableString("")
         set(value) {
             field = value
             val messageLayout = getChildAt(0) as MessageOutcomeLayout
@@ -53,7 +55,7 @@ class MessageOutcomeView @JvmOverloads constructor(
             defStyleAttr,
             defStyleRes
         )
-        message = typedArray.getString(R.styleable.MessageOutcomeView_message).orEmpty()
+        message = SpannableString(typedArray.getString(R.styleable.MessageOutcomeView_message).orEmpty())
         time = typedArray.getString(R.styleable.MessageOutcomeView_time).orEmpty()
         bubble = typedArray.getColor(R.styleable.MessageOutcomeView_bubble, PARAMETER_UNSET)
         corners = typedArray.getDimension(R.styleable.MessageOutcomeView_corners, CORNERS_DEFAULT)

@@ -1,5 +1,5 @@
 package com.theost.workchat.ui.interfaces
 
 interface TopicListener {
-    fun showTopicDialog(topicId: Int)
+    fun showTopicDialog(channelName: String, topicName: String)
 }
