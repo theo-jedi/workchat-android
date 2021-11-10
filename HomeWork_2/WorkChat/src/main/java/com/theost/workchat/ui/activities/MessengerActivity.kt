@@ -62,8 +62,8 @@ class MessengerActivity : FragmentActivity(), NavigationHolder, PeopleListener, 
             .translationY(binding.bottomNavigation.height.toFloat()).duration = 150
     }
 
-    override fun onProfileSelected(profileId: Int) {
-        startFragment(ProfileFragment.newFragment(profileId))
+    override fun onProfileSelected(userId: Int) {
+        startFragment(ProfileFragment.newFragment(userId))
     }
 
     override fun showTopicDialog(channelName: String, topicName: String) {

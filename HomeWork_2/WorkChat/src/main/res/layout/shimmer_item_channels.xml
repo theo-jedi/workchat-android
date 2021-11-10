@@ -19,9 +19,8 @@
         android:id="@+id/expandArrow"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:interpolator="@android:anim/linear_interpolator"
         android:src="@drawable/ic_expand"
-        android:tint="@color/background_light"
+        android:tint="@color/gray"
         app:layout_constraintBottom_toBottomOf="@id/channelName"
         app:layout_constraintEnd_toEndOf="@id/guidelineEnd"
         app:layout_constraintTop_toTopOf="@id/channelName" />

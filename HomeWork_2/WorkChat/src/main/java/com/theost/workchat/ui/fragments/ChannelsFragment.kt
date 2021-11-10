@@ -56,7 +56,8 @@ class ChannelsFragment : Fragment(), SearchHandler {
                 else -> {}
             }
         }
-        viewModel.allData.observe(viewLifecycleOwner) { adapter.submitList(it) }
+        viewModel.allData.observe(viewLifecycleOwner) { adapter.submitList(it)}
+
         loadData()
 
         configureEmptyLayout()

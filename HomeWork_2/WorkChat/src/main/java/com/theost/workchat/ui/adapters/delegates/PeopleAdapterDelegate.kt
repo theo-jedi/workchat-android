@@ -1,14 +1,16 @@
 package com.theost.workchat.ui.adapters.delegates
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.theost.workchat.data.models.state.UserStatus
 import com.theost.workchat.data.models.ui.ListUser
 import com.theost.workchat.databinding.ItemPeopleBinding
 import com.theost.workchat.ui.interfaces.AdapterDelegate
 
-class PeopleAdapterDelegate(private val clickListener: (profileId: Int) -> Unit) :
+class PeopleAdapterDelegate(private val clickListener: (userId: Int) -> Unit) :
     AdapterDelegate {
 
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
@@ -26,17 +28,19 @@ class PeopleAdapterDelegate(private val clickListener: (profileId: Int) -> Unit)
 
     class ViewHolder(
         private val binding: ItemPeopleBinding,
-        private val clickListener: (profileId: Int) -> Unit
+        private val clickListener: (userId: Int) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(listItem: ListUser) {
             Glide.with(binding.root).load(listItem.avatarUrl).into(binding.userAvatar)
-
-            // todo user status
-
             binding.root.setOnClickListener { clickListener(listItem.id) }
             binding.userName.text = listItem.name
             binding.userAbout.text = listItem.about
+            when (listItem.status) {
+                UserStatus.ONLINE -> binding.userStatusOnline.visibility = View.VISIBLE
+                UserStatus.IDLE -> binding.userStatusIdle.visibility = View.VISIBLE
+                else -> {}
+            }
         }
 
     }

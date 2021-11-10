@@ -12,8 +12,8 @@
 
     <string name="deleted_message">Сообщение удалено</string>
 
-    <string name="online">В сети</string>
-    <string name="offline">Не в сети</string>
+    <string name="online">Online</string>
+    <string name="idle">Idle</string>
 
     <string name="no_messages">Нет сообщений</string>
     <string name="no_channels">Нет каналов</string>

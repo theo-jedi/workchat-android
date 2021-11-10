@@ -46,7 +46,7 @@ object UsersRepository {
         }
     }
 
-    fun getUserPresence(id: Int) : Single<RxResource<UserStatus>> {
+    fun getUserPresence(id: Int): Single<RxResource<UserStatus>> {
         return service.getUserPresence(id)
             .map { RxResource.success(it.presence.client.mapToStatus()) }
             .onErrorReturn { RxResource.error(it, null) }

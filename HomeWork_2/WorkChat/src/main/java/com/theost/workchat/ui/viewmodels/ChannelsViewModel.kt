@@ -83,10 +83,12 @@ class ChannelsViewModel : ViewModel() {
     }
 
     fun filterData(filter: String) {
-        val list = channelsList.filter { channel ->
-            channel.name.lowercase().contains(filter.trim().lowercase())
+        if (allData.value != null) {
+            val list = channelsList.filter { channel ->
+                channel.name.lowercase().contains(filter.trim().lowercase())
+            }
+            _allData.postValue(list)
         }
-        _allData.postValue(list)
     }
 
 }

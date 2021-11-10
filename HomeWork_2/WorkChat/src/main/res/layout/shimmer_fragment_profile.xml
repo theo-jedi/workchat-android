@@ -14,7 +14,7 @@
             android:layout_width="185dp"
             android:layout_height="185dp"
             android:layout_marginBottom="15dp"
-            android:backgroundTint="@color/background_light"
+            android:backgroundTint="@color/gray"
             app:cardCornerRadius="15dp"
             app:layout_constraintBottom_toBottomOf="@+id/guidelineCenter"
             app:layout_constraintEnd_toEndOf="parent"

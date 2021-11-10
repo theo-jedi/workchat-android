@@ -100,9 +100,9 @@ fun CurrentUserDto.mapToUser(): User {
 }
 
 fun UserPresenceClientDto.mapToStatus() : UserStatus {
-    return if (status != null) {
-        UserStatus.valueOf(status)
-    } else {
-        UserStatus.OFFLINE
+    return when (status) {
+        UserStatus.ONLINE.apiName -> UserStatus.ONLINE
+        UserStatus.IDLE.apiName -> UserStatus.IDLE
+        else -> UserStatus.OFFLINE
     }
 }
