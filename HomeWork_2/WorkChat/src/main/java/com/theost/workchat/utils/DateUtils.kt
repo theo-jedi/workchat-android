@@ -13,10 +13,10 @@ object DateUtils {
         return SimpleDateFormat("HH:mm", Locale.getDefault()).format(date)
     }
 
-    fun isSameDay(date1: Date, date2: Date): Boolean {
+    fun notSameDay(date1: Date, date2: Date): Boolean {
         val day1 = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(date1)
         val day2 = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(date2)
-        return day1.equals(day2)
+        return !day1.equals(day2)
     }
 
     fun utcToDate(timestamp: Int): Date {

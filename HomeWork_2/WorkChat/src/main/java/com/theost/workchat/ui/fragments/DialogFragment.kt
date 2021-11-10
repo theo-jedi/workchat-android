@@ -30,9 +30,9 @@ class DialogFragment : Fragment() {
     private var inputStatus = InputStatus.EMPTY
     private var scrollStatus = ScrollStatus.STAY
 
-    private var channelId: Int = 0
     private var channelName: String = ""
     private var topicName: String = ""
+    private var isDialogLoaded: Boolean = false
 
     private val viewModel: DialogViewModel by viewModels()
 
@@ -54,11 +54,11 @@ class DialogFragment : Fragment() {
         binding.inputLayout.actionButton.setOnClickListener { onInputActionClicked() }
 
         binding.messagesList.adapter = adapter.apply {
-            addDelegate(MessageIncomeAdapterDelegate() { messageId, reactionId, actionType ->
-                onMessageAction(messageId, reactionId, actionType)
+            addDelegate(MessageIncomeAdapterDelegate() { actionType, messageId, reactionId ->
+                onMessageAction(actionType, messageId, reactionId)
             })
-            addDelegate(MessageOutcomeAdapterDelegate() { messageId, reactionId, actionType ->
-                onMessageAction(messageId, reactionId, actionType)
+            addDelegate(MessageOutcomeAdapterDelegate() { actionType, messageId, reactionId ->
+                onMessageAction(actionType, messageId, reactionId)
             })
             addDelegate(DateAdapterDelegate())
         }
@@ -67,21 +67,23 @@ class DialogFragment : Fragment() {
             when (status) {
                 ResourceStatus.SUCCESS -> { onDataLoaded() }
                 ResourceStatus.ERROR -> { showLoadingError() }
-                ResourceStatus.LOADING ->  {}
+                ResourceStatus.LOADING ->  { onDataLoading() }
                 else -> {}
             }
         }
+
         viewModel.sendingMessageStatus.observe(viewLifecycleOwner) { status ->
             when (status) {
-                ResourceStatus.LOADING -> { onMessageSend() }
+                ResourceStatus.LOADING -> { showInputLoading() }
                 ResourceStatus.SUCCESS -> { onMessageSent() }
                 ResourceStatus.ERROR -> {
-                    showMessageActionButton()
+                    hideInputLoading()
                     showSendingError()
                 }
                 else -> {}
             }
         }
+
         viewModel.sendingReactionStatus.observe(viewLifecycleOwner) { status ->
             when (status) {
                 ResourceStatus.SUCCESS -> { loadData() }
@@ -89,7 +91,9 @@ class DialogFragment : Fragment() {
                 else -> {}
             }
         }
+
         viewModel.titleData.observe(viewLifecycleOwner) { configureTitle(it.first, it.second)}
+
         viewModel.allData.observe(viewLifecycleOwner) { list ->
             adapter.submitList(list)
             binding.emptyLayout.emptyView.visibility = if (list.isNotEmpty()) View.GONE else View.VISIBLE
@@ -97,6 +101,7 @@ class DialogFragment : Fragment() {
                 binding.messagesList.smoothScrollToPosition(adapter.itemCount + 1)
             }
         }
+
         loadData()
 
         return binding.root
@@ -135,7 +140,6 @@ class DialogFragment : Fragment() {
     }
 
     private fun loadData() {
-        onDataLoading()
         viewModel.loadMessages(channelName, topicName)
     }
 
@@ -158,20 +162,21 @@ class DialogFragment : Fragment() {
     }
 
     private fun sendMessage() {
-        viewModel.sendMessage(getMessageText())
+        viewModel.addMessage(getMessageText())
     }
 
-    private fun onMessageAction(messageId: Int, reactionId: Int, actionType: MessageAction) {
+    private fun onMessageAction(actionType: MessageAction, messageId: Int, reactionName: String) {
         when (actionType) {
-            MessageAction.REACTION_ADD -> pickReaction(messageId)
-            MessageAction.REACTION_REMOVE -> {} // todo viewModel.updateReaction(dialogId, messageId, reactionId)
+            MessageAction.REACTION_CHOOSE -> pickReaction(messageId)
+            MessageAction.REACTION_ADD -> viewModel.addReaction(messageId = messageId, reactionName = reactionName)
+            MessageAction.REACTION_REMOVE -> viewModel.removeReaction(messageId = messageId, reactionName = reactionName)
         }
     }
 
     private fun pickReaction(messageId: Int) {
         if (!isDetached) {
             ReactionBottomSheetFragment.newFragment { reaction ->
-                //todo viewModel.updateReaction(dialogId, messageId, reaction.id, reaction.emoji)
+                onMessageAction(MessageAction.REACTION_ADD, messageId, reaction.name)
             }.show(requireActivity().supportFragmentManager, null)
         }
     }
@@ -180,7 +185,7 @@ class DialogFragment : Fragment() {
         return binding.inputLayout.messageInput.text.toString().trim()
     }
 
-    private fun onMessageSend() {
+    private fun showInputLoading() {
         binding.inputLayout.actionButton.visibility = View.INVISIBLE
         binding.inputLayout.loadingBar.visibility = View.VISIBLE
     }
@@ -188,27 +193,33 @@ class DialogFragment : Fragment() {
     private fun onMessageSent() {
         binding.inputLayout.messageInput.setText("")
         scrollStatus = ScrollStatus.WAITING
-        showMessageActionButton()
         loadData()
     }
 
     private fun onDataLoading() {
-        binding.loadingBar.visibility = View.VISIBLE
-        binding.inputLayout.actionButton.animate().alpha(0.2f)
-        binding.inputLayout.messageInput.animate().alpha(0.4f)
-        binding.inputLayout.actionButton.isEnabled = false
-        binding.inputLayout.messageInput.isEnabled = false
+        if (!isDialogLoaded) {
+            binding.loadingBar.visibility = View.VISIBLE
+            binding.inputLayout.actionButton.animate().alpha(0.2f)
+            binding.inputLayout.messageInput.animate().alpha(0.4f)
+            binding.inputLayout.actionButton.isEnabled = false
+            binding.inputLayout.messageInput.isEnabled = false
+        }
     }
 
     private fun onDataLoaded() {
-        binding.loadingBar.visibility = View.GONE
-        binding.inputLayout.actionButton.animate().alpha(1.0f)
-        binding.inputLayout.messageInput.animate().alpha(1.0f)
-        binding.inputLayout.actionButton.isEnabled = true
-        binding.inputLayout.messageInput.isEnabled = true
+        if (!isDialogLoaded) {
+            isDialogLoaded = true
+            binding.loadingBar.visibility = View.GONE
+            binding.inputLayout.actionButton.animate().alpha(1.0f)
+            binding.inputLayout.messageInput.animate().alpha(1.0f)
+            binding.inputLayout.actionButton.isEnabled = true
+            binding.inputLayout.messageInput.isEnabled = true
+        } else {
+            hideInputLoading()
+        }
     }
 
-    private fun showMessageActionButton() {
+    private fun hideInputLoading() {
         binding.inputLayout.actionButton.visibility = View.VISIBLE
         binding.inputLayout.loadingBar.visibility = View.GONE
     }

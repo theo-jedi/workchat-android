@@ -16,15 +16,15 @@ data class GetTopicsResponse(
 
 @Serializable
 data class TopicDto(
-    @SerialName("max_id")
-    val id: Int,
     @SerialName("name")
-    val name: String
+    val name: String,
+    @SerialName("max_id")
+    val lastMessageId: Int
 )
 
 fun TopicDto.mapToTopic() : Topic {
     return Topic(
         name = name,
-        count = id
+        lastMessageId = lastMessageId
     )
 }

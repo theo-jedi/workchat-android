@@ -12,19 +12,29 @@ object MessagesRepository {
 
     private val service = RetrofitHelper.retrofitService
 
-    fun getMessages(numBefore: Int, numAfter: Int, narrow: String): Single<RxResource<List<Message>>> {
-        return service.getMessages(numBefore, numAfter, narrow)
-            .map { RxResource.success(it.messages.map { message -> message.mapToMessage() }) }
+    fun getMessages(
+        numBefore: Int,
+        numAfter: Int,
+        narrow: String
+    ): Single<RxResource<List<Message>>> {
+        return service.getMessages(
+            numBefore = numBefore,
+            numAfter = numAfter,
+            narrow = narrow
+        ).map { RxResource.success(it.messages.map { message -> message.mapToMessage() }) }
             .onErrorReturn { RxResource.error(it, null) }
-            .subscribeOn(Schedulers.io())
+            .doOnSuccess {
+                if (it.data != null) {
+                    // todo Room
+                }
+            }.subscribeOn(Schedulers.io())
     }
 
-    fun addMessage(channelName: String, topicName: String, text: String): Completable {
-        return service.sendMessage(
+    fun addMessage(channelName: String, topicName: String, content: String): Completable {
+        return service.addMessage(
             stream = channelName,
             topic = topicName,
-            content = text,
-            type = "stream"
+            content = content
         ).subscribeOn(Schedulers.io())
     }
 

@@ -1,19 +1,9 @@
 package com.theost.workchat.data.models.dto
 
 import com.theost.workchat.data.models.core.User
+import com.theost.workchat.data.models.state.UserStatus
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonObject
-
-@Serializable
-data class GetUserResponse(
-    @SerialName("result")
-    val result: String,
-    @SerialName("msg")
-    val message: String,
-    @SerialName("user")
-    val user: UserDto
-)
 
 @Serializable
 data class GetUsersResponse(
@@ -26,6 +16,26 @@ data class GetUsersResponse(
 )
 
 @Serializable
+data class GetUserResponse(
+    @SerialName("result")
+    val result: String,
+    @SerialName("msg")
+    val message: String,
+    @SerialName("user")
+    val user: UserDto
+)
+
+@Serializable
+data class GetUserPresenceResponse(
+    @SerialName("result")
+    val result: String,
+    @SerialName("msg")
+    val message: String,
+    @SerialName("presence")
+    val presence: UserPresenceDto
+)
+
+@Serializable
 data class UserDto(
     @SerialName("user_id")
     val id: Int,
@@ -35,30 +45,8 @@ data class UserDto(
     val email: String,
     @SerialName("avatar_url")
     val avatarUrl: String,
-    @SerialName("is_active")
-    val isActive: Boolean,
     @SerialName("timezone")
-    val timezone: String,
-    @SerialName("date_joined")
-    val dateJoined: String,
-    @SerialName("avatar_version")
-    val avatarVersion: Int,
-    @SerialName("role")
-    val role: Int,
-    @SerialName("is_owner")
-    val isOwner: Boolean,
-    @SerialName("is_guest")
-    val isGuest: Boolean,
-    @SerialName("is_bot")
-    val isBot: Boolean,
-    @SerialName("is_admin")
-    val isAdmin: Boolean,
-    @SerialName("is_billing_admin")
-    val isBillingAdmin: Boolean,
-    @SerialName("bot_type")
-    val botType: Int? = null,
-    @SerialName("bot_owner_id")
-    val botOwnerId: Int? = null,
+    val timezone: String
 )
 
 @Serializable
@@ -75,40 +63,29 @@ data class CurrentUserDto(
     val email: String,
     @SerialName("avatar_url")
     val avatarUrl: String,
-    @SerialName("is_active")
-    val isActive: Boolean,
     @SerialName("timezone")
-    val timezone: String,
-    @SerialName("date_joined")
-    val dateJoined: String,
-    @SerialName("avatar_version")
-    val avatarVersion: Int,
-    @SerialName("role")
-    val role: Int,
-    @SerialName("is_owner")
-    val isOwner: Boolean,
-    @SerialName("is_guest")
-    val isGuest: Boolean,
-    @SerialName("is_bot")
-    val isBot: Boolean,
-    @SerialName("is_admin")
-    val isAdmin: Boolean,
-    @SerialName("is_billing_admin")
-    val isBillingAdmin: Boolean,
-    @SerialName("profile_data")
-    val profileData: JsonObject,
-    @SerialName("max_message_id")
-    val maxMessageId: Int
+    val timezone: String
+)
+
+@Serializable
+data class UserPresenceDto(
+    @SerialName("aggregated")
+    val client: UserPresenceClientDto
+)
+
+@Serializable
+data class UserPresenceClientDto(
+    @SerialName("status")
+    val status: String?
 )
 
 fun UserDto.mapToUser(): User {
     return User(
         id = id,
         name = name,
+        email = email,
         about = timezone,
-        avatarUrl = avatarUrl,
-        isActive = isActive,
-        listOf()
+        avatarUrl = avatarUrl
     )
 }
 
@@ -116,9 +93,16 @@ fun CurrentUserDto.mapToUser(): User {
     return User(
         id = id,
         name = name,
+        email = email,
         about = timezone,
-        avatarUrl = avatarUrl,
-        isActive = isActive,
-        listOf()
+        avatarUrl = avatarUrl
     )
+}
+
+fun UserPresenceClientDto.mapToStatus() : UserStatus {
+    return if (status != null) {
+        UserStatus.valueOf(status)
+    } else {
+        UserStatus.OFFLINE
+    }
 }

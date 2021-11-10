@@ -15,7 +15,7 @@ import com.theost.workchat.ui.views.ReactionLayout
 import com.theost.workchat.ui.views.ReactionView
 
 
-class MessageOutcomeAdapterDelegate(private val actionListener: (messageId: Int, reactionId: Int, actionType: MessageAction) -> Unit) :
+class MessageOutcomeAdapterDelegate(private val actionListener: (actionType: MessageAction, messageId: Int, reactionName: String) -> Unit) :
     AdapterDelegate {
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
         val messageView = MessageOutcomeView(parent.context)
@@ -31,15 +31,15 @@ class MessageOutcomeAdapterDelegate(private val actionListener: (messageId: Int,
 
     class ViewHolder(
         private val messageOutcomeView: MessageOutcomeView,
-        private val actionListener: (messageId: Int, reactionId: Int, actionType: MessageAction) -> Unit
+        private val actionListener: (actionType: MessageAction, messageId: Int, reactionName: String) -> Unit
     ) :
         RecyclerView.ViewHolder(messageOutcomeView) {
 
         fun bind(listMessage: ListMessage) {
-            messageOutcomeView.message = listMessage.text
+            messageOutcomeView.message = listMessage.content
             messageOutcomeView.time = listMessage.time
             messageOutcomeView.findViewById<View>(R.id.messageLayout).setOnLongClickListener {
-                actionListener(listMessage.id, 0, MessageAction.REACTION_ADD)
+                actionListener(MessageAction.REACTION_CHOOSE, listMessage.id, "")
                 true
             }
 
@@ -59,7 +59,7 @@ class MessageOutcomeAdapterDelegate(private val actionListener: (messageId: Int,
                         setBackgroundResource(R.drawable.bg_reaction_view)
                         setImageResource(R.drawable.ic_add)
                         setOnClickListener {
-                            actionListener(listMessage.id, 0, MessageAction.REACTION_ADD)
+                            actionListener(MessageAction.REACTION_CHOOSE, listMessage.id, "")
                         }
                     }
                 )
@@ -73,7 +73,19 @@ class MessageOutcomeAdapterDelegate(private val actionListener: (messageId: Int,
                         isSelected = reaction.isSelected
                         setOnClickListener { reactionView ->
                             reactionView.isSelected = !reactionView.isSelected
-                            actionListener(listMessage.id, reaction.id, MessageAction.REACTION_REMOVE)
+                            if (reactionView.isSelected) {
+                                actionListener(
+                                    MessageAction.REACTION_ADD,
+                                    listMessage.id,
+                                    reaction.name
+                                )
+                            } else {
+                                actionListener(
+                                    MessageAction.REACTION_REMOVE,
+                                    listMessage.id,
+                                    reaction.name
+                                )
+                            }
                         }
                     }, reactionLayout.size - 1
                 )

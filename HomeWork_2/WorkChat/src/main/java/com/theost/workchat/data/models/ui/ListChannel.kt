@@ -5,7 +5,6 @@ import com.theost.workchat.ui.interfaces.DelegateItem
 class ListChannel(
     val id: Int,
     val name: String,
-    val topics: List<Int>,
     val isSelected: Boolean
 ) : DelegateItem {
     override fun id(): Any = id

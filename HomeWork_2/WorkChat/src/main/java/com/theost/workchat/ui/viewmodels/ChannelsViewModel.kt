@@ -31,7 +31,6 @@ class ChannelsViewModel : ViewModel() {
                     ListChannel(
                         id = channel.id,
                         name = channel.name,
-                        topics = listOf(),
                         isSelected = false
                     )
                 }
@@ -59,13 +58,12 @@ class ChannelsViewModel : ViewModel() {
                     itemsList.add(index, ListChannel(
                         id = channel.id,
                         name = channel.name,
-                        topics = channel.topics,
                         isSelected = true
                     ))
                     val topicsList = topics.map { topic ->
                         ListTopic(
                             name = topic.name,
-                            count = topic.count
+                            lastMessageId = topic.lastMessageId
                         )
                     }.reversed()
                     itemsList.addAll(index + 1, topicsList)

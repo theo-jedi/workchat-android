@@ -5,13 +5,19 @@ import androidx.core.text.HtmlCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.theost.workchat.data.models.core.RxResource
+import com.theost.workchat.data.models.state.MessageType
 import com.theost.workchat.data.models.state.ResourceStatus
 import com.theost.workchat.data.models.ui.ListDate
 import com.theost.workchat.data.models.ui.ListMessage
 import com.theost.workchat.data.models.ui.ListMessageReaction
 import com.theost.workchat.data.repositories.MessagesRepository
+import com.theost.workchat.data.repositories.ReactionsRepository
+import com.theost.workchat.data.repositories.UsersRepository
 import com.theost.workchat.ui.interfaces.DelegateItem
 import com.theost.workchat.utils.DateUtils
+import io.reactivex.rxjava3.core.Single
+import io.reactivex.rxjava3.schedulers.Schedulers
 
 class DialogViewModel : ViewModel() {
 
@@ -37,63 +43,74 @@ class DialogViewModel : ViewModel() {
     private var numAfter: Int = 0
 
     fun loadMessages(channelName: String, topicName: String) {
-        this.channelName = channelName
-        this.topicName = topicName
-
         if (channelName != "" && topicName != "") {
-            _titleData.postValue(Pair(channelName, topicName))
+            this.channelName = channelName
+            this.topicName = topicName
         }
 
+        _titleData.postValue(Pair(channelName, topicName))
         _loadingStatus.postValue(ResourceStatus.LOADING)
-        val narrow =
-            "[{\"operator\":\"stream\",\"operand\":\"$channelName\"},{\"operator\":\"topic\",\"operand\":\"$topicName\"}]" // todo fix this
-        MessagesRepository.getMessages(numBefore, numAfter, narrow).subscribe({ resource ->
-            if (resource.data != null) {
-                val messages = resource.data
+
+        val narrow = "[{\"operator\":\"stream\",\"operand\":\"$channelName\"}," +
+                "{\"operator\":\"topic\",\"operand\":\"$topicName\"}]" // todo fix this
+
+        Single.zip(
+            MessagesRepository.getMessages(numBefore, numAfter, narrow),
+            UsersRepository.getUser()
+        ) { messagesResource, userResource ->
+            val error = messagesResource.error ?: userResource.error
+            if (error == null) {
+                RxResource.success(Pair(messagesResource.data, userResource.data))
+            } else {
+                RxResource.error(error, null)
+            }
+        }.subscribeOn(Schedulers.io()).subscribe({ resource ->
+            if (resource.data?.first != null) {
+                val messages = resource.data.first!!
+                val userId = resource.data.second!!.id
                 val listItems = mutableListOf<DelegateItem>()
+
                 (messages.indices).forEach { index ->
                     val message = messages[index]
                     val reactions = message.reactions
+
+                    val userReactions = reactions.filter { it.userId == userId }.map { it.emoji }
                     val listReactions = mutableListOf<ListMessageReaction>()
-                    val selectedReactions = reactions.map { }
-                    (message.reactions).forEach { reaction ->
-                        if (listReactions.indexOfFirst { it.emoji == reaction } == -1) {
-                            val count = reactions.count { it == reaction }
-                            listReactions.add(
-                                ListMessageReaction(
-                                    0,
-                                    reaction,
-                                    count,
-                                    false
-                                )
+
+                    // Map reactions
+                    reactions.distinctBy { it.emoji }.forEach { reaction ->
+                        listReactions.add(
+                            ListMessageReaction(
+                                name = reaction.name,
+                                emoji = reaction.emoji,
+                                count = reactions.count { it.emoji == reaction.emoji },
+                                isSelected = userReactions.contains(reaction.emoji)
                             )
-                        }
+                        )
                     }
 
-                    if (index == 0 || !DateUtils.isSameDay(
-                            message.time,
-                            messages[index - 1].time
-                        )
-                    ) {
+                    // Add date item
+                    if (index == 0 || DateUtils.notSameDay(message.time, messages[index - 1].time)) {
                         listItems.add(ListDate(DateUtils.getDayDate(message.time)))
                     }
-                    val content = SpannableString(
-                        HtmlCompat.fromHtml(
-                            message.text,
-                            HtmlCompat.FROM_HTML_MODE_COMPACT
-                        ).trim()
+
+                    //  Add message item
+                    val listMessage = ListMessage(
+                        id = message.id,
+                        senderName = message.senderName,
+                        content = SpannableString(
+                            HtmlCompat.fromHtml(
+                                message.content,
+                                HtmlCompat.FROM_HTML_MODE_COMPACT
+                            ).trim()
+                        ),
+                        senderAvatarUrl = message.senderAvatarUrl,
+                        time = DateUtils.getTime(message.time),
+                        reactions = listReactions.sortedByDescending { it.count },
+                        messageType = if (message.senderId == userId) MessageType.OUTCOME else MessageType.INCOME
                     )
-                    listItems.add(
-                        ListMessage(
-                            id = message.id,
-                            name = message.name,
-                            text = content,
-                            avatar = message.avatarUrl,
-                            time = DateUtils.getTime(message.time),
-                            reactions = listReactions,
-                            messageType = message.messageType
-                        )
-                    )
+
+                    listItems.add(listMessage)
                 }
                 _allData.postValue(listItems)
                 _loadingStatus.postValue(resource.status)
@@ -107,7 +124,7 @@ class DialogViewModel : ViewModel() {
         })
     }
 
-    fun sendMessage(message: String) {
+    fun addMessage(message: String) {
         _sendingMessageStatus.postValue(ResourceStatus.LOADING)
         MessagesRepository.addMessage(channelName, topicName, message).subscribe({
             _sendingMessageStatus.postValue(ResourceStatus.SUCCESS)
@@ -116,14 +133,28 @@ class DialogViewModel : ViewModel() {
         })
     }
 
-    fun updateReaction(dialogId: Int, messageId: Int, reactionId: Int, emoji: String? = null) {
-        /*_sendingReactionStatus.postValue(ResourceStatus.LOADING)
-        ReactionsRepository.updateReaction(reactionId, userId, dialogId, messageId, emoji)
-            .subscribe({
-                _sendingReactionStatus.postValue(ResourceStatus.SUCCESS)
-            }, {
-                _sendingReactionStatus.postValue(ResourceStatus.ERROR)
-            })*/
+    fun addReaction(messageId: Int, reactionName: String) {
+        _sendingReactionStatus.postValue(ResourceStatus.LOADING)
+        ReactionsRepository.addReaction(
+            messageId = messageId,
+            reactionName = reactionName
+        ).subscribe({
+            _sendingReactionStatus.postValue(ResourceStatus.SUCCESS)
+        }, {
+            _sendingReactionStatus.postValue(ResourceStatus.ERROR)
+        })
+    }
+
+    fun removeReaction(messageId: Int, reactionName: String) {
+        _sendingReactionStatus.postValue(ResourceStatus.LOADING)
+        ReactionsRepository.removeReaction(
+            messageId = messageId,
+            reactionName = reactionName
+        ).subscribe({
+            _sendingReactionStatus.postValue(ResourceStatus.SUCCESS)
+        }, {
+            _sendingReactionStatus.postValue(ResourceStatus.ERROR)
+        })
     }
 
 }

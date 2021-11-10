@@ -11,25 +11,16 @@ object TopicsRepository {
 
     private val service = RetrofitHelper.retrofitService
 
-    private val topics = mutableListOf<Topic>()
-
     fun getTopics(channelId: Int): Single<RxResource<List<Topic>>> {
-        return service.getChannelTopics(channelId)
-            .map { RxResource.success(it.topics.map { topic -> topic.mapToTopic() }) }
+        return service.getChannelTopics(
+            channelId = channelId
+        ).map { RxResource.success(it.topics.map { topic -> topic.mapToTopic() }) }
             .onErrorReturn { RxResource.error(it, null) }
             .doOnSuccess {
                 if (it.data != null) {
-                    topics.clear()
-                    topics.addAll(it.data)
+                    // todo Room
                 }
             }.subscribeOn(Schedulers.io())
-    }
-
-    fun getTopic(id: Int): Single<RxResource<Topic>> {
-        return Single.just(topics.toList())
-            .map { list -> RxResource.success(list[0]) }
-            .onErrorReturn { RxResource.error(it, null) }
-            .subscribeOn(Schedulers.io())
     }
 
 }

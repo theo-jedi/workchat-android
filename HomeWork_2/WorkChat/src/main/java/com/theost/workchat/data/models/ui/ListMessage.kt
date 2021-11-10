@@ -6,10 +6,10 @@ import com.theost.workchat.ui.interfaces.DelegateItem
 
 data class ListMessage(
     val id: Int,
-    val name: String,
-    val text: Spanned,
-    val avatar: String,
+    val content: Spanned,
     val time: String,
+    val senderName: String,
+    val senderAvatarUrl: String,
     val reactions: List<ListMessageReaction>,
     val messageType: MessageType
 ) : DelegateItem {

@@ -1,5 +1,6 @@
 package com.theost.workchat.data.models.ui
 
+import com.theost.workchat.data.models.state.UserStatus
 import com.theost.workchat.ui.interfaces.DelegateItem
 
 class ListUser(
@@ -7,9 +8,8 @@ class ListUser(
     val name: String,
     val about: String,
     val avatarUrl: String,
-    val isActive: Boolean
+    val status: UserStatus
 ) : DelegateItem {
     override fun id(): Any = id
-
-    override fun content(): Any = isActive
+    override fun content(): Any = status
 }

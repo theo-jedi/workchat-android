@@ -38,7 +38,7 @@ class TopicAdapterDelegate(private val clickListener: (topicName: String) -> Uni
 
         fun bind(listItem: ListTopic) {
             binding.topicName.text = listItem.name
-            binding.topicCount.text = listItem.count.toString()
+            binding.topicCount.text = listItem.lastMessageId.toString()
             binding.root.setOnClickListener { clickListener(listItem.name) }
             binding.root.setBackgroundResource(backgrounds[adapterPosition % backgrounds.size])
         }

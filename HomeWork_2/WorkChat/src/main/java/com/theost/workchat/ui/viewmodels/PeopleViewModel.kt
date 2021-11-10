@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.theost.workchat.data.models.state.ResourceStatus
+import com.theost.workchat.data.models.state.UserStatus
 import com.theost.workchat.data.models.ui.ListUser
 import com.theost.workchat.data.repositories.UsersRepository
 import com.theost.workchat.ui.interfaces.DelegateItem
@@ -30,7 +31,7 @@ class PeopleViewModel : ViewModel() {
                             user.name,
                             user.about,
                             user.avatarUrl,
-                            user.isActive
+                            UserStatus.OFFLINE
                         )
                     }
                 _allData.postValue(usersList)

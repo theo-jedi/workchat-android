@@ -17,9 +17,9 @@ class ReactionsViewModel : ViewModel() {
 
     fun loadData() {
         _loadingStatus.postValue(ResourceStatus.LOADING)
-        ReactionsRepository.getEmojiReactions().subscribe({ resource ->
+        ReactionsRepository.getReactions().subscribe({ resource ->
             if (resource.data != null) {
-                val reactions = resource.data.map { ListReaction(it.id, it.emoji) }
+                val reactions = resource.data.map { ListReaction(it.name, it.emoji) }
                 _allData.postValue(reactions)
                 _loadingStatus.postValue(ResourceStatus.SUCCESS)
             } else {
