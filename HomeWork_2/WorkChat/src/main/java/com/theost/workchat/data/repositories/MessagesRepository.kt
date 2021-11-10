@@ -21,7 +21,7 @@ object MessagesRepository {
             numBefore = numBefore,
             numAfter = numAfter,
             narrow = narrow
-        ).map { RxResource.success(it.messages.map { message -> message.mapToMessage() }) }
+        ).map { RxResource.success(it.messages.map { message -> message.mapToMessage() }.reversed()) }
             .onErrorReturn { RxResource.error(it, null) }
             .doOnSuccess {
                 if (it.data != null) {

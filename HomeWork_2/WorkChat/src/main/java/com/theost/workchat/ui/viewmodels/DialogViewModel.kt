@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.theost.workchat.data.models.core.RxResource
+import com.theost.workchat.data.models.dto.NarrowDto
 import com.theost.workchat.data.models.state.MessageType
 import com.theost.workchat.data.models.state.ResourceStatus
 import com.theost.workchat.data.models.ui.ListDate
@@ -18,6 +19,8 @@ import com.theost.workchat.ui.interfaces.DelegateItem
 import com.theost.workchat.utils.DateUtils
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.schedulers.Schedulers
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
 
 class DialogViewModel : ViewModel() {
 
@@ -51,8 +54,13 @@ class DialogViewModel : ViewModel() {
         _titleData.postValue(Pair(channelName, topicName))
         _loadingStatus.postValue(ResourceStatus.LOADING)
 
-        val narrow = "[{\"operator\":\"stream\",\"operand\":\"$channelName\"}," +
-                "{\"operator\":\"topic\",\"operand\":\"$topicName\"}]" // todo fix this
+        val narrow = Json.encodeToString(
+            serializer(),
+            listOf(
+                NarrowDto("stream", channelName),
+                NarrowDto("topic", topicName)
+            )
+        )
 
         Single.zip(
             MessagesRepository.getMessages(numBefore, numAfter, narrow),
@@ -89,11 +97,6 @@ class DialogViewModel : ViewModel() {
                         )
                     }
 
-                    // Add date item
-                    if (index == 0 || DateUtils.notSameDay(message.time, messages[index - 1].time)) {
-                        listItems.add(ListDate(DateUtils.getDayDate(message.time)))
-                    }
-
                     //  Add message item
                     val listMessage = ListMessage(
                         id = message.id,
@@ -109,8 +112,16 @@ class DialogViewModel : ViewModel() {
                         reactions = listReactions.sortedByDescending { it.count },
                         messageType = if (message.senderId == userId) MessageType.OUTCOME else MessageType.INCOME
                     )
-
                     listItems.add(listMessage)
+
+                    // Add date item
+                    if (index == messages.size - 1 || DateUtils.notSameDay(
+                            message.time,
+                            messages[index + 1].time
+                        )
+                    ) {
+                        listItems.add(ListDate(DateUtils.getDayDate(message.time)))
+                    }
                 }
                 _allData.postValue(listItems)
                 _loadingStatus.postValue(resource.status)
@@ -124,9 +135,13 @@ class DialogViewModel : ViewModel() {
         })
     }
 
-    fun addMessage(message: String) {
+    fun addMessage(content: String) {
         _sendingMessageStatus.postValue(ResourceStatus.LOADING)
-        MessagesRepository.addMessage(channelName, topicName, message).subscribe({
+        MessagesRepository.addMessage(
+            channelName = channelName,
+            topicName = topicName,
+            content = content
+        ).subscribe({
             _sendingMessageStatus.postValue(ResourceStatus.SUCCESS)
         }, {
             _sendingMessageStatus.postValue(ResourceStatus.ERROR)

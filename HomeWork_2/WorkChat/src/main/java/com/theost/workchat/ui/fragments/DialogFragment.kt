@@ -98,7 +98,8 @@ class DialogFragment : Fragment() {
             adapter.submitList(list)
             binding.emptyLayout.emptyView.visibility = if (list.isNotEmpty()) View.GONE else View.VISIBLE
             if (scrollStatus == ScrollStatus.WAITING) {
-                binding.messagesList.smoothScrollToPosition(adapter.itemCount + 1)
+                scrollStatus = ScrollStatus.STAY
+                binding.messagesList.smoothScrollToPosition(0)
             }
         }
 
@@ -214,6 +215,7 @@ class DialogFragment : Fragment() {
             binding.inputLayout.messageInput.animate().alpha(1.0f)
             binding.inputLayout.actionButton.isEnabled = true
             binding.inputLayout.messageInput.isEnabled = true
+            binding.messagesList.scrollToPosition(0)
         } else {
             hideInputLoading()
         }
