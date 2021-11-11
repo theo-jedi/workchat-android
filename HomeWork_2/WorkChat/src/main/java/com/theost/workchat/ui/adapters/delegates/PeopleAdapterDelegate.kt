@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.theost.workchat.R
 import com.theost.workchat.data.models.state.UserStatus
 import com.theost.workchat.data.models.ui.ListUser
 import com.theost.workchat.databinding.ItemPeopleBinding
@@ -32,7 +33,12 @@ class PeopleAdapterDelegate(private val clickListener: (userId: Int) -> Unit) :
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(listItem: ListUser) {
-            Glide.with(binding.root).load(listItem.avatarUrl).into(binding.userAvatar)
+            Glide.with(binding.root)
+                .load(listItem.avatarUrl)
+                .placeholder(R.drawable.ic_loading_avatar)
+                .error(R.drawable.ic_error_avatar)
+                .into(binding.userAvatar)
+
             binding.root.setOnClickListener { clickListener(listItem.id) }
             binding.userName.text = listItem.name
             binding.userAbout.text = listItem.about

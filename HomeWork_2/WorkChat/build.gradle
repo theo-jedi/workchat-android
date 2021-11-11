@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'kotlin-kapt'
     id 'org.jetbrains.kotlin.plugin.serialization' version '1.5.21'
 }
 
@@ -62,10 +63,15 @@ dependencies {
     // Kotlin Serialization
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion"
 
+    // Room
+    implementation "androidx.room:room-runtime:$roomVersion"
+    implementation "androidx.room:room-rxjava3:$roomVersion"
+    kapt "androidx.room:room-compiler:$roomVersion"
+
     // Shimmer Layout
     implementation "com.facebook.shimmer:shimmer:$shimmerVersion"
 
     // Glide
-    implementation 'com.github.bumptech.glide:glide:4.12.0'
-    annotationProcessor 'com.github.bumptech.glide:compiler:4.12.0'
+    implementation "com.github.bumptech.glide:glide:$glideVersion"
+    kapt "com.github.bumptech.glide:compiler:$glideVersion"
 }

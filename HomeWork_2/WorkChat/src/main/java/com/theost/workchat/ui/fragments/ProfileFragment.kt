@@ -15,6 +15,7 @@ import com.theost.workchat.data.models.ui.ListUser
 import com.theost.workchat.databinding.FragmentProfileBinding
 import com.theost.workchat.ui.interfaces.NavigationHolder
 import com.theost.workchat.ui.viewmodels.ProfileViewModel
+import com.theost.workchat.utils.PrefUtils
 
 class ProfileFragment : Fragment() {
 
@@ -39,7 +40,7 @@ class ProfileFragment : Fragment() {
             when (status) {
                 ResourceStatus.SUCCESS -> hideShimmerLayout()
                 ResourceStatus.ERROR -> { showLoadingError() }
-                ResourceStatus.LOADING ->  {}
+                ResourceStatus.LOADING -> { showShimmerLayout() }
                 else -> {}
             }
         }
@@ -68,7 +69,12 @@ class ProfileFragment : Fragment() {
     }
 
     private fun loadData() {
-        viewModel.loadData(userId)
+        context?.let { context ->
+            viewModel.loadData(
+                if (userId == -1) PrefUtils.getCurrentUserId(context) else userId
+            )
+        }
+
     }
 
     override fun onDestroy() {
@@ -77,7 +83,11 @@ class ProfileFragment : Fragment() {
     }
 
     private fun setData(user: ListUser) {
-        Glide.with(this).load(user.avatarUrl).into(binding.userAvatar)
+        Glide.with(this)
+            .load(user.avatarUrl)
+            .placeholder(R.drawable.ic_loading_avatar)
+            .error(R.drawable.ic_error_avatar)
+            .into(binding.userAvatar)
 
         binding.userName.text = user.name
         binding.userAbout.text = user.about
@@ -85,7 +95,8 @@ class ProfileFragment : Fragment() {
         when (user.status) {
             UserStatus.ONLINE -> binding.userStatusOnline.visibility = View.VISIBLE
             UserStatus.IDLE -> binding.userStatusIdle.visibility = View.VISIBLE
-            else -> {}
+            else -> {
+            }
         }
     }
 
@@ -94,6 +105,14 @@ class ProfileFragment : Fragment() {
         binding.avatarLayout.visibility = View.VISIBLE
         binding.userName.visibility = View.VISIBLE
         binding.userAbout.visibility = View.VISIBLE
+        //binding.userStatus.visibility = if () View.VISIBLE else View.INVISIBLE
+    }
+
+    private fun showShimmerLayout() {
+        binding.shimmerLayout.shimmer.visibility = View.VISIBLE
+        binding.avatarLayout.visibility = View.GONE
+        binding.userName.visibility = View.GONE
+        binding.userAbout.visibility = View.GONE
         //binding.userStatus.visibility = if () View.VISIBLE else View.INVISIBLE
     }
 

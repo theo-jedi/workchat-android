@@ -5,8 +5,6 @@ import androidx.core.text.HtmlCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.theost.workchat.data.models.core.RxResource
-import com.theost.workchat.data.models.dto.NarrowDto
 import com.theost.workchat.data.models.state.MessageType
 import com.theost.workchat.data.models.state.ResourceStatus
 import com.theost.workchat.data.models.ui.ListDate
@@ -14,13 +12,9 @@ import com.theost.workchat.data.models.ui.ListMessage
 import com.theost.workchat.data.models.ui.ListMessageReaction
 import com.theost.workchat.data.repositories.MessagesRepository
 import com.theost.workchat.data.repositories.ReactionsRepository
-import com.theost.workchat.data.repositories.UsersRepository
 import com.theost.workchat.ui.interfaces.DelegateItem
 import com.theost.workchat.utils.DateUtils
-import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.schedulers.Schedulers
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.serializer
 
 class DialogViewModel : ViewModel() {
 
@@ -45,7 +39,7 @@ class DialogViewModel : ViewModel() {
     private var numBefore: Int = 100
     private var numAfter: Int = 0
 
-    fun loadMessages(channelName: String, topicName: String) {
+    fun loadMessages(channelName: String, topicName: String, currentUserId: Int) {
         if (channelName != "" && topicName != "") {
             this.channelName = channelName
             this.topicName = topicName
@@ -54,85 +48,70 @@ class DialogViewModel : ViewModel() {
         _titleData.postValue(Pair(channelName, topicName))
         _loadingStatus.postValue(ResourceStatus.LOADING)
 
-        val narrow = Json.encodeToString(
-            serializer(),
-            listOf(
-                NarrowDto("stream", channelName),
-                NarrowDto("topic", topicName)
-            )
-        )
+        MessagesRepository.getMessages(channelName, topicName, numBefore, numAfter)
+            .subscribeOn(Schedulers.io()).subscribe({ resource ->
+                if (resource.data != null && resource.data.isNotEmpty()) {
+                    val messages = resource.data
+                    val listItems = mutableListOf<DelegateItem>()
 
-        Single.zip(
-            MessagesRepository.getMessages(numBefore, numAfter, narrow),
-            UsersRepository.getUser()
-        ) { messagesResource, userResource ->
-            val error = messagesResource.error ?: userResource.error
-            if (error == null) {
-                RxResource.success(Pair(messagesResource.data, userResource.data))
-            } else {
-                RxResource.error(error, null)
-            }
-        }.subscribeOn(Schedulers.io()).subscribe({ resource ->
-            if (resource.data?.first != null) {
-                val messages = resource.data.first!!
-                val userId = resource.data.second!!.id
-                val listItems = mutableListOf<DelegateItem>()
+                    (messages.indices).forEach { index ->
+                        val message = messages[index]
+                        val reactions = message.reactions
 
-                (messages.indices).forEach { index ->
-                    val message = messages[index]
-                    val reactions = message.reactions
+                        val userReactions =
+                            reactions.filter { it.userId == currentUserId }.map { it.emoji }
+                        val listReactions = mutableListOf<ListMessageReaction>()
 
-                    val userReactions = reactions.filter { it.userId == userId }.map { it.emoji }
-                    val listReactions = mutableListOf<ListMessageReaction>()
-
-                    // Map reactions
-                    reactions.distinctBy { it.emoji }.forEach { reaction ->
-                        listReactions.add(
-                            ListMessageReaction(
-                                name = reaction.name,
-                                emoji = reaction.emoji,
-                                count = reactions.count { it.emoji == reaction.emoji },
-                                isSelected = userReactions.contains(reaction.emoji)
+                        // Map reactions
+                        reactions.distinctBy { it.emoji }.forEach { reaction ->
+                            listReactions.add(
+                                ListMessageReaction(
+                                    name = reaction.name,
+                                    code = reaction.code,
+                                    type = reaction.type,
+                                    emoji = reaction.emoji,
+                                    count = reactions.count { it.emoji == reaction.emoji },
+                                    isSelected = userReactions.contains(reaction.emoji)
+                                )
                             )
-                        )
-                    }
+                        }
 
-                    //  Add message item
-                    val listMessage = ListMessage(
-                        id = message.id,
-                        senderName = message.senderName,
-                        content = SpannableString(
-                            HtmlCompat.fromHtml(
-                                message.content,
-                                HtmlCompat.FROM_HTML_MODE_COMPACT
-                            ).trim()
-                        ),
-                        senderAvatarUrl = message.senderAvatarUrl,
-                        time = DateUtils.getTime(message.time),
-                        reactions = listReactions.sortedByDescending { it.count },
-                        messageType = if (message.senderId == userId) MessageType.OUTCOME else MessageType.INCOME
-                    )
-                    listItems.add(listMessage)
-
-                    // Add date item
-                    if (index == messages.size - 1 || DateUtils.notSameDay(
-                            message.time,
-                            messages[index + 1].time
+                        //  Add message item
+                        val listMessage = ListMessage(
+                            id = message.id,
+                            senderName = message.senderName,
+                            content = SpannableString(
+                                HtmlCompat.fromHtml(
+                                    message.content,
+                                    HtmlCompat.FROM_HTML_MODE_COMPACT
+                                ).trim()
+                            ),
+                            senderAvatarUrl = message.senderAvatarUrl,
+                            time = DateUtils.getTime(message.time),
+                            reactions = listReactions.sortedByDescending { it.count },
+                            messageType = if (message.senderId == currentUserId) MessageType.OUTCOME else MessageType.INCOME
                         )
-                    ) {
-                        listItems.add(ListDate(DateUtils.getDayDate(message.time)))
+                        listItems.add(listMessage)
+
+                        // Add date item
+                        if (index == messages.size - 1 || DateUtils.notSameDay(
+                                message.time,
+                                messages[index + 1].time
+                            )
+                        ) {
+                            listItems.add(ListDate(DateUtils.getDayDate(message.time)))
+                        }
                     }
+                    _allData.postValue(listItems)
+                    _loadingStatus.postValue(ResourceStatus.SUCCESS)
+                } else {
+                    resource.error?.printStackTrace()
+                    //_loadingStatus.postValue(ResourceStatus.ERROR)
                 }
-                _allData.postValue(listItems)
-                _loadingStatus.postValue(resource.status)
-            } else {
-                resource.error?.printStackTrace()
-                _loadingStatus.postValue(ResourceStatus.ERROR)
-            }
-        }, {
-            it.printStackTrace()
-            _loadingStatus.postValue(ResourceStatus.ERROR)
-        })
+            }, {
+                it.printStackTrace()
+                //_loadingStatus.postValue(ResourceStatus.ERROR)
+            })
     }
 
     fun addMessage(content: String) {
@@ -160,11 +139,18 @@ class DialogViewModel : ViewModel() {
         })
     }
 
-    fun removeReaction(messageId: Int, reactionName: String) {
+    fun removeReaction(
+        messageId: Int,
+        reactionName: String,
+        reactionCode: String,
+        reactionType: String
+    ) {
         _sendingReactionStatus.postValue(ResourceStatus.LOADING)
         ReactionsRepository.removeReaction(
             messageId = messageId,
-            reactionName = reactionName
+            reactionName = reactionName,
+            reactionCode = reactionCode,
+            reactionType = reactionType
         ).subscribe({
             _sendingReactionStatus.postValue(ResourceStatus.SUCCESS)
         }, {

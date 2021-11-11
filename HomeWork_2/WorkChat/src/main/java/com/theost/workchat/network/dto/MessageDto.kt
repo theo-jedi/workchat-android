@@ -1,4 +1,4 @@
-package com.theost.workchat.data.models.dto
+package com.theost.workchat.network.dto
 
 import com.theost.workchat.data.models.core.Message
 import com.theost.workchat.utils.DateUtils

@@ -4,6 +4,8 @@ import com.theost.workchat.ui.interfaces.DelegateItem
 
 data class ListMessageReaction(
     val name: String,
+    val code: String,
+    val type: String,
     val emoji: String,
     val count: Int,
     val isSelected: Boolean

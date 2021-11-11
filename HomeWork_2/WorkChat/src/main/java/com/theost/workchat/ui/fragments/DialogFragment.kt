@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.theost.workchat.R
 import com.theost.workchat.data.models.state.InputStatus
@@ -23,6 +24,7 @@ import com.theost.workchat.ui.adapters.delegates.DateAdapterDelegate
 import com.theost.workchat.ui.adapters.delegates.MessageIncomeAdapterDelegate
 import com.theost.workchat.ui.adapters.delegates.MessageOutcomeAdapterDelegate
 import com.theost.workchat.ui.viewmodels.DialogViewModel
+import com.theost.workchat.utils.PrefUtils
 
 class DialogFragment : Fragment() {
 
@@ -54,53 +56,90 @@ class DialogFragment : Fragment() {
         binding.inputLayout.actionButton.setOnClickListener { onInputActionClicked() }
 
         binding.messagesList.adapter = adapter.apply {
-            addDelegate(MessageIncomeAdapterDelegate() { actionType, messageId, reactionId ->
-                onMessageAction(actionType, messageId, reactionId)
+            addDelegate(MessageIncomeAdapterDelegate() { actionType, messageId, reaction ->
+                onMessageAction(
+                    actionType,
+                    messageId,
+                    reaction?.name,
+                    reaction?.code,
+                    reaction?.type
+                )
             })
-            addDelegate(MessageOutcomeAdapterDelegate() { actionType, messageId, reactionId ->
-                onMessageAction(actionType, messageId, reactionId)
+            addDelegate(MessageOutcomeAdapterDelegate() { actionType, messageId, reaction ->
+                onMessageAction(
+                    actionType,
+                    messageId,
+                    reaction?.name,
+                    reaction?.code,
+                    reaction?.type
+                )
             })
             addDelegate(DateAdapterDelegate())
+            registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
+                override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+                    super.onItemRangeInserted(positionStart, itemCount)
+                    if (!isDialogLoaded) {
+                        onFirstDataLoaded()
+                    } else if (scrollStatus == ScrollStatus.WAITING) {
+                        scrollStatus = ScrollStatus.STAY
+                        binding.messagesList.smoothScrollToPosition(0)
+                    }
+                }
+            })
         }
 
         viewModel.loadingStatus.observe(viewLifecycleOwner) { status ->
             when (status) {
-                ResourceStatus.SUCCESS -> { onDataLoaded() }
-                ResourceStatus.ERROR -> { showLoadingError() }
-                ResourceStatus.LOADING ->  { onDataLoading() }
-                else -> {}
+                ResourceStatus.SUCCESS -> {
+                    onDataLoaded()
+                }
+                ResourceStatus.ERROR -> {
+                    showLoadingError()
+                }
+                ResourceStatus.LOADING -> {
+                    onDataLoading()
+                }
+                else -> {
+                }
             }
         }
 
         viewModel.sendingMessageStatus.observe(viewLifecycleOwner) { status ->
             when (status) {
-                ResourceStatus.LOADING -> { showInputLoading() }
-                ResourceStatus.SUCCESS -> { onMessageSent() }
+                ResourceStatus.LOADING -> {
+                    showInputLoading()
+                }
+                ResourceStatus.SUCCESS -> {
+                    onMessageSent()
+                }
                 ResourceStatus.ERROR -> {
                     hideInputLoading()
                     showSendingError()
                 }
-                else -> {}
+                else -> {
+                }
             }
         }
 
         viewModel.sendingReactionStatus.observe(viewLifecycleOwner) { status ->
             when (status) {
-                ResourceStatus.SUCCESS -> { loadData() }
-                ResourceStatus.ERROR -> { showSendingError() }
-                else -> {}
+                ResourceStatus.SUCCESS -> {
+                    loadData()
+                }
+                ResourceStatus.ERROR -> {
+                    showSendingError()
+                }
+                else -> {
+                }
             }
         }
 
-        viewModel.titleData.observe(viewLifecycleOwner) { configureTitle(it.first, it.second)}
+        viewModel.titleData.observe(viewLifecycleOwner) { configureTitle(it.first, it.second) }
 
         viewModel.allData.observe(viewLifecycleOwner) { list ->
             adapter.submitList(list)
-            binding.emptyLayout.emptyView.visibility = if (list.isNotEmpty()) View.GONE else View.VISIBLE
-            if (scrollStatus == ScrollStatus.WAITING) {
-                scrollStatus = ScrollStatus.STAY
-                binding.messagesList.smoothScrollToPosition(0)
-            }
+            binding.emptyLayout.emptyView.visibility =
+                if (list.isNotEmpty()) View.GONE else View.VISIBLE
         }
 
         loadData()
@@ -131,17 +170,25 @@ class DialogFragment : Fragment() {
 
     private fun configureTitle(channel: String, topic: String) {
         val title = SpannableString("#$channel #$topic")
-        title.setSpan(
-            ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.green)),
-            channel.length + 1,
-            title.length,
-            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
+        context?.let { context ->
+            title.setSpan(
+                ForegroundColorSpan(ContextCompat.getColor(context, R.color.green)),
+                channel.length + 1,
+                title.length,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
         binding.toolbarLayout.toolbar.title = title
     }
 
     private fun loadData() {
-        viewModel.loadMessages(channelName, topicName)
+        context?.let { context ->
+            viewModel.loadMessages(
+                channelName,
+                topicName,
+                PrefUtils.getCurrentUserId(context)
+            )
+        }
     }
 
     private fun onInputTextChanged(text: String) {
@@ -157,7 +204,8 @@ class DialogFragment : Fragment() {
 
     private fun onInputActionClicked() {
         when (inputStatus) {
-            InputStatus.EMPTY -> { /* todo file attachment */ }
+            InputStatus.EMPTY -> { /* todo file attachment */
+            }
             InputStatus.FILLED -> sendMessage()
         }
     }
@@ -166,18 +214,38 @@ class DialogFragment : Fragment() {
         viewModel.addMessage(getMessageText())
     }
 
-    private fun onMessageAction(actionType: MessageAction, messageId: Int, reactionName: String) {
+    private fun onMessageAction(
+        actionType: MessageAction,
+        messageId: Int,
+        reactionName: String?,
+        reactionCode: String?,
+        reactionType: String?
+    ) {
         when (actionType) {
             MessageAction.REACTION_CHOOSE -> pickReaction(messageId)
-            MessageAction.REACTION_ADD -> viewModel.addReaction(messageId = messageId, reactionName = reactionName)
-            MessageAction.REACTION_REMOVE -> viewModel.removeReaction(messageId = messageId, reactionName = reactionName)
+            MessageAction.REACTION_ADD -> viewModel.addReaction(
+                messageId = messageId,
+                reactionName = reactionName.orEmpty()
+            )
+            MessageAction.REACTION_REMOVE -> viewModel.removeReaction(
+                messageId = messageId,
+                reactionName = reactionName.orEmpty(),
+                reactionCode = reactionCode.orEmpty(),
+                reactionType = reactionType.orEmpty()
+            )
         }
     }
 
     private fun pickReaction(messageId: Int) {
         if (!isDetached) {
             ReactionBottomSheetFragment.newFragment { reaction ->
-                onMessageAction(MessageAction.REACTION_ADD, messageId, reaction.name)
+                onMessageAction(
+                    MessageAction.REACTION_ADD,
+                    messageId,
+                    reaction.name,
+                    reaction.code,
+                    reaction.type
+                )
             }.show(requireActivity().supportFragmentManager, null)
         }
     }
@@ -207,18 +275,19 @@ class DialogFragment : Fragment() {
         }
     }
 
+    private fun onFirstDataLoaded() {
+        isDialogLoaded = true
+        binding.messagesList.scrollToPosition(0)
+        binding.loadingBar.visibility = View.GONE
+        binding.inputLayout.actionButton.animate().alpha(1.0f)
+        binding.inputLayout.messageInput.animate().alpha(1.0f)
+        binding.inputLayout.actionButton.isEnabled = true
+        binding.inputLayout.messageInput.isEnabled = true
+        binding.messagesList.scrollToPosition(0)
+    }
+
     private fun onDataLoaded() {
-        if (!isDialogLoaded) {
-            isDialogLoaded = true
-            binding.loadingBar.visibility = View.GONE
-            binding.inputLayout.actionButton.animate().alpha(1.0f)
-            binding.inputLayout.messageInput.animate().alpha(1.0f)
-            binding.inputLayout.actionButton.isEnabled = true
-            binding.inputLayout.messageInput.isEnabled = true
-            binding.messagesList.scrollToPosition(0)
-        } else {
-            hideInputLoading()
-        }
+        hideInputLoading()
     }
 
     private fun hideInputLoading() {

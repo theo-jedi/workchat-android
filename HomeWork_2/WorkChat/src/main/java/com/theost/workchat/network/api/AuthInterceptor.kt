@@ -1,4 +1,4 @@
-package com.theost.workchat.network
+package com.theost.workchat.network.api
 
 import okhttp3.Credentials
 import okhttp3.Interceptor

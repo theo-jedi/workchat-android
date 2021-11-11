@@ -1,4 +1,4 @@
-package com.theost.workchat.network
+package com.theost.workchat.network.api
 
 object RetrofitHelper {
     private const val BASE_URL = "https://tinkoff-android-fall21.zulipchat.com/api/v1/"

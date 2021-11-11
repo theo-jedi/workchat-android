@@ -1,4 +1,4 @@
-package com.theost.workchat.data.models.dto
+package com.theost.workchat.network.dto
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

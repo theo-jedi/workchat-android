@@ -17,16 +17,25 @@ class ChannelsViewModel : ViewModel() {
     private val _allData = MutableLiveData<List<DelegateItem>>()
     val allData: LiveData<List<DelegateItem>> = _allData
 
+    private val _subscribedChannelsIds = MutableLiveData<List<Int>>()
+    val subscribedChannelsIds: LiveData<List<Int>> = _subscribedChannelsIds
+
     private val _loadingStatus = MutableLiveData<ResourceStatus>()
     val loadingStatus: LiveData<ResourceStatus> = _loadingStatus
 
     private var channelsList = listOf<ListChannel>()
 
-    fun loadData(channelsType: ChannelsType) {
+    fun loadData(channelsType: ChannelsType, subscribedChannels: List<Int>) {
         _loadingStatus.postValue(ResourceStatus.LOADING)
-        ChannelsRepository.getChannels(channelsType).subscribeOn(Schedulers.io()).subscribe({ resource ->
-            if (resource.data != null) {
+        ChannelsRepository.getChannels(channelsType, subscribedChannels).subscribeOn(Schedulers.io()).subscribe({ resource ->
+            if (resource.data != null && resource.data.isNotEmpty()) {
                 val channels = resource.data
+
+                if (channelsType == ChannelsType.SUBSCRIBED) {
+                    val subscribedIds = channels.map { it.id }
+                    _subscribedChannelsIds.postValue(subscribedIds)
+                }
+
                 channelsList = channels.map { channel ->
                     ListChannel(
                         id = channel.id,
@@ -34,15 +43,16 @@ class ChannelsViewModel : ViewModel() {
                         isSelected = false
                     )
                 }
+
                 _allData.postValue(channelsList)
-                _loadingStatus.postValue(resource.status)
+                _loadingStatus.postValue(ResourceStatus.SUCCESS)
             } else {
                 resource.error?.printStackTrace()
-                _loadingStatus.postValue(ResourceStatus.ERROR)
+                //_loadingStatus.postValue(ResourceStatus.ERROR)
             }
         }, {
             it.printStackTrace()
-            _loadingStatus.postValue(ResourceStatus.ERROR)
+            //_loadingStatus.postValue(ResourceStatus.ERROR)
         })
     }
 
@@ -50,7 +60,7 @@ class ChannelsViewModel : ViewModel() {
         val itemsList = mutableListOf<DelegateItem>().apply { addAll(channelsList) }
         if (!isSelected) {
             TopicsRepository.getTopics(channelId).subscribe({ resource ->
-                if (resource.data != null) {
+                if (resource.data != null && resource.data.isNotEmpty()) {
                     val topics = resource.data
                     val index = itemsList.indexOfFirst { it is ListChannel && it.id == channelId }
                     val channel = itemsList[index] as ListChannel
@@ -68,14 +78,14 @@ class ChannelsViewModel : ViewModel() {
                     }.reversed()
                     itemsList.addAll(index + 1, topicsList)
                     _allData.postValue(itemsList)
-                    _loadingStatus.postValue(resource.status)
+                    _loadingStatus.postValue(ResourceStatus.SUCCESS)
                 } else {
                     resource.error?.printStackTrace()
-                    _loadingStatus.postValue(ResourceStatus.ERROR)
+                    //_loadingStatus.postValue(ResourceStatus.ERROR)
                 }
             }, {
                 it.printStackTrace()
-                _loadingStatus.postValue(ResourceStatus.ERROR)
+                //_loadingStatus.postValue(ResourceStatus.ERROR)
             })
         } else {
             _allData.postValue(itemsList)

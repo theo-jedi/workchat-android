@@ -20,10 +20,12 @@ import com.theost.workchat.ui.interfaces.NavigationHolder
 import com.theost.workchat.ui.interfaces.PeopleListener
 import com.theost.workchat.ui.viewmodels.PeopleViewModel
 import com.theost.workchat.utils.DisplayUtils
+import com.theost.workchat.utils.PrefUtils
 
 class PeopleFragment : Fragment() {
 
     private val adapter = BaseAdapter()
+    private var currentUserId: Int = -1
 
     private val viewModel: PeopleViewModel by viewModels()
 
@@ -39,6 +41,10 @@ class PeopleFragment : Fragment() {
         _binding = FragmentPeopleBinding.inflate(layoutInflater)
         configureToolbar()
 
+        context?.let { context ->
+            currentUserId = PrefUtils.getCurrentUserId(context)
+        }
+
         binding.usersList.adapter = adapter.apply {
             addDelegate(PeopleAdapterDelegate { userId ->
                 (activity as PeopleListener).onProfileSelected(userId)
@@ -47,9 +53,9 @@ class PeopleFragment : Fragment() {
 
         viewModel.loadingStatus.observe(viewLifecycleOwner) { status ->
             when (status) {
-                ResourceStatus.SUCCESS -> hideShimmerLayout()
+                ResourceStatus.SUCCESS -> { hideShimmerLayout() }
                 ResourceStatus.ERROR -> { showLoadingError() }
-                ResourceStatus.LOADING ->  {}
+                ResourceStatus.LOADING ->  { showShimmerLayout() }
                 else -> {}
             }
         }
@@ -60,7 +66,7 @@ class PeopleFragment : Fragment() {
     }
 
     private fun loadData() {
-        viewModel.loadData()
+        viewModel.loadData(currentUserId)
     }
 
     override fun onDestroy() {
@@ -100,6 +106,11 @@ class PeopleFragment : Fragment() {
     private fun hideShimmerLayout() {
         binding.shimmerLayout.shimmer.visibility = View.GONE
         binding.usersList.visibility = View.VISIBLE
+    }
+
+    private fun showShimmerLayout() {
+        binding.shimmerLayout.shimmer.visibility = View.VISIBLE
+        binding.usersList.visibility = View.GONE
     }
 
     private fun showLoadingError() {
