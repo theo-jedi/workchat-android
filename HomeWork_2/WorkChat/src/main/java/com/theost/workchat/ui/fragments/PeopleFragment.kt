@@ -45,6 +45,7 @@ class PeopleFragment : Fragment() {
             currentUserId = PrefUtils.getCurrentUserId(context)
         }
 
+        binding.usersList.setHasFixedSize(true)
         binding.usersList.adapter = adapter.apply {
             addDelegate(PeopleAdapterDelegate { userId ->
                 (activity as PeopleListener).onProfileSelected(userId)

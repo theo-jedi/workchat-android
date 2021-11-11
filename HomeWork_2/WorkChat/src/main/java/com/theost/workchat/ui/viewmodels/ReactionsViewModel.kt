@@ -31,11 +31,11 @@ class ReactionsViewModel : ViewModel() {
                 _loadingStatus.postValue(ResourceStatus.SUCCESS)
             } else {
                 resource.error?.printStackTrace()
-                _loadingStatus.postValue(ResourceStatus.ERROR)
+                //_loadingStatus.postValue(ResourceStatus.ERROR)
             }
         }, {
             it.printStackTrace()
-            _loadingStatus.postValue(ResourceStatus.ERROR)
+            //_loadingStatus.postValue(ResourceStatus.ERROR)
         })
     }
 

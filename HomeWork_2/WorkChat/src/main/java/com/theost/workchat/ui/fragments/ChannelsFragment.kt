@@ -39,9 +39,10 @@ class ChannelsFragment : Fragment(), SearchHandler {
         super.onCreate(savedInstanceState)
         _binding = FragmentChannelsBinding.inflate(layoutInflater)
 
+        binding.channelsList.setHasFixedSize(true)
         binding.channelsList.adapter = adapter.apply {
             addDelegate(ChannelAdapterDelegate() { channelId, channelName, isSelected ->
-                selectedChannelName = if (selectedChannelName != channelName) channelName else ""
+                selectedChannelName = channelName
                 viewModel.updateTopics(channelId, isSelected)
             })
             addDelegate(TopicAdapterDelegate() { topicName ->

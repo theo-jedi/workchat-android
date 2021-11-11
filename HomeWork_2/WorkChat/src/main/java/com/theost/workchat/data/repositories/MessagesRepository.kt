@@ -19,6 +19,8 @@ object MessagesRepository {
 
     private val service = RetrofitHelper.retrofitService
     private const val CACHE_DIALOG_SIZE = 20
+    const val DIALOG_PAGE_SIZE = 20
+    const val DIALOG_NEXT_PAGE = 2
 
     fun getMessages(
         channelName: String,
