@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.theost.workchat.data.models.state.MessageType
+import com.theost.workchat.data.models.state.PaginationStatus
 import com.theost.workchat.data.models.state.ResourceStatus
 import com.theost.workchat.data.models.state.ResourceType
 import com.theost.workchat.data.models.ui.ListDate
@@ -28,6 +29,9 @@ class DialogViewModel : ViewModel() {
     private val _loadingStatus = MutableLiveData<ResourceStatus>()
     val loadingStatus: LiveData<ResourceStatus> = _loadingStatus
 
+    private val _paginationStatus = MutableLiveData<PaginationStatus>()
+    val paginationStatus: LiveData<PaginationStatus> = _paginationStatus
+
     private val _sendingMessageStatus = MutableLiveData<ResourceStatus>()
     val sendingMessageStatus: LiveData<ResourceStatus> = _sendingMessageStatus
 
@@ -37,8 +41,10 @@ class DialogViewModel : ViewModel() {
     private var channelName: String = ""
     private var topicName: String = ""
 
-    private var numBefore: Int = 1000 // MessagesRepository.DIALOG_PAGE_SIZE
+    private var numBefore: Int = MessagesRepository.DIALOG_PAGE_SIZE
     private var numAfter: Int = 0
+
+    private var firstMessageId: Int = 0
 
     fun loadMessages(channelName: String, topicName: String, currentUserId: Int) {
         if (channelName != "" && topicName != "") {
@@ -49,7 +55,8 @@ class DialogViewModel : ViewModel() {
         _titleData.postValue(Pair(channelName, topicName))
         _loadingStatus.postValue(ResourceStatus.LOADING)
 
-        val resourceType = if (_allData.value == null) ResourceType.CACHE_AND_SERVER else ResourceType.SERVER
+        val resourceType =
+            if (_allData.value == null) ResourceType.CACHE_AND_SERVER else ResourceType.SERVER
 
         MessagesRepository.getMessages(channelName, topicName, numBefore, numAfter, resourceType)
             .subscribeOn(Schedulers.io()).subscribe({ resource ->
@@ -105,20 +112,43 @@ class DialogViewModel : ViewModel() {
                             listItems.add(ListDate(DateUtils.getDayDate(message.time)))
                         }
                     }
+
+                    // Update pagination state
+                    if (resourceType == ResourceType.SERVER) {
+                        val firstId = messages.last().id
+                        if (firstId == firstMessageId) {
+                            _paginationStatus.postValue(PaginationStatus.FULLY_LOADED)
+                        } else {
+                            _paginationStatus.postValue(PaginationStatus.SUCCESS)
+                            firstMessageId = firstId
+                        }
+                    }
+
                     _allData.postValue(listItems)
                     _loadingStatus.postValue(ResourceStatus.SUCCESS)
                 } else {
                     resource.error?.printStackTrace()
                     //_loadingStatus.postValue(ResourceStatus.ERROR)
+                    if (_paginationStatus.value == PaginationStatus.LOADING) {
+                        _paginationStatus.postValue(PaginationStatus.ERROR)
+                    }
                 }
             }, {
                 it.printStackTrace()
                 //_loadingStatus.postValue(ResourceStatus.ERROR)
+                if (_paginationStatus.value == PaginationStatus.LOADING) {
+                    _paginationStatus.postValue(PaginationStatus.ERROR)
+                }
             })
     }
 
     fun loadNextMessages(channelName: String, topicName: String, currentUserId: Int) {
-        if (loadingStatus.value != ResourceStatus.LOADING && loadingStatus.value != ResourceStatus.ERROR) {
+        if (paginationStatus.value != PaginationStatus.LOADING
+            && paginationStatus.value != PaginationStatus.FULLY_LOADED
+            && loadingStatus.value != ResourceStatus.LOADING
+            && loadingStatus.value != ResourceStatus.ERROR
+        ) {
+            _paginationStatus.postValue(PaginationStatus.LOADING)
             numBefore += MessagesRepository.DIALOG_PAGE_SIZE
             loadMessages(channelName, topicName, currentUserId)
         }

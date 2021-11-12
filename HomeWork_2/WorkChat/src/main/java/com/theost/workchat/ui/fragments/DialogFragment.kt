@@ -15,11 +15,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.theost.workchat.R
-import com.theost.workchat.data.models.state.InputStatus
-import com.theost.workchat.data.models.state.MessageAction
-import com.theost.workchat.data.models.state.ResourceStatus
-import com.theost.workchat.data.models.state.ScrollStatus
-import com.theost.workchat.data.models.ui.ListDate
+import com.theost.workchat.data.models.state.*
+import com.theost.workchat.data.repositories.MessagesRepository
 import com.theost.workchat.databinding.FragmentDialogBinding
 import com.theost.workchat.ui.adapters.core.BaseAdapter
 import com.theost.workchat.ui.adapters.delegates.DateAdapterDelegate
@@ -39,7 +36,6 @@ class DialogFragment : Fragment() {
 
     private var isDialogLoaded: Boolean = false
 
-    private var scrollOffset: Int = 0
     private var lastScrollPosition: Int = 0
 
     private val viewModel: DialogViewModel by viewModels()
@@ -55,7 +51,24 @@ class DialogFragment : Fragment() {
             } else if (scrollStatus == ScrollStatus.WAITING) {
                 scrollStatus = ScrollStatus.STAY
                 binding.messagesList.smoothScrollToPosition(0)
+            } else if (scrollStatus == ScrollStatus.IDLE) {
+                scrollStatus = ScrollStatus.STAY
+                // todo save position
             }
+        }
+    }
+
+    private val scrollListener = object : RecyclerView.OnScrollListener() {
+        override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+            super.onScrollStateChanged(recyclerView, newState)
+            val lastPosition =
+                (binding.messagesList.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
+            if (lastPosition > lastScrollPosition
+                && adapter.itemCount - lastPosition <= MessagesRepository.DIALOG_NEXT_PAGE
+            ) {
+                loadNextData()
+            }
+            lastScrollPosition = lastPosition
         }
     }
 
@@ -96,14 +109,7 @@ class DialogFragment : Fragment() {
             registerAdapterDataObserver(adapterDataObserver)
         }
 
-        binding.messagesList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                super.onScrollStateChanged(recyclerView, newState)
-                val lastPosition =
-                    (binding.messagesList.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
-                lastScrollPosition = lastPosition
-            }
-        })
+        binding.messagesList.addOnScrollListener(scrollListener)
 
         viewModel.loadingStatus.observe(viewLifecycleOwner) { status ->
             when (status) {
@@ -115,6 +121,28 @@ class DialogFragment : Fragment() {
                 }
                 ResourceStatus.LOADING -> {
                     onDataLoading()
+                }
+                else -> {
+                }
+            }
+        }
+
+        viewModel.paginationStatus.observe(viewLifecycleOwner) { status ->
+            when (status) {
+                PaginationStatus.SUCCESS -> {
+                    binding.paginationLoadingBar.visibility = View.GONE
+                }
+                PaginationStatus.ERROR -> {
+                    binding.paginationLoadingBar.visibility = View.GONE
+                    scrollStatus = ScrollStatus.STAY
+                }
+                PaginationStatus.LOADING -> {
+                    binding.paginationLoadingBar.visibility = View.VISIBLE
+                    scrollStatus = ScrollStatus.IDLE
+                }
+                PaginationStatus.FULLY_LOADED -> {
+                    binding.paginationLoadingBar.visibility = View.GONE
+                    scrollStatus = ScrollStatus.STAY
                 }
                 else -> {
                 }
@@ -155,9 +183,9 @@ class DialogFragment : Fragment() {
 
         viewModel.allData.observe(viewLifecycleOwner) { list ->
             adapter.submitList(list)
+            binding.paginationLoadingBar.visibility = View.GONE
             binding.emptyLayout.emptyView.visibility =
                 if (list.isNotEmpty()) View.GONE else View.VISIBLE
-            scrollOffset = list.count { it is ListDate }
         }
 
         loadData()
