@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.theost.workchat.data.models.state.MessageType
 import com.theost.workchat.data.models.state.ResourceStatus
+import com.theost.workchat.data.models.state.ResourceType
 import com.theost.workchat.data.models.ui.ListDate
 import com.theost.workchat.data.models.ui.ListMessage
 import com.theost.workchat.data.models.ui.ListMessageReaction
@@ -36,7 +37,7 @@ class DialogViewModel : ViewModel() {
     private var channelName: String = ""
     private var topicName: String = ""
 
-    private var numBefore: Int = 100
+    private var numBefore: Int = 1000 // MessagesRepository.DIALOG_PAGE_SIZE
     private var numAfter: Int = 0
 
     fun loadMessages(channelName: String, topicName: String, currentUserId: Int) {
@@ -48,7 +49,9 @@ class DialogViewModel : ViewModel() {
         _titleData.postValue(Pair(channelName, topicName))
         _loadingStatus.postValue(ResourceStatus.LOADING)
 
-        MessagesRepository.getMessages(channelName, topicName, numBefore, numAfter)
+        val resourceType = if (_allData.value == null) ResourceType.CACHE_AND_SERVER else ResourceType.SERVER
+
+        MessagesRepository.getMessages(channelName, topicName, numBefore, numAfter, resourceType)
             .subscribeOn(Schedulers.io()).subscribe({ resource ->
                 if (resource.data != null && resource.data.isNotEmpty()) {
                     val messages = resource.data
@@ -112,6 +115,13 @@ class DialogViewModel : ViewModel() {
                 it.printStackTrace()
                 //_loadingStatus.postValue(ResourceStatus.ERROR)
             })
+    }
+
+    fun loadNextMessages(channelName: String, topicName: String, currentUserId: Int) {
+        if (loadingStatus.value != ResourceStatus.LOADING && loadingStatus.value != ResourceStatus.ERROR) {
+            numBefore += MessagesRepository.DIALOG_PAGE_SIZE
+            loadMessages(channelName, topicName, currentUserId)
+        }
     }
 
     fun addMessage(content: String) {

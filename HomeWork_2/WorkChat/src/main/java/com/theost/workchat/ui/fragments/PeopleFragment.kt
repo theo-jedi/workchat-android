@@ -27,6 +27,8 @@ class PeopleFragment : Fragment() {
     private val adapter = BaseAdapter()
     private var currentUserId: Int = -1
 
+    private lateinit var searchView: SearchView
+
     private val viewModel: PeopleViewModel by viewModels()
 
     private var _binding: FragmentPeopleBinding? = null
@@ -72,6 +74,7 @@ class PeopleFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
+        searchView.setOnQueryTextListener(null)
         _binding = null
     }
 
@@ -79,8 +82,8 @@ class PeopleFragment : Fragment() {
         (activity as NavigationHolder).showNavigation()
         binding.toolbarLayout.toolbar.title = getString(R.string.people)
         val searchMenuItem = binding.toolbarLayout.toolbar.menu.findItem(R.id.actionSearch)
-        val searchView = searchMenuItem.actionView as SearchView
         val searchManager = context?.getSystemService(SEARCH_SERVICE) as SearchManager
+        searchView = searchMenuItem.actionView as SearchView
         searchMenuItem.isVisible = true
         searchView.apply {
             findViewById<ImageView>(R.id.search_close_btn).setImageResource(R.drawable.ic_close)

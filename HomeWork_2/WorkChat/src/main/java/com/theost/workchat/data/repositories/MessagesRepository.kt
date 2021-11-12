@@ -3,6 +3,7 @@ package com.theost.workchat.data.repositories
 import com.theost.workchat.application.WorkChatApp
 import com.theost.workchat.data.models.core.Message
 import com.theost.workchat.data.models.core.RxResource
+import com.theost.workchat.data.models.state.ResourceType
 import com.theost.workchat.database.entities.mapToMessage
 import com.theost.workchat.database.entities.mapToMessageEntity
 import com.theost.workchat.network.api.RetrofitHelper
@@ -20,18 +21,23 @@ object MessagesRepository {
     private val service = RetrofitHelper.retrofitService
     private const val CACHE_DIALOG_SIZE = 20
     const val DIALOG_PAGE_SIZE = 20
-    const val DIALOG_NEXT_PAGE = 2
+    const val DIALOG_NEXT_PAGE = 5
 
     fun getMessages(
         channelName: String,
         topicName: String,
         numBefore: Int,
-        numAfter: Int
+        numAfter: Int,
+        resourceType: ResourceType
     ): Observable<RxResource<List<Message>>> {
-        return Observable.concat(
-            getMessagesFromCache(channelName, topicName).toObservable(),
+        return if (resourceType == ResourceType.CACHE_AND_SERVER) {
+            Observable.concat(
+                getMessagesFromCache(channelName, topicName).toObservable(),
+                getMessagesFromServer(channelName, topicName, numBefore, numAfter).toObservable()
+            )
+        } else {
             getMessagesFromServer(channelName, topicName, numBefore, numAfter).toObservable()
-        )
+        }
     }
 
     private fun getMessagesFromServer(

@@ -63,7 +63,7 @@ class ChannelsFragment : Fragment(), SearchHandler {
                 PrefUtils.putSubscribedChannels(context, channels)
             }
         }
-        viewModel.allData.observe(viewLifecycleOwner) { adapter.submitList(it)}
+        viewModel.allData.observe(viewLifecycleOwner) { adapter.submitList(it) }
 
         loadData()
 

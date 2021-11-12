@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.theost.workchat.R
@@ -18,6 +19,7 @@ import com.theost.workchat.data.models.state.InputStatus
 import com.theost.workchat.data.models.state.MessageAction
 import com.theost.workchat.data.models.state.ResourceStatus
 import com.theost.workchat.data.models.state.ScrollStatus
+import com.theost.workchat.data.models.ui.ListDate
 import com.theost.workchat.databinding.FragmentDialogBinding
 import com.theost.workchat.ui.adapters.core.BaseAdapter
 import com.theost.workchat.ui.adapters.delegates.DateAdapterDelegate
@@ -34,12 +36,28 @@ class DialogFragment : Fragment() {
 
     private var channelName: String = ""
     private var topicName: String = ""
+
     private var isDialogLoaded: Boolean = false
+
+    private var scrollOffset: Int = 0
+    private var lastScrollPosition: Int = 0
 
     private val viewModel: DialogViewModel by viewModels()
 
     private var _binding: FragmentDialogBinding? = null
     private val binding get() = _binding!!
+
+    private val adapterDataObserver = object : RecyclerView.AdapterDataObserver() {
+        override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+            super.onItemRangeInserted(positionStart, itemCount)
+            if (!isDialogLoaded) {
+                onFirstDataLoaded()
+            } else if (scrollStatus == ScrollStatus.WAITING) {
+                scrollStatus = ScrollStatus.STAY
+                binding.messagesList.smoothScrollToPosition(0)
+            }
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -75,18 +93,17 @@ class DialogFragment : Fragment() {
                 )
             })
             addDelegate(DateAdapterDelegate())
-            registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
-                override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
-                    super.onItemRangeInserted(positionStart, itemCount)
-                    if (!isDialogLoaded) {
-                        onFirstDataLoaded()
-                    } else if (scrollStatus == ScrollStatus.WAITING) {
-                        scrollStatus = ScrollStatus.STAY
-                        binding.messagesList.smoothScrollToPosition(0)
-                    }
-                }
-            })
+            registerAdapterDataObserver(adapterDataObserver)
         }
+
+        binding.messagesList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                val lastPosition =
+                    (binding.messagesList.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
+                lastScrollPosition = lastPosition
+            }
+        })
 
         viewModel.loadingStatus.observe(viewLifecycleOwner) { status ->
             when (status) {
@@ -140,6 +157,7 @@ class DialogFragment : Fragment() {
             adapter.submitList(list)
             binding.emptyLayout.emptyView.visibility =
                 if (list.isNotEmpty()) View.GONE else View.VISIBLE
+            scrollOffset = list.count { it is ListDate }
         }
 
         loadData()
@@ -158,6 +176,7 @@ class DialogFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
+        adapter.unregisterAdapterDataObserver(adapterDataObserver)
         _binding = null
     }
 
@@ -184,6 +203,16 @@ class DialogFragment : Fragment() {
     private fun loadData() {
         context?.let { context ->
             viewModel.loadMessages(
+                channelName,
+                topicName,
+                PrefUtils.getCurrentUserId(context)
+            )
+        }
+    }
+
+    private fun loadNextData() {
+        context?.let { context ->
+            viewModel.loadNextMessages(
                 channelName,
                 topicName,
                 PrefUtils.getCurrentUserId(context)
@@ -277,7 +306,6 @@ class DialogFragment : Fragment() {
 
     private fun onFirstDataLoaded() {
         isDialogLoaded = true
-        binding.messagesList.scrollToPosition(0)
         binding.loadingBar.visibility = View.GONE
         binding.inputLayout.actionButton.animate().alpha(1.0f)
         binding.inputLayout.messageInput.animate().alpha(1.0f)
