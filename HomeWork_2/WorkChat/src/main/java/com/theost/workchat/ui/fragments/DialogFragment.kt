@@ -53,7 +53,7 @@ class DialogFragment : Fragment() {
                 binding.messagesList.scrollToPosition(0)
             } else if (scrollStatus == ScrollStatus.IDLE) {
                 scrollStatus = ScrollStatus.STAY
-                binding.messagesList.scrollToPosition(lastScrollPosition)
+                binding.messagesList.scrollToPosition(lastScrollPosition + 1)
             }
         }
     }
