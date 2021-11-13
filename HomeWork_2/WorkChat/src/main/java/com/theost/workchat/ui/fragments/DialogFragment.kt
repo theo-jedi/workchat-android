@@ -50,7 +50,7 @@ class DialogFragment : Fragment() {
                 onFirstDataLoaded()
             } else if (scrollStatus == ScrollStatus.WAITING) {
                 scrollStatus = ScrollStatus.STAY
-                binding.messagesList.scrollToPosition(0)
+                binding.messagesList.smoothScrollToPosition(0)
             } else if (scrollStatus == ScrollStatus.IDLE) {
                 scrollStatus = ScrollStatus.STAY
                 binding.messagesList.scrollToPosition(lastScrollPosition + 1)

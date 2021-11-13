@@ -10,7 +10,9 @@ import com.theost.workchat.data.models.ui.ListTopic
 import com.theost.workchat.data.repositories.ChannelsRepository
 import com.theost.workchat.data.repositories.TopicsRepository
 import com.theost.workchat.ui.interfaces.DelegateItem
+import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.schedulers.Schedulers
+import java.util.concurrent.TimeUnit
 
 class ChannelsViewModel : ViewModel() {
 
@@ -27,33 +29,34 @@ class ChannelsViewModel : ViewModel() {
 
     fun loadData(channelsType: ChannelsType, subscribedChannels: List<Int>) {
         _loadingStatus.postValue(ResourceStatus.LOADING)
-        ChannelsRepository.getChannels(channelsType, subscribedChannels).subscribeOn(Schedulers.io()).subscribe({ resource ->
-            if (resource.data != null && resource.data.isNotEmpty()) {
-                val channels = resource.data
+        ChannelsRepository.getChannels(channelsType, subscribedChannels)
+            .subscribeOn(Schedulers.io()).subscribe({ resource ->
+                if (resource.data != null && resource.data.isNotEmpty()) {
+                    val channels = resource.data
 
-                if (channelsType == ChannelsType.SUBSCRIBED) {
-                    val subscribedIds = channels.map { it.id }
-                    _subscribedChannelsIds.postValue(subscribedIds)
+                    if (channelsType == ChannelsType.SUBSCRIBED) {
+                        val subscribedIds = channels.map { it.id }
+                        _subscribedChannelsIds.postValue(subscribedIds)
+                    }
+
+                    channelsList = channels.map { channel ->
+                        ListChannel(
+                            id = channel.id,
+                            name = channel.name,
+                            isSelected = false
+                        )
+                    }
+
+                    _allData.postValue(channelsList)
+                    _loadingStatus.postValue(ResourceStatus.SUCCESS)
+                } else {
+                    resource.error?.printStackTrace()
+                    //_loadingStatus.postValue(ResourceStatus.ERROR)
                 }
-
-                channelsList = channels.map { channel ->
-                    ListChannel(
-                        id = channel.id,
-                        name = channel.name,
-                        isSelected = false
-                    )
-                }
-
-                _allData.postValue(channelsList)
-                _loadingStatus.postValue(ResourceStatus.SUCCESS)
-            } else {
-                resource.error?.printStackTrace()
+            }, {
+                it.printStackTrace()
                 //_loadingStatus.postValue(ResourceStatus.ERROR)
-            }
-        }, {
-            it.printStackTrace()
-            //_loadingStatus.postValue(ResourceStatus.ERROR)
-        })
+            })
     }
 
     fun updateTopics(channelId: Int, isSelected: Boolean) {
@@ -65,11 +68,13 @@ class ChannelsViewModel : ViewModel() {
                     val index = itemsList.indexOfFirst { it is ListChannel && it.id == channelId }
                     val channel = itemsList[index] as ListChannel
                     itemsList.removeAt(index)
-                    itemsList.add(index, ListChannel(
-                        id = channel.id,
-                        name = channel.name,
-                        isSelected = true
-                    ))
+                    itemsList.add(
+                        index, ListChannel(
+                            id = channel.id,
+                            name = channel.name,
+                            isSelected = true
+                        )
+                    )
                     val topicsList = topics.map { topic ->
                         ListTopic(
                             name = topic.name,
@@ -94,10 +99,20 @@ class ChannelsViewModel : ViewModel() {
 
     fun filterData(filter: String) {
         if (allData.value != null) {
-            val list = channelsList.filter { channel ->
-                channel.name.lowercase().contains(filter.trim().lowercase())
-            }
-            _allData.postValue(list)
+            Single.just(channelsList).toObservable()
+                .distinctUntilChanged()
+                .debounce(500, TimeUnit.MILLISECONDS, Schedulers.io())
+                .map { list ->
+                    list.filter { channel ->
+                        channel.name.lowercase().contains(filter.trim().lowercase())
+                    }
+                }.subscribe({
+                    _allData.postValue(it)
+                    _loadingStatus.postValue(ResourceStatus.SUCCESS)
+                }, {
+                    it.printStackTrace()
+                    _loadingStatus.postValue(ResourceStatus.ERROR)
+                })
         }
     }
 

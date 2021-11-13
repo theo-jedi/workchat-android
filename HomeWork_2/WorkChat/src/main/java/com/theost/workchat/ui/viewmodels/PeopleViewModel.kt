@@ -8,6 +8,9 @@ import com.theost.workchat.data.models.state.UserStatus
 import com.theost.workchat.data.models.ui.ListUser
 import com.theost.workchat.data.repositories.UsersRepository
 import com.theost.workchat.ui.interfaces.DelegateItem
+import io.reactivex.rxjava3.core.Single
+import io.reactivex.rxjava3.schedulers.Schedulers
+import java.util.concurrent.TimeUnit
 
 class PeopleViewModel : ViewModel() {
 
@@ -52,10 +55,20 @@ class PeopleViewModel : ViewModel() {
 
     fun filterData(filter: String) {
         if (allData.value != null) {
-            val list = usersList.filter { user ->
-                user.name.lowercase().contains(filter.trim().lowercase())
-            }
-            _allData.postValue(list)
+            Single.just(usersList).toObservable()
+                .distinctUntilChanged()
+                .debounce(500, TimeUnit.MILLISECONDS, Schedulers.io())
+                .map { list ->
+                    list.filter { channel ->
+                        channel.name.lowercase().contains(filter.trim().lowercase())
+                    }
+                }.subscribe({
+                    _allData.postValue(it)
+                    _loadingStatus.postValue(ResourceStatus.SUCCESS)
+                }, {
+                    it.printStackTrace()
+                    _loadingStatus.postValue(ResourceStatus.ERROR)
+                })
         }
     }
 
