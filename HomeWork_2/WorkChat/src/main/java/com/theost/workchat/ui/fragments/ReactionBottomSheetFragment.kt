@@ -43,6 +43,7 @@ class ReactionBottomSheetFragment(
             when (status) {
                 ResourceStatus.LOADING -> showLoading()
                 ResourceStatus.SUCCESS -> hideLoading()
+                ResourceStatus.EMPTY -> showLoading()
                 ResourceStatus.ERROR -> showLoadingError()
                 else -> {}
             }

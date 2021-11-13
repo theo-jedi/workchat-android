@@ -5,10 +5,21 @@ object StringUtils {
     private const val UNKNOWN_EMOJI = "⬜"
 
     @Throws(NumberFormatException::class)
+    fun simpleToEmoji(code: String): String {
+        return String(Character.toChars(Integer.parseInt(code, 16)))
+    }
+
+    fun combinedToEmoji(code: String): String {
+        val codes = code.split("-")
+        return simpleToEmoji(codes[0]) + simpleToEmoji(codes[1])
+    }
+
     fun utfToEmoji(code: String): String {
-        var emojiCode = code
-        if (emojiCode.contains("-")) emojiCode = code.split("-")[1]
-        return String(Character.toChars(Integer.parseInt(emojiCode, 16)))
+        return if (code.contains("-")) {
+            combinedToEmoji(code)
+        } else {
+            simpleToEmoji(code)
+        }
     }
 
     fun codeToEmoji(code: String): String {

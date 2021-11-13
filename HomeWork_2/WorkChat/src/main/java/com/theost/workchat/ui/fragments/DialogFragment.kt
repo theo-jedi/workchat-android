@@ -119,6 +119,9 @@ class DialogFragment : Fragment() {
                 ResourceStatus.ERROR -> {
                     showLoadingError()
                 }
+                ResourceStatus.EMPTY -> {
+                    binding.emptyLayout.emptyView.visibility = View.VISIBLE
+                }
                 ResourceStatus.LOADING -> {
                     onDataLoading()
                 }
@@ -130,6 +133,7 @@ class DialogFragment : Fragment() {
         viewModel.paginationStatus.observe(viewLifecycleOwner) { status ->
             when (status) {
                 PaginationStatus.SUCCESS -> {
+                    binding.paginationLoadingBar.visibility = View.GONE
                     binding.paginationLoadingBar.visibility = View.GONE
                 }
                 PaginationStatus.ERROR -> {
@@ -183,9 +187,6 @@ class DialogFragment : Fragment() {
 
         viewModel.allData.observe(viewLifecycleOwner) { list ->
             adapter.submitList(list)
-            binding.paginationLoadingBar.visibility = View.GONE
-            binding.emptyLayout.emptyView.visibility =
-                if (list.isNotEmpty()) View.GONE else View.VISIBLE
         }
 
         loadData()
