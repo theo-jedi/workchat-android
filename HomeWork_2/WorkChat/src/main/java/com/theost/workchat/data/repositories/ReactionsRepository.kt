@@ -19,7 +19,10 @@ object ReactionsRepository {
 
     fun getReactions(): Observable<RxResource<List<Reaction>>> {
         return if (isCacheUpdated) {
-            getReactionsFromCache().toObservable()
+            Observable.concat(
+                getReactionsFromCache().toObservable(),
+                getReactionsFromCache().toObservable()
+            )
         } else {
             Observable.concat(
                 getReactionsFromCache().toObservable(),
