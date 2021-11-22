@@ -5,6 +5,8 @@ import androidx.core.text.HtmlCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.theost.workchat.data.models.core.Message
+import com.theost.workchat.data.models.core.Reaction
 import com.theost.workchat.data.models.core.RxResource
 import com.theost.workchat.data.models.state.MessageType
 import com.theost.workchat.data.models.state.PaginationStatus
@@ -37,33 +39,39 @@ class DialogViewModel : ViewModel() {
     private val _sendingMessageStatus = MutableLiveData<ResourceStatus>()
     val sendingMessageStatus: LiveData<ResourceStatus> = _sendingMessageStatus
 
-    private val _sendingReactionStatus = MutableLiveData<ResourceStatus>()
-    val sendingReactionStatus: LiveData<ResourceStatus> = _sendingReactionStatus
+    private val _sendingReactionData = MutableLiveData<Pair<ResourceStatus, Int>>()
+    val sendingReactionData: LiveData<Pair<ResourceStatus, Int>> = _sendingReactionData
+
+    private val messagesCache = mutableListOf<Message>()
 
     private var channelName: String = ""
     private var topicName: String = ""
+    private var currentUserId: Int = 0
 
     private var numBefore: Int = MessagesRepository.DIALOG_PAGE_SIZE
     private var numAfter: Int = 0
 
-    private var firstMessageId: Int = 0
-
-    fun loadMessages(channelName: String, topicName: String, currentUserId: Int) {
-        if (channelName != "" && topicName != "") {
-            this.channelName = channelName
-            this.topicName = topicName
-        }
+    fun loadData(dialogChannelName: String, dialogTopicName: String, dialogUserId: Int) {
+        if (dialogChannelName != "") this.channelName = dialogChannelName
+        if (dialogTopicName != "") this.topicName = dialogTopicName
+        if (dialogUserId != 0) this.currentUserId = dialogUserId
 
         _titleData.postValue(Pair(channelName, topicName))
+
+        loadMessages()
+    }
+
+    fun loadMessages() {
         _loadingStatus.postValue(ResourceStatus.LOADING)
 
-        val resourceType =
-            if (_allData.value == null) ResourceType.CACHE_AND_SERVER else ResourceType.SERVER
+        val lastMessageId = if (messagesCache.isNotEmpty()) messagesCache.last().id else -1
+        val resourceType = if (_allData.value == null) ResourceType.CACHE_AND_SERVER else ResourceType.SERVER
 
         Observable.zip(
             MessagesRepository.getMessages(
                 channelName,
                 topicName,
+                lastMessageId,
                 numBefore,
                 numAfter,
                 resourceType
@@ -72,91 +80,28 @@ class DialogViewModel : ViewModel() {
         ) { messagesResource, reactionsResource ->
             val error = messagesResource.error
             if (error == null) {
-                RxResource.success(Pair(messagesResource.data, reactionsResource.data))
+                val messages = mutableListOf<Message>().apply {
+                    addAll(messagesCache)
+                    addAll(messagesResource.data ?: mutableListOf())
+                }.distinct()
+                RxResource.success(Pair(messages, reactionsResource.data))
             } else {
                 RxResource.error(error, null)
             }
         }.subscribeOn(Schedulers.io()).subscribe({ resource ->
-            if (resource.data?.first != null && resource.data.first!!.isNotEmpty()) {
-                val messages = resource.data.first!!
-                val emojis = resource.data.second!!
+            if (resource.data != null && resource.data.first.isNotEmpty()) {
+                val messages = resource.data.first
+                val emojis = resource.data.second
 
-                val listItems = mutableListOf<DelegateItem>()
-
-                (messages.indices).forEach { index ->
-                    val message = messages[index]
-                    val reactions = message.reactions
-
-                    val userReactions =
-                        reactions.filter { it.userId == currentUserId }.map { it.emoji }
-                    val listReactions = mutableListOf<ListMessageReaction>()
-
-                    // Map reactions
-                    reactions.distinctBy { it.emoji }.forEach { reaction ->
-                        listReactions.add(
-                            ListMessageReaction(
-                                name = reaction.name,
-                                code = reaction.code,
-                                type = reaction.type,
-                                emoji = reaction.emoji,
-                                count = reactions.count { it.emoji == reaction.emoji },
-                                isSelected = userReactions.contains(reaction.emoji)
-                            )
-                        )
-                    }
-
-                    val messageContent = SpannableString(
-                        HtmlCompat.fromHtml(
-                            if (message.content.contains(":")) {
-                                var isFirstColon = false
-                                message.content.split(":").joinToString("") {
-                                    val emoji = emojis.find { emoji -> emoji.name == it }
-                                    val content = if (isFirstColon) ":$it" else it
-                                    isFirstColon = emoji?.emoji == null
-                                    emoji?.emoji ?: content
-                                }
-                            } else {
-                                message.content
-                            },
-                            HtmlCompat.FROM_HTML_MODE_COMPACT
-                        ).trim()
-                    )
-
-                    //  Add message item
-                    val listMessage = ListMessage(
-                        id = message.id,
-                        senderName = message.senderName,
-                        content = messageContent,
-                        senderAvatarUrl = message.senderAvatarUrl,
-                        time = DateUtils.getTime(message.time),
-                        reactions = listReactions.sortedByDescending { it.count },
-                        messageType = if (message.senderId == currentUserId) MessageType.OUTCOME else MessageType.INCOME
-                    )
-                    listItems.add(listMessage)
-
-                    // Add date item
-                    if (index == messages.size - 1 || DateUtils.notSameDay(
-                            message.time,
-                            messages[index + 1].time
-                        )
-                    ) {
-                        listItems.add(ListDate(DateUtils.getDayDate(message.time)))
-                    }
+                messagesCache.clear()
+                messagesCache.addAll(messages)
+                if (messages.last().id == lastMessageId) {
+                    _paginationStatus.postValue(PaginationStatus.FULLY_LOADED)
+                } else {
+                    _paginationStatus.postValue(PaginationStatus.SUCCESS)
                 }
 
-                // Update pagination state
-                if (resourceType == ResourceType.SERVER) {
-                    val firstId = messages.last().id
-                    if (firstId == firstMessageId) {
-                        _paginationStatus.postValue(PaginationStatus.FULLY_LOADED)
-                    } else {
-                        _paginationStatus.postValue(PaginationStatus.SUCCESS)
-                        firstMessageId = firstId
-                    }
-                }
-
-                _allData.postValue(listItems)
-                _loadingStatus.postValue(ResourceStatus.SUCCESS)
+                processMessages(messages, emojis)
             } else {
                 resource.error?.printStackTrace()
                 //_loadingStatus.postValue(ResourceStatus.ERROR)
@@ -164,24 +109,139 @@ class DialogViewModel : ViewModel() {
                     _paginationStatus.postValue(PaginationStatus.ERROR)
                 }
             }
-        }, {
-            it.printStackTrace()
-            //_loadingStatus.postValue(ResourceStatus.ERROR)
-            if (_paginationStatus.value == PaginationStatus.LOADING) {
-                _paginationStatus.postValue(PaginationStatus.ERROR)
-            }
-        })
+        },
+            {
+                it.printStackTrace()
+                //_loadingStatus.postValue(ResourceStatus.ERROR)
+                if (_paginationStatus.value == PaginationStatus.LOADING) {
+                    _paginationStatus.postValue(PaginationStatus.ERROR)
+                }
+            })
     }
 
-    fun loadNextMessages(channelName: String, topicName: String, currentUserId: Int) {
+    fun updateMessage(messageId: Int) {
+        Observable.zip(
+            MessagesRepository.getMessages(
+                channelName = channelName,
+                topicName = topicName,
+                lastMessageId = messageId,
+                numBefore = 0,
+                numAfter = 0,
+                resourceType = ResourceType.SERVER
+            ),
+            ReactionsRepository.getReactions()
+        ) { messagesResource, reactionsResource ->
+            val error = messagesResource.error
+            if (error == null) {
+                val messages = mutableListOf<Message>().apply {
+                    val message = messagesResource.data!!.first()
+                    val index = messagesCache.indexOfFirst { it.id == message.id }
+                    messagesCache.removeAt(index)
+                    messagesCache.add(index, message)
+                    addAll(messagesCache)
+                }.distinct()
+                RxResource.success(Pair(messages, reactionsResource.data))
+            } else {
+                RxResource.error(error, null)
+            }
+        }.subscribeOn(Schedulers.io()).subscribe({ resource ->
+            if (resource.data != null && resource.data.first.isNotEmpty()) {
+                val messages = resource.data.first
+                val emojis = resource.data.second
+                processMessages(messages, emojis)
+            } else {
+                resource.error?.printStackTrace()
+                //_loadingStatus.postValue(ResourceStatus.ERROR)
+                if (_paginationStatus.value == PaginationStatus.LOADING) {
+                    _paginationStatus.postValue(PaginationStatus.ERROR)
+                }
+            }
+        },
+            {
+                it.printStackTrace()
+                //_loadingStatus.postValue(ResourceStatus.ERROR)
+                if (_paginationStatus.value == PaginationStatus.LOADING) {
+                    _paginationStatus.postValue(PaginationStatus.ERROR)
+                }
+            })
+    }
+
+    private fun processMessages(messages: List<Message>, emojis: List<Reaction>?) {
+        val listItems = mutableListOf<DelegateItem>()
+
+        (messages.indices).forEach { index ->
+            val message = messages[index]
+            val reactions = message.reactions
+
+            val userReactions =
+                reactions.filter { it.userId == currentUserId }.map { it.emoji }
+            val listReactions = mutableListOf<ListMessageReaction>()
+
+            // Map reactions
+            reactions.distinctBy { it.emoji }.forEach { reaction ->
+                listReactions.add(
+                    ListMessageReaction(
+                        name = reaction.name,
+                        code = reaction.code,
+                        type = reaction.type,
+                        emoji = reaction.emoji,
+                        count = reactions.count { it.emoji == reaction.emoji },
+                        isSelected = userReactions.contains(reaction.emoji)
+                    )
+                )
+            }
+
+            val messageContent = SpannableString(
+                HtmlCompat.fromHtml(
+                    if (message.content.contains(":")) {
+                        var isFirstColon = false
+                        message.content.split(":").joinToString("") {
+                            val emoji = emojis?.find { emoji -> emoji.name == it }
+                            val content = if (isFirstColon) ":$it" else it
+                            isFirstColon = emoji?.emoji == null
+                            emoji?.emoji ?: content
+                        }
+                    } else {
+                        message.content
+                    },
+                    HtmlCompat.FROM_HTML_MODE_COMPACT
+                ).trim()
+            )
+
+            //  Add message item
+            val listMessage = ListMessage(
+                id = message.id,
+                senderName = message.senderName,
+                content = messageContent,
+                senderAvatarUrl = message.senderAvatarUrl,
+                time = DateUtils.getTime(message.time),
+                reactions = listReactions.sortedByDescending { it.count },
+                messageType = if (message.senderId == currentUserId) MessageType.OUTCOME else MessageType.INCOME
+            )
+            listItems.add(listMessage)
+
+            // Add date item
+            if (index == messages.size - 1 || DateUtils.notSameDay(
+                    message.time,
+                    messages[index + 1].time
+                )
+            ) {
+                listItems.add(ListDate(DateUtils.getDayDate(message.time)))
+            }
+        }
+
+        _allData.postValue(listItems)
+        _loadingStatus.postValue(ResourceStatus.SUCCESS)
+    }
+
+    fun loadNextMessages() {
         if (paginationStatus.value != PaginationStatus.LOADING
             && paginationStatus.value != PaginationStatus.FULLY_LOADED
             && loadingStatus.value != ResourceStatus.LOADING
             && loadingStatus.value != ResourceStatus.ERROR
         ) {
             _paginationStatus.postValue(PaginationStatus.LOADING)
-            numBefore += MessagesRepository.DIALOG_PAGE_SIZE
-            loadMessages(channelName, topicName, currentUserId)
+            loadMessages()
         }
     }
 
@@ -199,14 +259,14 @@ class DialogViewModel : ViewModel() {
     }
 
     fun addReaction(messageId: Int, reactionName: String) {
-        _sendingReactionStatus.postValue(ResourceStatus.LOADING)
+        _sendingReactionData.postValue(Pair(ResourceStatus.LOADING, messageId))
         ReactionsRepository.addReaction(
             messageId = messageId,
             reactionName = reactionName
         ).subscribe({
-            _sendingReactionStatus.postValue(ResourceStatus.SUCCESS)
+            _sendingReactionData.postValue(Pair(ResourceStatus.SUCCESS, messageId))
         }, {
-            _sendingReactionStatus.postValue(ResourceStatus.ERROR)
+            _sendingReactionData.postValue(Pair(ResourceStatus.ERROR, messageId))
         })
     }
 
@@ -216,16 +276,16 @@ class DialogViewModel : ViewModel() {
         reactionCode: String,
         reactionType: String
     ) {
-        _sendingReactionStatus.postValue(ResourceStatus.LOADING)
+        _sendingReactionData.postValue(Pair(ResourceStatus.LOADING, messageId))
         ReactionsRepository.removeReaction(
             messageId = messageId,
             reactionName = reactionName,
             reactionCode = reactionCode,
             reactionType = reactionType
         ).subscribe({
-            _sendingReactionStatus.postValue(ResourceStatus.SUCCESS)
+            _sendingReactionData.postValue(Pair(ResourceStatus.SUCCESS, messageId))
         }, {
-            _sendingReactionStatus.postValue(ResourceStatus.ERROR)
+            _sendingReactionData.postValue(Pair(ResourceStatus.ERROR, messageId))
         })
     }
 

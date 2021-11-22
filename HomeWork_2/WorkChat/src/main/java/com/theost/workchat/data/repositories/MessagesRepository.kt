@@ -7,6 +7,7 @@ import com.theost.workchat.data.models.state.ResourceType
 import com.theost.workchat.database.entities.mapToMessage
 import com.theost.workchat.database.entities.mapToMessageEntity
 import com.theost.workchat.network.api.RetrofitHelper
+import com.theost.workchat.network.dto.GetMessagesResponse
 import com.theost.workchat.network.dto.NarrowDto
 import com.theost.workchat.network.dto.mapToMessage
 import io.reactivex.rxjava3.core.Completable
@@ -19,13 +20,14 @@ import kotlinx.serialization.serializer
 object MessagesRepository {
 
     private val service = RetrofitHelper.retrofitService
-    private const val CACHE_DIALOG_SIZE = 20
+    private const val CACHE_DIALOG_SIZE = 50
     const val DIALOG_PAGE_SIZE = 20
     const val DIALOG_NEXT_PAGE = 5
 
     fun getMessages(
         channelName: String,
         topicName: String,
+        lastMessageId: Int,
         numBefore: Int,
         numAfter: Int,
         resourceType: ResourceType
@@ -33,19 +35,57 @@ object MessagesRepository {
         return if (resourceType == ResourceType.CACHE_AND_SERVER) {
             Observable.concat(
                 getMessagesFromCache(channelName, topicName).toObservable(),
-                getMessagesFromServer(channelName, topicName, numBefore, numAfter).toObservable()
+                getMessagesFromServer(
+                    channelName,
+                    topicName,
+                    lastMessageId,
+                    numBefore,
+                    numAfter
+                ).toObservable()
             )
         } else {
-            getMessagesFromServer(channelName, topicName, numBefore, numAfter).toObservable()
+            getMessagesFromServer(
+                channelName,
+                topicName,
+                lastMessageId,
+                numBefore,
+                numAfter
+            ).toObservable()
         }
     }
 
     private fun getMessagesFromServer(
         channelName: String,
         topicName: String,
+        lastMessageId: Int,
         numBefore: Int,
         numAfter: Int
     ): Single<RxResource<List<Message>>> {
+        return getMessagesFromServerResponse(
+            channelName,
+            topicName,
+            lastMessageId,
+            numBefore,
+            numAfter
+        ).map { response ->
+            RxResource.success(response.messages.sortedBy { message -> message.timestamp }
+                .reversed().map { message ->
+                    message.mapToMessage()
+                })
+        }.onErrorReturn {
+            RxResource.error(it, null)
+        }.doOnSuccess {
+            if (it.data != null) addMessagesToDatabase(channelName, topicName, it.data)
+        }.subscribeOn(Schedulers.io())
+    }
+
+    private fun getMessagesFromServerResponse(
+        channelName: String,
+        topicName: String,
+        lastMessageId: Int,
+        numBefore: Int,
+        numAfter: Int
+    ): Single<GetMessagesResponse> {
         val narrow = Json.encodeToString(
             serializer(),
             listOf(
@@ -53,17 +93,37 @@ object MessagesRepository {
                 NarrowDto("topic", topicName)
             )
         )
+        return if (lastMessageId < 0) {
+            getMessagesFromServerByNewest(numBefore, numAfter, narrow)
+        } else {
+            getMessagesFromServerById(lastMessageId, numBefore, numAfter, narrow)
+        }
+    }
+
+    private fun getMessagesFromServerByNewest(
+        numBefore: Int,
+        numAfter: Int,
+        narrow: String
+    ): Single<GetMessagesResponse> {
         return service.getMessages(
             numBefore = numBefore,
             numAfter = numAfter,
             narrow = narrow
-        ).map {
-            RxResource.success(it.messages.map { message -> message.mapToMessage() }
-                .sortedBy { message -> message.time }.reversed())
-        }.onErrorReturn { RxResource.error(it, null) }
-            .doOnSuccess {
-                if (it.data != null) addMessagesToDatabase(channelName, topicName, it.data)
-            }.subscribeOn(Schedulers.io())
+        )
+    }
+
+    private fun getMessagesFromServerById(
+        lastMessageId: Int,
+        numBefore: Int,
+        numAfter: Int,
+        narrow: String
+    ): Single<GetMessagesResponse> {
+        return service.getMessages(
+            anchor = lastMessageId,
+            numBefore = numBefore,
+            numAfter = numAfter,
+            narrow = narrow
+        )
     }
 
     private fun getMessagesFromCache(
@@ -72,8 +132,9 @@ object MessagesRepository {
     ): Single<RxResource<List<Message>>> {
         return WorkChatApp.cacheDatabase.messagesDao().getDialogMessages(channelName, topicName)
             .map {
-                RxResource.success(it.map { message -> message.mapToMessage() }
-                    .sortedBy { message -> message.time }.reversed())
+                RxResource.success(
+                    it.sortedBy { message -> message.time }.reversed().take(CACHE_DIALOG_SIZE)
+                        .map { message -> message.mapToMessage() })
             }
             .onErrorReturn { RxResource.error(it, null) }
             .subscribeOn(Schedulers.io())

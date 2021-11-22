@@ -15,12 +15,17 @@ import io.reactivex.rxjava3.schedulers.Schedulers
 object ReactionsRepository {
 
     private val service = RetrofitHelper.retrofitService
+    private var isCacheUpdated = false
 
     fun getReactions(): Observable<RxResource<List<Reaction>>> {
-        return Observable.concat(
-            getReactionsFromCache().toObservable(),
-            getReactionsFromServer().toObservable()
-        )
+        return if (isCacheUpdated) {
+            getReactionsFromCache().toObservable()
+        } else {
+            Observable.concat(
+                getReactionsFromCache().toObservable(),
+                getReactionsFromServer().toObservable()
+            )
+        }
     }
 
     fun getReactionsFromServer(): Single<RxResource<List<Reaction>>> {
@@ -42,6 +47,7 @@ object ReactionsRepository {
     private fun addReactionsToDatabase(reactions: List<Reaction>) {
         WorkChatApp.cacheDatabase.reactionsDao()
             .insertAll(reactions.map { it.mapToReactionEntity() })
+            .doOnComplete { isCacheUpdated = true }
             .subscribeOn(Schedulers.io()).subscribe()
     }
 

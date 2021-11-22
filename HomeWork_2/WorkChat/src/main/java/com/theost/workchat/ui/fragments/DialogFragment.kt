@@ -134,7 +134,6 @@ class DialogFragment : Fragment() {
             when (status) {
                 PaginationStatus.SUCCESS -> {
                     binding.paginationLoadingBar.visibility = View.GONE
-                    binding.paginationLoadingBar.visibility = View.GONE
                 }
                 PaginationStatus.ERROR -> {
                     binding.paginationLoadingBar.visibility = View.GONE
@@ -170,10 +169,12 @@ class DialogFragment : Fragment() {
             }
         }
 
-        viewModel.sendingReactionStatus.observe(viewLifecycleOwner) { status ->
+        viewModel.sendingReactionData.observe(viewLifecycleOwner) {
+            val status = it.first
+            val messageId = it.second
             when (status) {
                 ResourceStatus.SUCCESS -> {
-                    loadData()
+                    viewModel.updateMessage(messageId)
                 }
                 ResourceStatus.ERROR -> {
                     showSendingError()
@@ -231,7 +232,7 @@ class DialogFragment : Fragment() {
 
     private fun loadData() {
         context?.let { context ->
-            viewModel.loadMessages(
+            viewModel.loadData(
                 channelName,
                 topicName,
                 PrefUtils.getCurrentUserId(context)
@@ -240,13 +241,7 @@ class DialogFragment : Fragment() {
     }
 
     private fun loadNextData() {
-        context?.let { context ->
-            viewModel.loadNextMessages(
-                channelName,
-                topicName,
-                PrefUtils.getCurrentUserId(context)
-            )
-        }
+        viewModel.loadNextMessages()
     }
 
     private fun onInputTextChanged(text: String) {
@@ -320,7 +315,7 @@ class DialogFragment : Fragment() {
     private fun onMessageSent() {
         binding.inputLayout.messageInput.setText("")
         scrollStatus = ScrollStatus.WAITING
-        loadData()
+        viewModel.loadMessages()
     }
 
     private fun onDataLoading() {

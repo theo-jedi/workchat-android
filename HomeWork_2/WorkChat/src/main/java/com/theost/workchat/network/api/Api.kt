@@ -47,6 +47,18 @@ interface Api {
         narrow: String
     ): Single<GetMessagesResponse>
 
+    @GET("messages")
+    fun getMessages(
+        @Query(value = "anchor")
+        anchor: Int,
+        @Query(value = "num_before")
+        numBefore: Int,
+        @Query(value = "num_after")
+        numAfter: Int,
+        @Query(value = "narrow")
+        narrow: String
+    ): Single<GetMessagesResponse>
+
     @FormUrlEncoded
     @POST("messages")
     fun addMessage(
