@@ -9,6 +9,16 @@
         android:id="@+id/shimmerLayout"
         layout="@layout/shimmer_fragment_channels" />
 
+    <include
+        android:id="@+id/emptyLayout"
+        layout="@layout/empty_view"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/channelsList"
         android:layout_width="match_parent"

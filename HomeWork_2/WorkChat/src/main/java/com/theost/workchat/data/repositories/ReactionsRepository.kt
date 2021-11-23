@@ -2,22 +2,21 @@ package com.theost.workchat.data.repositories
 
 import com.theost.workchat.application.WorkChatApp
 import com.theost.workchat.data.models.core.Reaction
-import com.theost.workchat.data.models.core.RxResource
 import com.theost.workchat.database.entities.mapToReaction
 import com.theost.workchat.database.entities.mapToReactionEntity
 import com.theost.workchat.network.api.RetrofitHelper
 import com.theost.workchat.network.dto.mapToReactions
-import io.reactivex.rxjava3.core.Completable
-import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.core.Single
-import io.reactivex.rxjava3.schedulers.Schedulers
+import io.reactivex.Completable
+import io.reactivex.Observable
+import io.reactivex.Single
+import io.reactivex.schedulers.Schedulers
 
 object ReactionsRepository {
 
     private val service = RetrofitHelper.retrofitService
     private var isCacheUpdated = false
 
-    fun getReactions(): Observable<RxResource<List<Reaction>>> {
+    fun getReactions(): Observable<List<Reaction>> {
         return if (isCacheUpdated) {
             Observable.concat(
                 getReactionsFromCache().toObservable(),
@@ -31,19 +30,16 @@ object ReactionsRepository {
         }
     }
 
-    fun getReactionsFromServer(): Single<RxResource<List<Reaction>>> {
+    fun getReactionsFromServer(): Single<List<Reaction>> {
         return service.getReactions()
-            .map { RxResource.success(it.mapToReactions()) }
-            .onErrorReturn { RxResource.error(it, null) }
-            .doOnSuccess {
-                if (it.data != null) addReactionsToDatabase(it.data)
-            }.subscribeOn(Schedulers.io())
+            .map { response -> response.mapToReactions() }
+            .doOnSuccess { reactions -> addReactionsToDatabase(reactions) }
+            .subscribeOn(Schedulers.io())
     }
 
-    fun getReactionsFromCache(): Single<RxResource<List<Reaction>>> {
+    fun getReactionsFromCache(): Single<List<Reaction>> {
         return WorkChatApp.cacheDatabase.reactionsDao().getAll()
-            .map { RxResource.success(it.map { reaction -> reaction.mapToReaction() }) }
-            .onErrorReturn { RxResource.error(it, null) }
+            .map { response -> response.map { reaction -> reaction.mapToReaction() } }
             .subscribeOn(Schedulers.io())
     }
 

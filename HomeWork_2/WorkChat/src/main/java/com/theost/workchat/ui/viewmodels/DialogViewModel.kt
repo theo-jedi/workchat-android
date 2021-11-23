@@ -19,8 +19,8 @@ import com.theost.workchat.data.repositories.MessagesRepository
 import com.theost.workchat.data.repositories.ReactionsRepository
 import com.theost.workchat.ui.interfaces.DelegateItem
 import com.theost.workchat.utils.DateUtils
-import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.schedulers.Schedulers
+import io.reactivex.Observable
+import io.reactivex.schedulers.Schedulers
 
 class DialogViewModel : ViewModel() {
 
@@ -67,31 +67,16 @@ class DialogViewModel : ViewModel() {
         val lastMessageId = if (messagesCache.isNotEmpty()) messagesCache.last().id else -1
         val resourceType = if (_allData.value == null) ResourceType.CACHE_AND_SERVER else ResourceType.SERVER
 
-        Observable.zip(
-            MessagesRepository.getMessages(
-                channelName,
-                topicName,
-                lastMessageId,
-                numBefore,
-                numAfter,
-                resourceType
-            ),
-            ReactionsRepository.getReactions()
-        ) { messagesResource, reactionsResource ->
-            val error = messagesResource.error
-            if (error == null) {
-                val messages = mutableListOf<Message>().apply {
-                    addAll(messagesCache)
-                    addAll(messagesResource.data ?: mutableListOf())
-                }.distinct()
-                RxResource.success(Pair(messages, reactionsResource.data))
-            } else {
-                RxResource.error(error, null)
-            }
-        }.subscribeOn(Schedulers.io()).subscribe({ resource ->
-            if (resource.data != null && resource.data.first.isNotEmpty()) {
-                val messages = resource.data.first
-                val emojis = resource.data.second
+        MessagesRepository.getMessages(
+            channelName,
+            topicName,
+            lastMessageId,
+            numBefore,
+            numAfter,
+            resourceType
+        ).subscribeOn(Schedulers.io()).subscribe({ resource ->
+            if (resource.data != null && resource.data.isNotEmpty()) {
+                val messages = resource.data
 
                 messagesCache.clear()
                 messagesCache.addAll(messages)
@@ -101,7 +86,7 @@ class DialogViewModel : ViewModel() {
                     _paginationStatus.postValue(PaginationStatus.SUCCESS)
                 }
 
-                processMessages(messages, emojis)
+                processMessages(messages)
             } else {
                 resource.error?.printStackTrace()
                 //_loadingStatus.postValue(ResourceStatus.ERROR)
@@ -140,7 +125,7 @@ class DialogViewModel : ViewModel() {
                     messagesCache.add(index, message)
                     addAll(messagesCache)
                 }.distinct()
-                RxResource.success(Pair(messages, reactionsResource.data))
+                RxResource.success(Pair(messages, emptyList<Reaction>()))
             } else {
                 RxResource.error(error, null)
             }
@@ -148,7 +133,7 @@ class DialogViewModel : ViewModel() {
             if (resource.data != null && resource.data.first.isNotEmpty()) {
                 val messages = resource.data.first
                 val emojis = resource.data.second
-                processMessages(messages, emojis)
+                processMessages(messages)
             } else {
                 resource.error?.printStackTrace()
                 //_loadingStatus.postValue(ResourceStatus.ERROR)
@@ -166,7 +151,7 @@ class DialogViewModel : ViewModel() {
             })
     }
 
-    private fun processMessages(messages: List<Message>, emojis: List<Reaction>?) {
+    private fun processMessages(messages: List<Message>) {
         val listItems = mutableListOf<DelegateItem>()
 
         (messages.indices).forEach { index ->
@@ -191,7 +176,7 @@ class DialogViewModel : ViewModel() {
                 )
             }
 
-            val messageContent = SpannableString(
+            /*val messageContent = SpannableString(
                 HtmlCompat.fromHtml(
                     if (message.content.contains(":")) {
                         var isFirstColon = false
@@ -204,6 +189,13 @@ class DialogViewModel : ViewModel() {
                     } else {
                         message.content
                     },
+                    HtmlCompat.FROM_HTML_MODE_COMPACT
+                ).trim()
+            )*/
+
+            val messageContent = SpannableString(
+                HtmlCompat.fromHtml(
+                    message.content,
                     HtmlCompat.FROM_HTML_MODE_COMPACT
                 ).trim()
             )
@@ -286,7 +278,7 @@ class DialogViewModel : ViewModel() {
             _sendingReactionData.postValue(Pair(ResourceStatus.SUCCESS, messageId))
         }, {
             _sendingReactionData.postValue(Pair(ResourceStatus.ERROR, messageId))
-        })
+        }).dispose()
     }
 
 }

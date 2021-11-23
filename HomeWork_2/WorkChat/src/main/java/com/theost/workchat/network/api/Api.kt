@@ -1,8 +1,8 @@
 package com.theost.workchat.network.api
 
 import com.theost.workchat.network.dto.*
-import io.reactivex.rxjava3.core.Completable
-import io.reactivex.rxjava3.core.Single
+import io.reactivex.Completable
+import io.reactivex.Single
 import retrofit2.http.*
 
 interface Api {

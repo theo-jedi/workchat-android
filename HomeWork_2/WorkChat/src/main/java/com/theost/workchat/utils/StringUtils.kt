@@ -38,4 +38,8 @@ object StringUtils {
         }
     }
 
+    fun containsQuery(text: String, query: String): Boolean {
+        return text.trim().lowercase().contains(query.trim().lowercase())
+    }
+
 }

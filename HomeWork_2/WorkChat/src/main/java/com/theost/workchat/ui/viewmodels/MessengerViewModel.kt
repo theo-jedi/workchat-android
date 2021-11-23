@@ -13,11 +13,11 @@ class MessengerViewModel : ViewModel() {
     val currentUserId: LiveData<Int> = _currentUserId
 
     fun updateData() {
-        UsersRepository.getUser().subscribe({
-            if (it.error == null && it.data != null) {
-                _currentUserId.postValue(it.data.id)
+        UsersRepository.getUser().subscribe({ user ->
+            if (user != null) {
+                _currentUserId.postValue(user.id)
             }
-        }, {})
+        }, {}).dispose()
     }
 
 }

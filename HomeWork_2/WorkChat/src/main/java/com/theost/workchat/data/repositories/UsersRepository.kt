@@ -1,7 +1,6 @@
 package com.theost.workchat.data.repositories
 
 import com.theost.workchat.application.WorkChatApp
-import com.theost.workchat.data.models.core.RxResource
 import com.theost.workchat.data.models.core.User
 import com.theost.workchat.data.models.state.UserStatus
 import com.theost.workchat.database.entities.mapToUser
@@ -9,34 +8,31 @@ import com.theost.workchat.database.entities.mapToUserEntity
 import com.theost.workchat.network.api.RetrofitHelper
 import com.theost.workchat.network.dto.mapToStatus
 import com.theost.workchat.network.dto.mapToUser
-import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.core.Single
-import io.reactivex.rxjava3.schedulers.Schedulers
+import io.reactivex.Observable
+import io.reactivex.Single
+import io.reactivex.schedulers.Schedulers
 
 object UsersRepository {
 
     private val service = RetrofitHelper.retrofitService
 
-    fun getUsers(): Observable<RxResource<List<User>>> {
+    fun getUsers(): Observable<List<User>> {
         return Observable.concat(
             getUsersFromCache().toObservable(),
             getUsersFromServer().toObservable()
         )
     }
 
-    private fun getUsersFromServer(): Single<RxResource<List<User>>> {
+    private fun getUsersFromServer(): Single<List<User>> {
         return service.getUsers()
-            .map { RxResource.success(it.users.map { user -> user.mapToUser() }) }
-            .onErrorReturn { RxResource.error(it, null) }
-            .doOnSuccess {
-                if (it.data != null) addUsersToDatabase(it.data)
-            }.subscribeOn(Schedulers.io())
+            .map { it.users.map { user -> user.mapToUser() } }
+            .doOnSuccess { users -> addUsersToDatabase(users)}
+            .subscribeOn(Schedulers.io())
     }
 
-    private fun getUsersFromCache(): Single<RxResource<List<User>>> {
+    private fun getUsersFromCache(): Single<List<User>> {
         return WorkChatApp.cacheDatabase.usersDao().getAll()
-            .map { RxResource.success(it.map { userEntity -> userEntity.mapToUser() }) }
-            .onErrorReturn { RxResource.error(it, null) }
+            .map { it.map { userEntity -> userEntity.mapToUser() } }
             .subscribeOn(Schedulers.io())
     }
 
@@ -46,7 +42,7 @@ object UsersRepository {
             .subscribeOn(Schedulers.io()).subscribe()
     }
 
-    fun getUser(id: Int = -1): Observable<RxResource<User>> {
+    fun getUser(id: Int = -1): Observable<User> {
         return if (id < 0) {
             getUserFromServer(id).toObservable()
         } else {
@@ -57,35 +53,29 @@ object UsersRepository {
         }
     }
 
-    private fun getUserFromServer(id: Int): Single<RxResource<User>> {
+    private fun getUserFromServer(id: Int): Single<User> {
         return if (id < 0) {
             service.getCurrentUser()
-                .map { RxResource.success(it.mapToUser()) }
-                .onErrorReturn { RxResource.error(it, null) }
-                .doOnSuccess {
-                    if (it.data != null) addUsersToDatabase(listOf(it.data))
-                }.subscribeOn(Schedulers.io())
+                .map { user -> user.mapToUser() }
+                .doOnSuccess { user -> addUsersToDatabase(listOf(user))}
+                .subscribeOn(Schedulers.io())
         } else {
             service.getUser(id)
-                .map { RxResource.success(it.user.mapToUser()) }
-                .onErrorReturn { RxResource.error(it, null) }
-                .doOnSuccess {
-                    if (it.data != null) addUsersToDatabase(listOf(it.data))
-                }.subscribeOn(Schedulers.io())
+                .map { response -> response.user.mapToUser() }
+                .doOnSuccess { user -> addUsersToDatabase(listOf(user)) }
+                .subscribeOn(Schedulers.io())
         }
     }
 
-    private fun getUserFromCache(id: Int): Single<RxResource<User>> {
+    private fun getUserFromCache(id: Int): Single<User> {
         return WorkChatApp.cacheDatabase.usersDao().getUser(id)
-            .map { RxResource.success(it.mapToUser()) }
-            .onErrorReturn { RxResource.error(it, null) }
+            .map { user -> user.mapToUser() }
             .subscribeOn(Schedulers.io())
     }
 
-    fun getUserPresence(id: Int): Single<RxResource<UserStatus>> {
+    fun getUserPresence(id: Int): Single<UserStatus> {
         return service.getUserPresence(id)
-            .map { RxResource.success(it.presence.client.mapToStatus()) }
-            .onErrorReturn { RxResource.error(it, null) }
+            .map { response -> response.presence.client.mapToStatus() }
             .subscribeOn(Schedulers.io())
     }
 

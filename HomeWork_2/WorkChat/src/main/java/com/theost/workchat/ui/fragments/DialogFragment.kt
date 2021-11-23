@@ -291,7 +291,7 @@ class DialogFragment : Fragment() {
 
     private fun pickReaction(messageId: Int) {
         if (!isDetached) {
-            ReactionBottomSheetFragment.newFragment { reaction ->
+            ReactionsFragment.newFragment { reaction ->
                 onMessageAction(
                     MessageAction.REACTION_ADD,
                     messageId,

@@ -16,6 +16,8 @@
     <string name="idle">Idle</string>
 
     <string name="no_messages">Нет сообщений</string>
+    <string name="no_channels">Нет каналов</string>
+    <string name="no_people">Нет людей</string>
     <string name="hide">Скрыть</string>
     <string name="retry">Повторить</string>
 

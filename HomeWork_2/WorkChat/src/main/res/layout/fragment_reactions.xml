@@ -16,35 +16,6 @@
         app:spanCount="5"
         tools:listitem="@layout/item_reaction" />
 
-    <TextView
-        android:id="@+id/errorView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
-        android:text="@string/network_error"
-        android:textColor="@color/light_gray"
-        android:textSize="18sp"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/retryButton"
-        style="?android:attr/borderlessButtonStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="40dp"
-        android:backgroundTint="@color/background_light"
-        android:text="@string/retry"
-        android:textColor="@color/green"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/errorView" />
-
     <ProgressBar
         android:id="@+id/loadingBar"
         android:layout_width="wrap_content"

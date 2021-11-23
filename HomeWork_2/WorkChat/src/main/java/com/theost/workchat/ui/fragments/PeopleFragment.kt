@@ -9,27 +9,28 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import com.google.android.material.snackbar.Snackbar
 import com.theost.workchat.R
-import com.theost.workchat.data.models.state.ResourceStatus
 import com.theost.workchat.databinding.FragmentPeopleBinding
+import com.theost.workchat.elm.people.PeopleEffect
+import com.theost.workchat.elm.people.PeopleEvent
+import com.theost.workchat.elm.people.PeopleState
+import com.theost.workchat.elm.people.PeopleStore
 import com.theost.workchat.ui.adapters.core.BaseAdapter
 import com.theost.workchat.ui.adapters.delegates.PeopleAdapterDelegate
 import com.theost.workchat.ui.interfaces.NavigationHolder
 import com.theost.workchat.ui.interfaces.PeopleListener
-import com.theost.workchat.ui.viewmodels.PeopleViewModel
 import com.theost.workchat.utils.DisplayUtils
 import com.theost.workchat.utils.PrefUtils
+import vivid.money.elmslie.android.base.ElmFragment
+import vivid.money.elmslie.core.store.Store
 
-class PeopleFragment : Fragment() {
-
-    private val adapter = BaseAdapter()
-    private var currentUserId: Int = -1
+class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
 
     private lateinit var searchView: SearchView
+    private var currentUserId: Int = - 1
 
-    private val viewModel: PeopleViewModel by viewModels()
+    private val adapter = BaseAdapter()
 
     private var _binding: FragmentPeopleBinding? = null
     private val binding get() = _binding!!
@@ -41,11 +42,8 @@ class PeopleFragment : Fragment() {
     ): View {
         super.onCreate(savedInstanceState)
         _binding = FragmentPeopleBinding.inflate(layoutInflater)
-        configureToolbar()
 
-        context?.let { context ->
-            currentUserId = PrefUtils.getCurrentUserId(context)
-        }
+        binding.emptyLayout.emptyView.text = getString(R.string.no_people)
 
         binding.usersList.setHasFixedSize(true)
         binding.usersList.adapter = adapter.apply {
@@ -54,28 +52,69 @@ class PeopleFragment : Fragment() {
             })
         }
 
-        viewModel.loadingStatus.observe(viewLifecycleOwner) { status ->
-            when (status) {
-                ResourceStatus.SUCCESS -> { hideShimmerLayout() }
-                ResourceStatus.ERROR -> { showLoadingError() }
-                ResourceStatus.LOADING ->  { showShimmerLayout() }
-                else -> {}
-            }
-        }
-        viewModel.allData.observe(viewLifecycleOwner) { adapter.submitList(it) }
-        loadData()
+        configureToolbar()
 
         return binding.root
     }
 
-    private fun loadData() {
-        viewModel.loadData(currentUserId)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        context?.let { context -> currentUserId = PrefUtils.getCurrentUserId(context) }
+        store.accept(PeopleEvent.Ui.LoadPeople(currentUserId))
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        searchView.setOnQueryTextListener(null)
-        _binding = null
+    override val initEvent: PeopleEvent = PeopleEvent.Ui.Init
+
+    override fun createStore(): Store<PeopleEvent, PeopleEffect, PeopleState> =
+        PeopleStore().provide()
+
+    override fun render(state: PeopleState) {
+        val people = if (state.isSearchEnabled) state.searchedPeople else state.people
+        adapter.submitList(people)
+    }
+
+    override fun handleEffect(effect: PeopleEffect) {
+        when (effect) {
+            is PeopleEffect.ShowError -> showLoadingError()
+            is PeopleEffect.ShowLoading -> showLoading()
+            is PeopleEffect.HideLoading -> hideLoading()
+            is PeopleEffect.ShowEmpty -> showEmptyView()
+            is PeopleEffect.HideEmpty -> hideEmptyView()
+            is PeopleEffect.OpenProfile -> openProfile(effect.userId)
+        }
+    }
+
+    fun onSearch(query: String) {
+        store.accept(PeopleEvent.Ui.SearchPeople(query))
+    }
+
+    fun openProfile(userId: Int) {
+        (activity as PeopleListener).onProfileSelected(userId)
+    }
+
+    private fun hideEmptyView() {
+        binding.emptyLayout.emptyView.visibility = View.GONE
+    }
+
+    private fun showEmptyView() {
+        binding.emptyLayout.emptyView.visibility = View.VISIBLE
+    }
+
+    private fun hideLoading() {
+        binding.shimmerLayout.shimmer.visibility = View.GONE
+        binding.usersList.visibility = View.VISIBLE
+    }
+
+    private fun showLoading() {
+        binding.shimmerLayout.shimmer.visibility = View.VISIBLE
+        binding.usersList.visibility = View.GONE
+    }
+
+    private fun showLoadingError() {
+        Snackbar.make(binding.root, getString(R.string.network_error), Snackbar.LENGTH_INDEFINITE)
+            .setAction(R.string.retry) { store.accept(PeopleEvent.Ui.LoadPeople(currentUserId)) }
+            .show()
     }
 
     private fun configureToolbar() {
@@ -96,31 +135,17 @@ class PeopleFragment : Fragment() {
                 }
 
                 override fun onQueryTextChange(newText: String): Boolean {
-                    onQueryChanged(newText)
+                    onSearch(newText)
                     return true
                 }
             })
         }
     }
 
-    private fun onQueryChanged(query: String) {
-        viewModel.filterData(query)
-    }
-
-    private fun hideShimmerLayout() {
-        binding.shimmerLayout.shimmer.visibility = View.GONE
-        binding.usersList.visibility = View.VISIBLE
-    }
-
-    private fun showShimmerLayout() {
-        binding.shimmerLayout.shimmer.visibility = View.VISIBLE
-        binding.usersList.visibility = View.GONE
-    }
-
-    private fun showLoadingError() {
-        Snackbar.make(binding.root, getString(R.string.network_error), Snackbar.LENGTH_INDEFINITE)
-            .setAction(R.string.retry) { loadData() }
-            .show()
+    override fun onDestroy() {
+        super.onDestroy()
+        searchView.setOnQueryTextListener(null)
+        _binding = null
     }
 
     companion object {
