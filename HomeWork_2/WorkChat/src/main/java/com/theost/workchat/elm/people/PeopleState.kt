@@ -7,5 +7,6 @@ data class PeopleState(
     val status: ResourceStatus = ResourceStatus.LOADING,
     val people: List<ListUser> = emptyList(),
     val searchedPeople: List<ListUser> = emptyList(),
+    val currentUserId: Int = -1,
     val isSearchEnabled: Boolean = false
 )

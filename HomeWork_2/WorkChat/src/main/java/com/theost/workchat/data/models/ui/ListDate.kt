@@ -2,7 +2,7 @@ package com.theost.workchat.data.models.ui
 
 import com.theost.workchat.ui.interfaces.DelegateItem
 
-class ListDate(val date: String) : DelegateItem {
-    override fun id(): Any = date
+class ListDate(val position: Int, val date: String) : DelegateItem {
+    override fun id(): Any = position
     override fun content(): Any = date
 }

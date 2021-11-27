@@ -2,141 +2,126 @@ package com.theost.workchat.data.repositories
 
 import com.theost.workchat.application.WorkChatApp
 import com.theost.workchat.data.models.core.Message
-import com.theost.workchat.data.models.core.RxResource
 import com.theost.workchat.data.models.state.ResourceType
 import com.theost.workchat.database.entities.mapToMessage
 import com.theost.workchat.database.entities.mapToMessageEntity
 import com.theost.workchat.network.api.RetrofitHelper
-import com.theost.workchat.network.dto.GetMessagesResponse
-import com.theost.workchat.network.dto.NarrowDto
 import com.theost.workchat.network.dto.mapToMessage
+import com.theost.workchat.utils.StringUtils
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.serializer
 
 object MessagesRepository {
 
-    private val service = RetrofitHelper.retrofitService
     private const val CACHE_DIALOG_SIZE = 50
-    const val DIALOG_PAGE_SIZE = 20
+    private const val DIALOG_PAGE_SIZE = 20
     const val DIALOG_NEXT_PAGE = 5
+
+    private val service = RetrofitHelper.retrofitService
 
     fun getMessages(
         channelName: String,
         topicName: String,
-        lastMessageId: Int,
-        numBefore: Int,
-        numAfter: Int,
         resourceType: ResourceType
-    ): Observable<RxResource<List<Message>>> {
+    ): Observable<Result<List<Message>>> {
         return if (resourceType == ResourceType.CACHE_AND_SERVER) {
             Observable.concat(
                 getMessagesFromCache(channelName, topicName).toObservable(),
-                getMessagesFromServer(
-                    channelName,
-                    topicName,
-                    lastMessageId,
-                    numBefore,
-                    numAfter
-                ).toObservable()
+                getMessagesFromServer(channelName, topicName).toObservable()
             )
         } else {
-            getMessagesFromServer(
-                channelName,
-                topicName,
-                lastMessageId,
-                numBefore,
-                numAfter
-            ).toObservable()
+            getMessagesFromServer(channelName, topicName).toObservable()
         }
     }
 
     private fun getMessagesFromServer(
         channelName: String,
-        topicName: String,
-        lastMessageId: Int,
-        numBefore: Int,
-        numAfter: Int
-    ): Single<RxResource<List<Message>>> {
-        return getMessagesFromServerResponse(
-            channelName,
-            topicName,
-            lastMessageId,
-            numBefore,
-            numAfter
+        topicName: String
+    ): Single<Result<List<Message>>> {
+        return service.getMessages(
+            numBefore = DIALOG_PAGE_SIZE,
+            numAfter = 0,
+            narrow = StringUtils.namesToNarrow(channelName, topicName)
         ).map { response ->
-            RxResource.success(response.messages.sortedBy { message -> message.timestamp }
-                .reversed().map { message ->
-                    message.mapToMessage()
-                })
+            Result.success(response.messages
+                .sortedBy { message -> message.timestamp }
+                .map { messageDto -> messageDto.mapToMessage() }
+                .reversed()
+            )
         }.onErrorReturn {
-            RxResource.error(it, null)
-        }.doOnSuccess {
-            if (it.data != null) addMessagesToDatabase(channelName, topicName, it.data)
+            Result.failure(it)
+        }.doOnSuccess { result ->
+            if (result.isSuccess) {
+                val messages = result.getOrNull()
+                if (messages != null) addMessagesToDatabase(channelName, topicName, messages)
+            }
         }.subscribeOn(Schedulers.io())
     }
 
-    private fun getMessagesFromServerResponse(
+    fun getMessagesFromServer(
         channelName: String,
         topicName: String,
-        lastMessageId: Int,
-        numBefore: Int,
-        numAfter: Int
-    ): Single<GetMessagesResponse> {
-        val narrow = Json.encodeToString(
-            serializer(),
-            listOf(
-                NarrowDto("stream", channelName),
-                NarrowDto("topic", topicName)
+        lastMessageId: Int
+    ): Single<Result<List<Message>>> {
+        return service.getMessages(
+            numBefore = DIALOG_PAGE_SIZE,
+            numAfter = 0,
+            narrow = StringUtils.namesToNarrow(channelName, topicName),
+            anchor = lastMessageId
+        ).map { response ->
+            Result.success(response.messages
+                .sortedBy { messageDto -> messageDto.timestamp }
+                .map { messageDto -> messageDto.mapToMessage() }
+                .reversed()
             )
-        )
-        return if (lastMessageId < 0) {
-            getMessagesFromServerByNewest(numBefore, numAfter, narrow)
-        } else {
-            getMessagesFromServerById(lastMessageId, numBefore, numAfter, narrow)
-        }
+        }.onErrorReturn {
+            Result.failure(it)
+        }.doOnSuccess { result ->
+            if (result.isSuccess) {
+                val messages = result.getOrNull()
+                if (messages != null) addMessagesToDatabase(channelName, topicName, messages)
+            }
+        }.subscribeOn(Schedulers.io())
     }
 
-    private fun getMessagesFromServerByNewest(
-        numBefore: Int,
-        numAfter: Int,
-        narrow: String
-    ): Single<GetMessagesResponse> {
+    fun getMessageFromServer(
+        channelName: String,
+        topicName: String,
+        messageId: Int
+    ): Single<Result<Message>> {
         return service.getMessages(
-            numBefore = numBefore,
-            numAfter = numAfter,
-            narrow = narrow
-        )
-    }
-
-    private fun getMessagesFromServerById(
-        lastMessageId: Int,
-        numBefore: Int,
-        numAfter: Int,
-        narrow: String
-    ): Single<GetMessagesResponse> {
-        return service.getMessages(
-            anchor = lastMessageId,
-            numBefore = numBefore,
-            numAfter = numAfter,
-            narrow = narrow
-        )
+            numBefore = 0,
+            numAfter = 0,
+            narrow = StringUtils.namesToNarrow(channelName, topicName),
+            anchor = messageId
+        ).map { response ->
+            Result.success(response.messages.first().mapToMessage())
+        }.onErrorReturn {
+            Result.failure(it)
+        }.doOnSuccess { result ->
+            if (result.isSuccess) {
+                val message = result.getOrNull()
+                if (message != null) addMessagesToDatabase(channelName, topicName, listOf(message))
+            }
+        }.subscribeOn(Schedulers.io())
     }
 
     private fun getMessagesFromCache(
         channelName: String,
         topicName: String
-    ): Single<RxResource<List<Message>>> {
+    ): Single<Result<List<Message>>> {
         return WorkChatApp.cacheDatabase.messagesDao().getDialogMessages(channelName, topicName)
-            .map {
-                RxResource.success(
-                    it.sortedBy { message -> message.time }.reversed().take(CACHE_DIALOG_SIZE)
-                        .map { message -> message.mapToMessage() })
+            .map { messages ->
+                Result.success(messages
+                    .sortedBy { messageEntity -> messageEntity.time }
+                    .takeLast(CACHE_DIALOG_SIZE)
+                    .map { message -> message.mapToMessage() }
+                    .reversed()
+                )
             }
-            .onErrorReturn { RxResource.error(it, null) }
+            .onErrorReturn { Result.failure(it) }
             .subscribeOn(Schedulers.io())
     }
 
@@ -146,9 +131,9 @@ object MessagesRepository {
         messages: List<Message>
     ) {
         WorkChatApp.cacheDatabase.messagesDao()
-            .insertAll(messages.take(CACHE_DIALOG_SIZE)
-                .map { it.mapToMessageEntity(channelName, topicName) })
-            .subscribeOn(Schedulers.io()).subscribe()
+            .insertAll(messages.map { message -> message.mapToMessageEntity(channelName, topicName) })
+            .subscribeOn(Schedulers.io())
+            .subscribe()
     }
 
     fun addMessage(channelName: String, topicName: String, content: String): Completable {

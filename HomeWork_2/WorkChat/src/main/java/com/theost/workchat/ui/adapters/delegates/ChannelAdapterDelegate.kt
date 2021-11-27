@@ -9,13 +9,12 @@ import com.theost.workchat.databinding.ItemChannelBinding
 import com.theost.workchat.ui.interfaces.AdapterDelegate
 
 
-class ChannelAdapterDelegate(private val clickListener: (channelId: Int, channelName: String, isSelected: Boolean) -> Unit) :
-    AdapterDelegate {
+class ChannelAdapterDelegate(
+    private val clickListener: (channelId: Int, channelName: String, isSelected: Boolean) -> Unit
+) : AdapterDelegate {
 
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
-        val binding = ItemChannelBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
-        )
+        val binding = ItemChannelBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ViewHolder(binding, clickListener)
     }
 

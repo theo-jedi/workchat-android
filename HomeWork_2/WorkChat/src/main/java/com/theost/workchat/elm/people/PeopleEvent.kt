@@ -4,10 +4,9 @@ import com.theost.workchat.data.models.ui.ListUser
 
 sealed class PeopleEvent {
     sealed class Ui : PeopleEvent() {
-        data class LoadPeople(val currentUserId: Int) : Ui()
+        object LoadPeople : Ui()
         data class SearchPeople(val query: String) : Ui()
         data class OpenProfile(val userId: Int) : Ui()
-        object Init : Ui()
     }
 
     sealed class Internal : PeopleEvent() {

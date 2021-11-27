@@ -9,18 +9,19 @@ import vivid.money.elmslie.core.ActorCompat
 class ProfileActor : ActorCompat<ProfileCommand, ProfileEvent> {
     override fun execute(command: ProfileCommand): Observable<ProfileEvent> = when (command) {
         is ProfileCommand.LoadProfile -> {
-            UsersRepository.getUser(command.userId).map { user ->
-                ListUser(
-                    id = user.id,
-                    name = user.name,
-                    about = user.about,
-                    avatarUrl = user.avatarUrl,
-                    status = UserStatus.OFFLINE
-                )
-            }.mapEvents(
-                { profile -> ProfileEvent.Internal.ProfileLoadingSuccess(profile) },
-                { error -> ProfileEvent.Internal.DataLoadingError(error) }
-            )
+            UsersRepository.getUser(command.userId).map { result ->
+                result.fold({ user ->
+                    ProfileEvent.Internal.ProfileLoadingSuccess(
+                        ListUser(
+                            id = user.id,
+                            name = user.name,
+                            about = user.about,
+                            avatarUrl = user.avatarUrl,
+                            status = UserStatus.OFFLINE
+                        )
+                    )
+                }, { error -> ProfileEvent.Internal.DataLoadingError(error) })
+            }
         }
     }
 }

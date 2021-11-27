@@ -2,15 +2,12 @@ package com.theost.workchat.elm.channels
 
 import vivid.money.elmslie.core.ElmStoreCompat
 
-class ChannelsStore {
+object ChannelsStore {
 
-    private val store by lazy {
-        ElmStoreCompat(
-            initialState = ChannelsState(),
-            reducer = ChannelsReducer(),
-            actor = ChannelsActor()
-        )
-    }
+    fun getStore(initialState: ChannelsState) = ElmStoreCompat(
+        initialState = initialState,
+        reducer = ChannelsReducer(),
+        actor = ChannelsActor()
+    )
 
-    fun provide() = store
 }

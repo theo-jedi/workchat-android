@@ -7,13 +7,13 @@ sealed class ChannelsEffect {
     object ShowEmpty : ChannelsEffect()
     object HideEmpty : ChannelsEffect()
 
-    data class OnChannelClick(
+    data class OnChannelClicked(
         val channelId: Int,
         val channelName: String,
         val isSelected: Boolean
     ) : ChannelsEffect()
 
-    data class OnTopicClick(
+    data class OnTopicClicked(
         val channelName: String,
         val topicName: String
     ) : ChannelsEffect()

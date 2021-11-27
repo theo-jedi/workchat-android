@@ -2,15 +2,12 @@ package com.theost.workchat.elm.people
 
 import vivid.money.elmslie.core.ElmStoreCompat
 
-class PeopleStore {
+object PeopleStore {
 
-    private val store by lazy {
-        ElmStoreCompat(
-            initialState = PeopleState(),
-            reducer = PeopleReducer(),
-            actor = PeopleActor()
-        )
-    }
+    fun getStore(initialState: PeopleState) = ElmStoreCompat(
+        initialState = initialState,
+        reducer = PeopleReducer(),
+        actor = PeopleActor()
+    )
 
-    fun provide() = store
 }

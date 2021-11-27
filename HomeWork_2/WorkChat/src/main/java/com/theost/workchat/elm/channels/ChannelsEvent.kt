@@ -1,15 +1,12 @@
 package com.theost.workchat.elm.channels
 
-import com.theost.workchat.data.models.state.ChannelsType
 import com.theost.workchat.data.models.ui.ListChannel
 import com.theost.workchat.data.models.ui.ListTopic
+import com.theost.workchat.ui.interfaces.DelegateItem
 
 sealed class ChannelsEvent {
     sealed class Ui : ChannelsEvent() {
-        data class LoadChannels(
-            val channelsType: ChannelsType,
-            val subscribedChannels: List<Int>
-        ) : Ui()
+        object LoadChannels : Ui()
 
         data class SearchChannels(
             val query: String
@@ -31,12 +28,11 @@ sealed class ChannelsEvent {
         data class OnTopicClick(
             val topicName: String
         ) : Ui()
-
-        object Init : Ui()
     }
 
     sealed class Internal : ChannelsEvent() {
-        data class ChannelsLoadingSuccess(val channels: List<ListChannel>) : Internal()
+        data class ItemsLoadingSuccess(val items: List<DelegateItem>) : Internal()
+        data class ChannelsLoadingSuccess(val channels: List<ListChannel>, val subscribedChannels: List<Int>) : Internal()
         data class ChannelsSearchingSuccess(val channels: List<ListChannel>) : Internal()
         data class TopicsLoadingSuccess(val topics: List<ListTopic>) : Internal()
         data class DataLoadingError(val error: Throwable) : Internal()

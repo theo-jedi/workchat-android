@@ -7,12 +7,11 @@ import com.theost.workchat.data.models.ui.ListReaction
 import com.theost.workchat.databinding.ItemReactionBinding
 import com.theost.workchat.ui.interfaces.AdapterDelegate
 
-class ReactionAdapterDelegate(private val clickListener: (reaction: ListReaction) -> Unit) :
-    AdapterDelegate {
+class ReactionAdapterDelegate(
+    private val clickListener: (reaction: ListReaction) -> Unit
+) : AdapterDelegate {
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
-        val binding = ItemReactionBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
-        )
+        val binding = ItemReactionBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ViewHolder(binding, clickListener)
     }
 

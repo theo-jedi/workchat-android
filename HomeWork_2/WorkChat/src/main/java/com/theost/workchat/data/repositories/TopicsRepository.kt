@@ -14,30 +14,38 @@ object TopicsRepository {
 
     private val service = RetrofitHelper.retrofitService
 
-    fun getTopics(channelId: Int): Observable<List<Topic>> {
+    fun getTopics(channelId: Int): Observable<Result<List<Topic>>> {
         return Observable.concat(
             getTopicsFromCache(channelId).toObservable(),
             getTopicsFromServer(channelId).toObservable()
         )
     }
 
-    private fun getTopicsFromServer(channelId: Int): Single<List<Topic>> {
+    private fun getTopicsFromServer(channelId: Int): Single<Result<List<Topic>>> {
         return service.getChannelTopics(channelId)
-            .map { it.topics.map { topic -> topic.mapToTopic() } }
-            .doOnSuccess { topics -> addTopicsToDatabase(channelId, topics) }
+            .map { response -> Result.success(response.topics.map { topicDto -> topicDto.mapToTopic() }) }
+            .onErrorReturn { Result.failure(it) }
+            .doOnSuccess { result ->
+                if (result.isSuccess) {
+                    val topics = result.getOrNull()
+                    if (topics != null) addTopicsToDatabase(channelId, topics)
+                }
+            }
             .subscribeOn(Schedulers.io())
     }
 
-    private fun getTopicsFromCache(channelId: Int): Single<List<Topic>> {
+    private fun getTopicsFromCache(channelId: Int): Single<Result<List<Topic>>> {
         return WorkChatApp.cacheDatabase.topicsDao().getChannelTopics(channelId)
-            .map { it.map { topic -> topic.mapToTopic() } }
+            .map { topics -> Result.success(topics.map { topicEntity -> topicEntity.mapToTopic() }) }
+            .onErrorReturn { Result.failure(it) }
             .subscribeOn(Schedulers.io())
     }
 
     private fun addTopicsToDatabase(channelId: Int, topics: List<Topic>) {
         WorkChatApp.cacheDatabase.topicsDao()
-            .insertAll(topics.map { it.mapToTopicEntity(channelId) })
-            .subscribeOn(Schedulers.io()).subscribe()
+            .insertAll(topics.map { topic -> topic.mapToTopicEntity(channelId) })
+            .subscribeOn(Schedulers.io())
+            .subscribe()
     }
 
 }

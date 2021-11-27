@@ -26,7 +26,7 @@ class StreamsFragment : Fragment() {
     private lateinit var channelsPagesCallback: ViewPager2.OnPageChangeCallback
     private lateinit var searchView: SearchView
 
-    private var currentPagesPosition = -1
+    private var currentPagesPosition: Int = -1
 
     private var _binding: FragmentStreamsBinding? = null
     private val binding get() = _binding!!

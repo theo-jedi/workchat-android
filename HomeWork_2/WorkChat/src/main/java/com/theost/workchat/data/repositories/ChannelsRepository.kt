@@ -18,23 +18,35 @@ object ChannelsRepository {
     fun getChannels(
         channelsType: ChannelsType,
         subscribedChannels: List<Int>
-    ): Observable<List<Channel>> {
+    ): Observable<Result<List<Channel>>> {
         return Observable.concat(
             getChannelsFromCache(channelsType, subscribedChannels).toObservable(),
             getChannelsFromServer(channelsType).toObservable()
         )
     }
 
-    private fun getChannelsFromServer(channelsType: ChannelsType): Single<List<Channel>> {
+    private fun getChannelsFromServer(channelsType: ChannelsType): Single<Result<List<Channel>>> {
         return if (channelsType == ChannelsType.SUBSCRIBED) {
             service.getSubscribedChannels()
-                .map { it.channels.map { channel -> channel.mapToChannel() } }
-                .doOnSuccess { channels -> addChannelsToDatabase(channels) }
+                .map { response -> Result.success(response.channels.map { channelDto -> channelDto.mapToChannel() }) }
+                .onErrorReturn { Result.failure(it) }
+                .doOnSuccess { result ->
+                    if (result.isSuccess) {
+                        val channels = result.getOrNull()
+                        if (channels != null) addChannelsToDatabase(channels)
+                    }
+                }
                 .subscribeOn(Schedulers.io())
         } else {
             service.getChannels()
-                .map { it.channels.map { channel -> channel.mapToChannel() } }
-                .doOnSuccess { channels -> addChannelsToDatabase(channels) }
+                .map { response -> Result.success(response.channels.map { channelDto -> channelDto.mapToChannel() }) }
+                .onErrorReturn { Result.failure(it) }
+                .doOnSuccess { result ->
+                    if (result.isSuccess) {
+                        val channels = result.getOrNull()
+                        if (channels != null) addChannelsToDatabase(channels)
+                    }
+                }
                 .subscribeOn(Schedulers.io())
         }
     }
@@ -42,23 +54,30 @@ object ChannelsRepository {
     private fun getChannelsFromCache(
         channelsType: ChannelsType,
         subscribedChannels: List<Int>
-    ): Single<List<Channel>> {
+    ): Single<Result<List<Channel>>> {
         return if (channelsType == ChannelsType.SUBSCRIBED) {
-            WorkChatApp.cacheDatabase.channelsDao().getAll().map {
-                it.filter { channel -> subscribedChannels.contains(channel.id) }
-                    .map { channel -> channel.mapToChannel() }
-            }.subscribeOn(Schedulers.io())
+            WorkChatApp.cacheDatabase.channelsDao().getAll()
+                .map { channels ->
+                    Result.success(channels
+                        .filter { channelEntity -> subscribedChannels.contains(channelEntity.id) }
+                        .map { channelEntity -> channelEntity.mapToChannel() }
+                    )
+                }
+                .onErrorReturn { Result.failure(it) }
+                .subscribeOn(Schedulers.io())
         } else {
             WorkChatApp.cacheDatabase.channelsDao().getAll()
-                .map { it.map { channel -> channel.mapToChannel() } }
+                .map { channels -> Result.success(channels.map { channelEntity -> channelEntity.mapToChannel() }) }
+                .onErrorReturn { Result.failure(it) }
                 .subscribeOn(Schedulers.io())
         }
     }
 
     private fun addChannelsToDatabase(channels: List<Channel>) {
         WorkChatApp.cacheDatabase.channelsDao()
-            .insertAll(channels.map { it.mapToChannelEntity() })
-            .subscribeOn(Schedulers.io()).subscribe()
+            .insertAll(channels.map { channel -> channel.mapToChannelEntity() })
+            .subscribeOn(Schedulers.io())
+            .subscribe()
     }
 
 }

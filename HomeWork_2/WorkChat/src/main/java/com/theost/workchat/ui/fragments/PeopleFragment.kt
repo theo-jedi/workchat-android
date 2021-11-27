@@ -28,9 +28,7 @@ import vivid.money.elmslie.core.store.Store
 class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
 
     private lateinit var searchView: SearchView
-    private var currentUserId: Int = - 1
-
-    private val adapter = BaseAdapter()
+    private val adapter: BaseAdapter = BaseAdapter()
 
     private var _binding: FragmentPeopleBinding? = null
     private val binding get() = _binding!!
@@ -57,17 +55,15 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
         return binding.root
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override val initEvent: PeopleEvent = PeopleEvent.Ui.LoadPeople
 
-        context?.let { context -> currentUserId = PrefUtils.getCurrentUserId(context) }
-        store.accept(PeopleEvent.Ui.LoadPeople(currentUserId))
+    override fun createStore(): Store<PeopleEvent, PeopleEffect, PeopleState> {
+        return PeopleStore.getStore(
+            PeopleState(
+                currentUserId = context?.let { PrefUtils.getCurrentUserId(it) } ?: -1
+            )
+        )
     }
-
-    override val initEvent: PeopleEvent = PeopleEvent.Ui.Init
-
-    override fun createStore(): Store<PeopleEvent, PeopleEffect, PeopleState> =
-        PeopleStore().provide()
 
     override fun render(state: PeopleState) {
         val people = if (state.isSearchEnabled) state.searchedPeople else state.people
@@ -89,7 +85,7 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
         store.accept(PeopleEvent.Ui.SearchPeople(query))
     }
 
-    fun openProfile(userId: Int) {
+    private fun openProfile(userId: Int) {
         (activity as PeopleListener).onProfileSelected(userId)
     }
 
@@ -113,7 +109,7 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
 
     private fun showLoadingError() {
         Snackbar.make(binding.root, getString(R.string.network_error), Snackbar.LENGTH_INDEFINITE)
-            .setAction(R.string.retry) { store.accept(PeopleEvent.Ui.LoadPeople(currentUserId)) }
+            .setAction(R.string.retry) { store.accept(PeopleEvent.Ui.LoadPeople) }
             .show()
     }
 

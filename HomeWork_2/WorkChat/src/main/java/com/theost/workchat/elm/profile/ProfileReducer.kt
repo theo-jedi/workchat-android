@@ -15,10 +15,8 @@ class ProfileReducer : DslReducer<ProfileEvent, ProfileState, ProfileEffect, Pro
         }
         is ProfileEvent.Ui.LoadProfile -> {
             state { copy(status = ResourceStatus.LOADING) }
-            commands { +ProfileCommand.LoadProfile(event.userId) }
+            commands { +ProfileCommand.LoadProfile(state.userId) }
             effects { +ProfileEffect.ShowLoading }
-        }
-        ProfileEvent.Ui.Init -> {
         }
     }
 }

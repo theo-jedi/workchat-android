@@ -21,8 +21,6 @@ import vivid.money.elmslie.core.store.Store
 
 class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileState>() {
 
-    private var userId: Int = -1
-
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
 
@@ -34,26 +32,29 @@ class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileState>()
         super.onCreate(savedInstanceState)
         _binding = FragmentProfileBinding.inflate(layoutInflater)
 
-        configureToolbar()
+        binding.toolbarLayout.toolbar.title = getString(R.string.profile)
 
         return binding.root
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override val initEvent: ProfileEvent = ProfileEvent.Ui.LoadProfile
 
-        context?.let { context ->
-            val userIdExtra = savedInstanceState?.getInt(PROFILE_ID_EXTRA)
-                ?: (arguments?.getInt(PROFILE_ID_EXTRA) ?: -1)
-            userId = if (userIdExtra == -1) PrefUtils.getCurrentUserId(context) else userIdExtra
+    override fun createStore(): Store<ProfileEvent, ProfileEffect, ProfileState> {
+        var userId = arguments?.getInt(PROFILE_ID_EXTRA) ?: -1
+        var isCurrentUser = false
+
+        if (userId == -1) {
+            context?.let { userId = PrefUtils.getCurrentUserId(it) }
+            isCurrentUser = true
         }
-        store.accept(ProfileEvent.Ui.LoadProfile(userId))
+
+        return ProfileStore.getStore(
+            ProfileState(
+                userId = userId,
+                isCurrentUser = isCurrentUser
+            )
+        )
     }
-
-    override val initEvent: ProfileEvent = ProfileEvent.Ui.Init
-
-    override fun createStore(): Store<ProfileEvent, ProfileEffect, ProfileState> =
-        ProfileStore().provide()
 
     override fun render(state: ProfileState) {
         if (state.profile != null) {
@@ -71,10 +72,11 @@ class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileState>()
             when (user.status) {
                 UserStatus.ONLINE -> binding.userStatusOnline.visibility = View.VISIBLE
                 UserStatus.IDLE -> binding.userStatusIdle.visibility = View.VISIBLE
-                else -> {
-                }
+                UserStatus.OFFLINE -> { /* do nothing */ }
             }
         }
+
+        configureToolbar(state.isCurrentUser)
     }
 
     override fun handleEffect(effect: ProfileEffect) {
@@ -101,13 +103,12 @@ class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileState>()
 
     private fun showLoadingError() {
         Snackbar.make(binding.root, getString(R.string.network_error), Snackbar.LENGTH_INDEFINITE)
-            .setAction(R.string.retry) { store.accept(ProfileEvent.Ui.LoadProfile(userId)) }
+            .setAction(R.string.retry) { store.accept(ProfileEvent.Ui.LoadProfile) }
             .show()
     }
 
-    private fun configureToolbar() {
-        binding.toolbarLayout.toolbar.title = getString(R.string.profile)
-        if (userId != -1) {
+    private fun configureToolbar(isCurrentUser: Boolean) {
+        if (!isCurrentUser) {
             binding.toolbarLayout.toolbar.setNavigationIcon(R.drawable.ic_back)
             binding.toolbarLayout.toolbar.setNavigationOnClickListener {
                 activity?.onBackPressed()

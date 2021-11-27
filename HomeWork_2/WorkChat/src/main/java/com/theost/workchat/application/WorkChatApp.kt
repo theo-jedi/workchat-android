@@ -4,14 +4,12 @@ import android.app.Application
 import android.util.Log
 import androidx.room.Room
 import com.theost.workchat.database.db.CacheDatabase
-import com.theost.workchat.di.GlobalDI
 import java.util.concurrent.Executors
 
 class WorkChatApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        GlobalDI.init()
 
         cacheDatabase = Room.databaseBuilder(
             applicationContext,

@@ -12,27 +12,30 @@ import java.util.concurrent.TimeUnit
 class PeopleActor : ActorCompat<PeopleCommand, PeopleEvent> {
     override fun execute(command: PeopleCommand): Observable<PeopleEvent> = when (command) {
         is PeopleCommand.LoadPeople -> {
-            UsersRepository.getUsers().map { list ->
-                list.filterNot { user -> user.id == command.currentUserId }.map { user ->
-                    ListUser(
-                        id = user.id,
-                        name = user.name,
-                        about = user.about,
-                        avatarUrl = user.avatarUrl,
-                        status = UserStatus.OFFLINE
+            UsersRepository.getUsers().map { result ->
+                result.fold({ users ->
+                    PeopleEvent.Internal.PeopleLoadingSuccess(users
+                        .filterNot { user -> user.id == command.currentUserId }
+                        .sortedBy { user -> user.name }
+                        .map { user ->
+                            ListUser(
+                                id = user.id,
+                                name = user.name,
+                                about = user.about,
+                                avatarUrl = user.avatarUrl,
+                                status = UserStatus.OFFLINE
+                            )
+                        }
                     )
-                }.sortedBy { user -> user.name }
-            }.mapEvents(
-                { people -> PeopleEvent.Internal.PeopleLoadingSuccess(people) },
-                { error -> PeopleEvent.Internal.DataLoadingError(error) }
-            )
+                }, { error -> PeopleEvent.Internal.DataLoadingError(error) })
+            }
         }
         is PeopleCommand.SearchPeople -> {
             Observable.just(command.people)
                 .distinctUntilChanged()
                 .debounce(500, TimeUnit.MILLISECONDS, Schedulers.io())
-                .map { list ->
-                    list.filter { user ->
+                .map { people ->
+                    people.filter { user ->
                         StringUtils.containsQuery(user.name, command.query)
                     }
                 }.mapEvents(

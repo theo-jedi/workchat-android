@@ -8,7 +8,6 @@ import androidx.fragment.app.Fragment
 import com.google.android.material.snackbar.Snackbar
 import com.theost.workchat.R
 import com.theost.workchat.data.models.state.ChannelsType
-import com.theost.workchat.data.models.ui.ListChannel
 import com.theost.workchat.databinding.FragmentChannelsBinding
 import com.theost.workchat.elm.channels.ChannelsEffect
 import com.theost.workchat.elm.channels.ChannelsEvent
@@ -17,7 +16,6 @@ import com.theost.workchat.elm.channels.ChannelsStore
 import com.theost.workchat.ui.adapters.core.BaseAdapter
 import com.theost.workchat.ui.adapters.delegates.ChannelAdapterDelegate
 import com.theost.workchat.ui.adapters.delegates.TopicAdapterDelegate
-import com.theost.workchat.ui.interfaces.DelegateItem
 import com.theost.workchat.ui.interfaces.SearchHandler
 import com.theost.workchat.ui.interfaces.TopicListener
 import com.theost.workchat.utils.PrefUtils
@@ -27,10 +25,7 @@ import vivid.money.elmslie.core.store.Store
 class ChannelsFragment : ElmFragment<ChannelsEvent, ChannelsEffect, ChannelsState>(),
     SearchHandler {
 
-    private var channelsType = ChannelsType.ALL
-    private var subscribedChannels: List<Int> = emptyList()
-
-    private val adapter = BaseAdapter()
+    private val adapter: BaseAdapter = BaseAdapter()
 
     private var _binding: FragmentChannelsBinding? = null
     private val binding get() = _binding!!
@@ -58,41 +53,25 @@ class ChannelsFragment : ElmFragment<ChannelsEvent, ChannelsEffect, ChannelsStat
         return binding.root
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override val initEvent: ChannelsEvent = ChannelsEvent.Ui.LoadChannels
 
-        context?.let { context -> subscribedChannels = PrefUtils.getSubscribedChannels(context) }
-        channelsType = savedInstanceState?.getSerializable(CHANNELS_TYPE_EXTRA) as? ChannelsType
-            ?: arguments?.getSerializable(CHANNELS_TYPE_EXTRA) as? ChannelsType ?: ChannelsType.ALL
-
-        store.accept(ChannelsEvent.Ui.LoadChannels(channelsType, subscribedChannels))
+    override fun createStore(): Store<ChannelsEvent, ChannelsEffect, ChannelsState> {
+        return ChannelsStore.getStore(
+            ChannelsState(
+                channelsType = arguments?.getSerializable(CHANNELS_TYPE_EXTRA) as? ChannelsType
+                    ?: ChannelsType.ALL,
+                subscribedChannels = context?.let { PrefUtils.getSubscribedChannels(it) }
+                    ?: emptyList()
+            )
+        )
     }
 
-    override val initEvent: ChannelsEvent = ChannelsEvent.Ui.Init // Wait for savedInstanceState
-
-    override fun createStore(): Store<ChannelsEvent, ChannelsEffect, ChannelsState> =
-        ChannelsStore().provide()
-
     override fun render(state: ChannelsState) {
-        val channels = if (state.isSearchEnabled) state.searchedChannels else state.channels
-        val items = channels.map {
-            ListChannel(it.id, it.name, it.id == state.selectedChannelId)
-        }.toMutableList<DelegateItem>()
-
-        if (state.topics.isNotEmpty()) {
-            val selectedIndex =
-                items.indexOfFirst { it is ListChannel && it.id == state.selectedChannelId }
-            if (selectedIndex != -1) items.addAll(selectedIndex + 1, state.topics)
+        if (!state.isSearchEnabled && state.channelsType == ChannelsType.SUBSCRIBED) {
+            context?.let { PrefUtils.putSubscribedChannels(it, state.subscribedChannels) }
         }
 
-        if (channelsType == ChannelsType.SUBSCRIBED) {
-            context?.let { context ->
-                val subscribedChannels = state.channels.map { it.id }
-                PrefUtils.putSubscribedChannels(context, subscribedChannels)
-            }
-        }
-
-        adapter.submitList(items)
+        adapter.submitList(state.items)
     }
 
     override fun handleEffect(effect: ChannelsEffect) {
@@ -102,8 +81,12 @@ class ChannelsFragment : ElmFragment<ChannelsEvent, ChannelsEffect, ChannelsStat
             is ChannelsEffect.HideLoading -> hideLoading()
             is ChannelsEffect.ShowEmpty -> showEmptyView()
             is ChannelsEffect.HideEmpty -> hideEmptyView()
-            is ChannelsEffect.OnChannelClick -> onChannelClick(effect.channelId, effect.channelName, effect.isSelected)
-            is ChannelsEffect.OnTopicClick -> onTopicClick(effect.channelName, effect.topicName)
+            is ChannelsEffect.OnTopicClicked -> onTopicClick(effect.channelName, effect.topicName)
+            is ChannelsEffect.OnChannelClicked -> onChannelClick(
+                effect.channelId,
+                effect.channelName,
+                effect.isSelected
+            )
         }
     }
 
@@ -145,9 +128,7 @@ class ChannelsFragment : ElmFragment<ChannelsEvent, ChannelsEffect, ChannelsStat
         Snackbar.make(binding.root, getString(R.string.network_error), Snackbar.LENGTH_INDEFINITE)
             .apply {
                 anchorView = binding.channelsList
-                setAction(R.string.retry) {
-                    store.accept(ChannelsEvent.Ui.LoadChannels(channelsType, subscribedChannels))
-                }
+                setAction(R.string.retry) { store.accept(ChannelsEvent.Ui.LoadChannels) }
             }.show()
     }
 

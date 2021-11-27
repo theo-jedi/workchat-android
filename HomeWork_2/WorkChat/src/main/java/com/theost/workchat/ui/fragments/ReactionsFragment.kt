@@ -17,10 +17,10 @@ import com.theost.workchat.ui.widgets.ElmBottomSheetFragment
 import vivid.money.elmslie.core.store.Store
 
 class ReactionsFragment(
-    private val reactionListener: (reaction: ListReaction) -> Unit
+    private val clickListener: (reaction: ListReaction) -> Unit
 ) : ElmBottomSheetFragment<ReactionsEvent, ReactionsEffect, ReactionsState>() {
 
-    private val adapter = BaseAdapter()
+    private val adapter: BaseAdapter = BaseAdapter()
 
     private var _binding: FragmentReactionsBinding? = null
     private val binding get() = _binding!!
@@ -43,8 +43,9 @@ class ReactionsFragment(
 
     override val initEvent: ReactionsEvent = ReactionsEvent.Ui.LoadReactions
 
-    override fun createStore(): Store<ReactionsEvent, ReactionsEffect, ReactionsState> =
-        ReactionsStore().provide()
+    override fun createStore(): Store<ReactionsEvent, ReactionsEffect, ReactionsState> {
+        return ReactionsStore.getStore(ReactionsState())
+    }
 
     override fun render(state: ReactionsState) {
         adapter.submitList(state.reactions)
@@ -59,7 +60,7 @@ class ReactionsFragment(
     }
 
     private fun chooseReaction(reaction: ListReaction) {
-        reactionListener(reaction)
+        clickListener(reaction)
         dismiss()
     }
 
@@ -77,8 +78,8 @@ class ReactionsFragment(
     }
 
     companion object {
-        fun newFragment(callback: (reaction: ListReaction) -> Unit): BottomSheetDialogFragment {
-            val fragment = ReactionsFragment(callback)
+        fun newFragment(clickListener: (reaction: ListReaction) -> Unit): BottomSheetDialogFragment {
+            val fragment = ReactionsFragment(clickListener)
             val bundle = Bundle()
             fragment.arguments = bundle
             return fragment

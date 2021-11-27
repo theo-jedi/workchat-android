@@ -9,8 +9,7 @@ import com.theost.workchat.ui.fragments.ChannelsFragment
 class StreamsAdapter(
     fragmentActivity: FragmentActivity,
     private val channelsTypes: Array<ChannelsType>
-) :
-    FragmentStateAdapter(fragmentActivity) {
+) : FragmentStateAdapter(fragmentActivity) {
 
     override fun createFragment(position: Int): Fragment = ChannelsFragment.newFragment(channelsTypes[position])
 

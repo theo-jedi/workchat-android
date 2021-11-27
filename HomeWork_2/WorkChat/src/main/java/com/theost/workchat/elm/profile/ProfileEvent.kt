@@ -4,8 +4,7 @@ import com.theost.workchat.data.models.ui.ListUser
 
 sealed class ProfileEvent {
     sealed class Ui : ProfileEvent() {
-        data class LoadProfile(val userId: Int) : Ui()
-        object Init : Ui()
+        object LoadProfile : Ui()
     }
 
     sealed class Internal : ProfileEvent() {

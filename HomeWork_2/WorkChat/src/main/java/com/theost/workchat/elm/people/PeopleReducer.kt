@@ -28,7 +28,7 @@ class PeopleReducer : DslReducer<PeopleEvent, PeopleState, PeopleEffect, PeopleC
         }
         is PeopleEvent.Ui.LoadPeople -> {
             state { copy(status = ResourceStatus.LOADING) }
-            commands { +PeopleCommand.LoadPeople(event.currentUserId) }
+            commands { +PeopleCommand.LoadPeople(state.currentUserId) }
             effects { +PeopleEffect.ShowLoading }
         }
         is PeopleEvent.Ui.SearchPeople -> {
@@ -59,8 +59,6 @@ class PeopleReducer : DslReducer<PeopleEvent, PeopleState, PeopleEffect, PeopleC
         }
         is PeopleEvent.Ui.OpenProfile -> {
             effects { +PeopleEffect.OpenProfile(event.userId) }
-        }
-        PeopleEvent.Ui.Init -> {
         }
     }
 }

@@ -16,33 +16,34 @@ object UsersRepository {
 
     private val service = RetrofitHelper.retrofitService
 
-    fun getUsers(): Observable<List<User>> {
+    fun getUsers(): Observable<Result<List<User>>> {
         return Observable.concat(
             getUsersFromCache().toObservable(),
             getUsersFromServer().toObservable()
         )
     }
 
-    private fun getUsersFromServer(): Single<List<User>> {
+    private fun getUsersFromServer(): Single<Result<List<User>>> {
         return service.getUsers()
-            .map { it.users.map { user -> user.mapToUser() } }
-            .doOnSuccess { users -> addUsersToDatabase(users)}
+            .map { response -> Result.success(response.users.map { userDto -> userDto.mapToUser() }) }
+            .onErrorReturn { Result.failure(it) }
+            .doOnSuccess { result ->
+                if (result.isSuccess) {
+                    val users = result.getOrNull()
+                    if (users != null) addUsersToDatabase(users)
+                }
+            }
             .subscribeOn(Schedulers.io())
     }
 
-    private fun getUsersFromCache(): Single<List<User>> {
+    private fun getUsersFromCache(): Single<Result<List<User>>> {
         return WorkChatApp.cacheDatabase.usersDao().getAll()
-            .map { it.map { userEntity -> userEntity.mapToUser() } }
+            .map { users -> Result.success(users.map { userEntity -> userEntity.mapToUser() }) }
+            .onErrorReturn { Result.failure(it) }
             .subscribeOn(Schedulers.io())
     }
 
-    private fun addUsersToDatabase(users: List<User>) {
-        WorkChatApp.cacheDatabase.usersDao()
-            .insertAll(users.map { it.mapToUserEntity() })
-            .subscribeOn(Schedulers.io()).subscribe()
-    }
-
-    fun getUser(id: Int = -1): Observable<User> {
+    fun getUser(id: Int = -1): Observable<Result<User>> {
         return if (id < 0) {
             getUserFromServer(id).toObservable()
         } else {
@@ -53,30 +54,51 @@ object UsersRepository {
         }
     }
 
-    private fun getUserFromServer(id: Int): Single<User> {
+    private fun getUserFromServer(id: Int): Single<Result<User>> {
         return if (id < 0) {
             service.getCurrentUser()
-                .map { user -> user.mapToUser() }
-                .doOnSuccess { user -> addUsersToDatabase(listOf(user))}
+                .map { userDto -> Result.success(userDto.mapToUser()) }
+                .onErrorReturn { Result.failure(it) }
+                .doOnSuccess { result ->
+                    if (result.isSuccess) {
+                        val user = result.getOrNull()
+                        if (user != null) addUsersToDatabase(listOf(user))
+                    }
+                }
                 .subscribeOn(Schedulers.io())
         } else {
             service.getUser(id)
-                .map { response -> response.user.mapToUser() }
-                .doOnSuccess { user -> addUsersToDatabase(listOf(user)) }
+                .map { response -> Result.success(response.user.mapToUser()) }
+                .onErrorReturn { Result.failure(it) }
+                .doOnSuccess { result ->
+                    if (result.isSuccess) {
+                        val user = result.getOrNull()
+                        if (user != null) addUsersToDatabase(listOf(user))
+                    }
+                }
                 .subscribeOn(Schedulers.io())
         }
     }
 
-    private fun getUserFromCache(id: Int): Single<User> {
+    private fun getUserFromCache(id: Int): Single<Result<User>> {
         return WorkChatApp.cacheDatabase.usersDao().getUser(id)
-            .map { user -> user.mapToUser() }
+            .map { userEntity -> Result.success(userEntity.mapToUser()) }
+            .onErrorReturn { Result.failure(it) }
             .subscribeOn(Schedulers.io())
     }
 
-    fun getUserPresence(id: Int): Single<UserStatus> {
+    fun getUserPresence(id: Int): Single<Result<UserStatus>> {
         return service.getUserPresence(id)
-            .map { response -> response.presence.client.mapToStatus() }
+            .map { response -> Result.success(response.presence.client.mapToStatus()) }
+            .onErrorReturn { Result.failure(it) }
             .subscribeOn(Schedulers.io())
+    }
+
+    private fun addUsersToDatabase(users: List<User>) {
+        WorkChatApp.cacheDatabase.usersDao()
+            .insertAll(users.map { user -> user.mapToUserEntity() })
+            .subscribeOn(Schedulers.io())
+            .subscribe()
     }
 
 }

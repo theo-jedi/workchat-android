@@ -7,16 +7,39 @@ import vivid.money.elmslie.core.store.dsl_reducer.DslReducer
 class ChannelsReducer :
     DslReducer<ChannelsEvent, ChannelsState, ChannelsEffect, ChannelsCommand>() {
     override fun Result.reduce(event: ChannelsEvent): Any = when (event) {
-        is ChannelsEvent.Internal.ChannelsLoadingSuccess -> {
-            if (event.channels.isNotEmpty()) {
-                state { copy(status = ResourceStatus.SUCCESS, channels = event.channels) }
+        is ChannelsEvent.Internal.ItemsLoadingSuccess -> {
+            if (event.items.isNotEmpty() || state.isSearchEnabled) {
+                state { copy(status = ResourceStatus.SUCCESS, items = event.items) }
                 effects { +ChannelsEffect.HideLoading }
             } else {
                 Log.d("channels_reducer", "Channels list is empty")
             }
         }
+        is ChannelsEvent.Internal.ChannelsLoadingSuccess -> {
+            state {
+                copy(
+                    status = ResourceStatus.SUCCESS,
+                    channels = event.channels,
+                    subscribedChannels = event.subscribedChannels
+                )
+            }
+            commands {
+                +ChannelsCommand.LoadItems(
+                    state.channels,
+                    state.topics,
+                    state.selectedChannelId
+                )
+            }
+        }
         is ChannelsEvent.Internal.ChannelsSearchingSuccess -> {
             state { copy(status = ResourceStatus.SUCCESS, searchedChannels = event.channels) }
+            commands {
+                +ChannelsCommand.LoadItems(
+                    state.searchedChannels,
+                    state.topics,
+                    state.selectedChannelId
+                )
+            }
             if (event.channels.isEmpty()) {
                 effects { +ChannelsEffect.ShowEmpty }
             } else {
@@ -25,7 +48,23 @@ class ChannelsReducer :
         }
         is ChannelsEvent.Internal.TopicsLoadingSuccess -> {
             state { copy(status = ResourceStatus.SUCCESS, topics = event.topics) }
-            effects { +ChannelsEffect.HideLoading }
+            if (state.isSearchEnabled) {
+                commands {
+                    +ChannelsCommand.LoadItems(
+                        state.searchedChannels,
+                        state.topics,
+                        state.selectedChannelId
+                    )
+                }
+            } else {
+                commands {
+                    +ChannelsCommand.LoadItems(
+                        state.channels,
+                        state.topics,
+                        state.selectedChannelId
+                    )
+                }
+            }
         }
         is ChannelsEvent.Internal.DataLoadingError -> {
             state { copy(status = ResourceStatus.ERROR) }
@@ -33,7 +72,13 @@ class ChannelsReducer :
         }
         is ChannelsEvent.Ui.LoadChannels -> {
             state { copy(status = ResourceStatus.LOADING) }
-            commands { +ChannelsCommand.LoadChannels(event.channelsType, event.subscribedChannels) }
+            commands {
+                +ChannelsCommand.LoadChannels(
+                    state.channelsType,
+                    state.subscribedChannels,
+                    state.selectedChannelId
+                )
+            }
             effects { +ChannelsEffect.ShowLoading }
         }
         is ChannelsEvent.Ui.SearchChannels -> {
@@ -55,7 +100,13 @@ class ChannelsReducer :
                             isSearchEnabled = false
                         )
                     }
-                    commands { +ChannelsCommand.RestoreChannels(state.channels) }
+                    commands {
+                        +ChannelsCommand.LoadItems(
+                            state.channels,
+                            state.topics,
+                            state.selectedChannelId
+                        )
+                    }
                     effects { +ChannelsEffect.HideEmpty }
                 }
             } else {
@@ -63,20 +114,60 @@ class ChannelsReducer :
             }
         }
         is ChannelsEvent.Ui.LoadTopics -> {
-            state { copy(status = ResourceStatus.LOADING, selectedChannelId = event.channelId, selectedChannelName = event.channelName) }
-            commands { +ChannelsCommand.LoadTopics(event.channelId) }
+            state {
+                copy(
+                    status = ResourceStatus.LOADING,
+                    topics = emptyList(),
+                    selectedChannelId = event.channelId,
+                    selectedChannelName = event.channelName
+                )
+            }
+            commands {
+                +ChannelsCommand.LoadTopics(
+                    event.channelId,
+                    state.channels,
+                    state.selectedChannelId
+                )
+            }
         }
         is ChannelsEvent.Ui.HideTopics -> {
-            state { copy(status = ResourceStatus.LOADING, selectedChannelId = -1, selectedChannelName = "") }
-            commands { +ChannelsCommand.RestoreChannels(state.channels) }
+            state {
+                copy(
+                    status = ResourceStatus.LOADING,
+                    topics = emptyList(),
+                    selectedChannelId = -1,
+                    selectedChannelName = ""
+                )
+            }
+            if (state.isSearchEnabled) {
+                commands {
+                    +ChannelsCommand.LoadItems(
+                        state.searchedChannels,
+                        state.topics,
+                        state.selectedChannelId
+                    )
+                }
+            } else {
+                commands {
+                    +ChannelsCommand.LoadItems(
+                        state.channels,
+                        state.topics,
+                        state.selectedChannelId
+                    )
+                }
+            }
         }
         is ChannelsEvent.Ui.OnChannelClick -> {
-            effects { +ChannelsEffect.OnChannelClick(event.channelId, event.channelName, event.isSelected) }
+            effects {
+                +ChannelsEffect.OnChannelClicked(
+                    event.channelId,
+                    event.channelName,
+                    event.isSelected
+                )
+            }
         }
         is ChannelsEvent.Ui.OnTopicClick -> {
-            effects { +ChannelsEffect.OnTopicClick(state.selectedChannelName, event.topicName) }
-        }
-        is ChannelsEvent.Ui.Init -> {
+            effects { +ChannelsEffect.OnTopicClicked(state.selectedChannelName, event.topicName) }
         }
     }
 }

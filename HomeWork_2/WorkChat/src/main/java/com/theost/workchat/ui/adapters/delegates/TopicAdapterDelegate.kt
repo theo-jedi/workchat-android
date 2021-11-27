@@ -11,9 +11,7 @@ import com.theost.workchat.ui.interfaces.AdapterDelegate
 class TopicAdapterDelegate(private val clickListener: (topicName: String) -> Unit) : AdapterDelegate {
 
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
-        val binding = ItemTopicBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
-        )
+        val binding = ItemTopicBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         val backgrounds = mutableListOf<Int>()
         parent.context.resources.obtainTypedArray(R.array.topic_backgrounds).let { typedArray ->
             (0 until typedArray.length()).forEach { item ->

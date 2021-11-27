@@ -2,15 +2,12 @@ package com.theost.workchat.elm.reactions
 
 import vivid.money.elmslie.core.ElmStoreCompat
 
-class ReactionsStore {
+object ReactionsStore {
 
-    private val store by lazy {
-        ElmStoreCompat(
-            initialState = ReactionsState(),
-            reducer = ReactionsReducer(),
-            actor = ReactionsActor()
-        )
-    }
+    fun getStore(initialState: ReactionsState) = ElmStoreCompat(
+        initialState = initialState,
+        reducer = ReactionsReducer(),
+        actor = ReactionsActor()
+    )
 
-    fun provide() = store
 }

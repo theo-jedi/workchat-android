@@ -2,6 +2,7 @@ package com.theost.workchat.data.repositories
 
 import com.theost.workchat.application.WorkChatApp
 import com.theost.workchat.data.models.core.Reaction
+import com.theost.workchat.data.models.state.CacheStatus
 import com.theost.workchat.database.entities.mapToReaction
 import com.theost.workchat.database.entities.mapToReactionEntity
 import com.theost.workchat.network.api.RetrofitHelper
@@ -13,15 +14,13 @@ import io.reactivex.schedulers.Schedulers
 
 object ReactionsRepository {
 
-    private val service = RetrofitHelper.retrofitService
-    private var isCacheUpdated = false
+    private var cacheStatus: CacheStatus = CacheStatus.NOT_UPDATED
 
-    fun getReactions(): Observable<List<Reaction>> {
-        return if (isCacheUpdated) {
-            Observable.concat(
-                getReactionsFromCache().toObservable(),
-                getReactionsFromCache().toObservable()
-            )
+    private val service = RetrofitHelper.retrofitService
+
+    fun getReactions(): Observable<Result<List<Reaction>>> {
+        return if (cacheStatus == CacheStatus.UPDATED) {
+            getReactionsFromCache().toObservable()
         } else {
             Observable.concat(
                 getReactionsFromCache().toObservable(),
@@ -30,24 +29,32 @@ object ReactionsRepository {
         }
     }
 
-    fun getReactionsFromServer(): Single<List<Reaction>> {
+    private fun getReactionsFromServer(): Single<Result<List<Reaction>>> {
         return service.getReactions()
-            .map { response -> response.mapToReactions() }
-            .doOnSuccess { reactions -> addReactionsToDatabase(reactions) }
+            .map { response -> Result.success(response.mapToReactions()) }
+            .onErrorReturn { Result.failure(it) }
+            .doOnSuccess { result ->
+                if (result.isSuccess) {
+                    val reactions = result.getOrNull()
+                    if (reactions != null) addReactionsToDatabase(reactions)
+                }
+            }
             .subscribeOn(Schedulers.io())
     }
 
-    fun getReactionsFromCache(): Single<List<Reaction>> {
+    private fun getReactionsFromCache(): Single<Result<List<Reaction>>> {
         return WorkChatApp.cacheDatabase.reactionsDao().getAll()
-            .map { response -> response.map { reaction -> reaction.mapToReaction() } }
+            .map { response -> Result.success(response.map { reactionEntity -> reactionEntity.mapToReaction() }) }
+            .onErrorReturn { Result.failure(it) }
             .subscribeOn(Schedulers.io())
     }
 
     private fun addReactionsToDatabase(reactions: List<Reaction>) {
         WorkChatApp.cacheDatabase.reactionsDao()
-            .insertAll(reactions.map { it.mapToReactionEntity() })
-            .doOnComplete { isCacheUpdated = true }
-            .subscribeOn(Schedulers.io()).subscribe()
+            .insertAll(reactions.map { reaction -> reaction.mapToReactionEntity() })
+            .doOnComplete { cacheStatus = CacheStatus.UPDATED }
+            .subscribeOn(Schedulers.io())
+            .subscribe()
     }
 
     fun addReaction(messageId: Int, reactionName: String): Completable {

@@ -1,5 +1,9 @@
 package com.theost.workchat.utils
 
+import com.theost.workchat.network.dto.NarrowDto
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
+
 object StringUtils {
 
     private const val UNKNOWN_EMOJI = "⬜"
@@ -40,6 +44,16 @@ object StringUtils {
 
     fun containsQuery(text: String, query: String): Boolean {
         return text.trim().lowercase().contains(query.trim().lowercase())
+    }
+
+    fun namesToNarrow(channelName: String, topicName: String) : String {
+        return Json.encodeToString(
+            serializer(),
+            listOf(
+                NarrowDto("stream", channelName),
+                NarrowDto("topic", topicName)
+            )
+        )
     }
 
 }
