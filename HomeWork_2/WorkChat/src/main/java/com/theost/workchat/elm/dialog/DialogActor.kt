@@ -99,7 +99,7 @@ class DialogActor : ActorCompat<DialogCommand, DialogEvent> {
         is DialogCommand.AddReaction -> {
             ReactionsRepository.addReaction(command.messageId, command.reactionName)
                 .mapEvents(DialogEvent.Internal.ReactionSendingSuccess(command.messageId)) { error ->
-                    DialogEvent.Internal.DataSendingError(error)
+                    DialogEvent.Internal.ReactionSendingError(error)
                 }
         }
         is DialogCommand.RemoveReaction -> {
@@ -109,7 +109,7 @@ class DialogActor : ActorCompat<DialogCommand, DialogEvent> {
                 command.reactionCode,
                 command.reactionType
             ).mapEvents(DialogEvent.Internal.ReactionSendingSuccess(command.messageId)) { error ->
-                DialogEvent.Internal.DataSendingError(error)
+                DialogEvent.Internal.ReactionSendingError(error)
             }
         }
     }

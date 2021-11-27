@@ -43,6 +43,7 @@ sealed class DialogEvent {
         object MessageSendingSuccess : Internal()
 
         data class PaginationLoadingError(val error: Throwable) : Internal()
+        data class ReactionSendingError(val error: Throwable) : Internal()
         data class DataLoadingError(val error: Throwable) : Internal()
         data class DataSendingError(val error: Throwable) : Internal()
     }

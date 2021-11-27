@@ -87,6 +87,9 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
             state { copy(status = ResourceStatus.ERROR) }
             effects { +DialogEffect.ShowLoadingError }
         }
+        is DialogEvent.Internal.ReactionSendingError -> {
+            /* do nothing */
+        }
         is DialogEvent.Ui.LoadMessages -> {
             state { copy(status = ResourceStatus.LOADING) }
             commands {

@@ -103,7 +103,7 @@ class MessengerActivity : FragmentActivity(), WindowHolder, NavigationHolder, Pe
     }
 
     private fun updateCurrentUser() {
-        if (PrefUtils.getCurrentUserId(this) == 0) {
+        if (PrefUtils.getCurrentUserId(this) == -1) {
             viewModel.updateData()
         }
     }

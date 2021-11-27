@@ -73,7 +73,8 @@ class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileState>()
             when (user.status) {
                 UserStatus.ONLINE -> binding.userStatusOnline.visibility = View.VISIBLE
                 UserStatus.IDLE -> binding.userStatusIdle.visibility = View.VISIBLE
-                UserStatus.OFFLINE -> { /* do nothing */
+                UserStatus.OFFLINE -> {
+                    /* do nothing */
                 }
             }
         }
