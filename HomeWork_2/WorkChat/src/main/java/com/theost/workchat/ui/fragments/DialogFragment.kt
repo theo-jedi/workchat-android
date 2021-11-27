@@ -25,6 +25,7 @@ import com.theost.workchat.ui.adapters.delegates.DateAdapterDelegate
 import com.theost.workchat.ui.adapters.delegates.LoaderAdapterDelegate
 import com.theost.workchat.ui.adapters.delegates.MessageIncomeAdapterDelegate
 import com.theost.workchat.ui.adapters.delegates.MessageOutcomeAdapterDelegate
+import com.theost.workchat.ui.interfaces.WindowHolder
 import com.theost.workchat.utils.PrefUtils
 import vivid.money.elmslie.android.base.ElmFragment
 import vivid.money.elmslie.core.store.Store
@@ -189,19 +190,21 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
     }
 
     private fun showSendingError() {
-        Snackbar.make(binding.root, getString(R.string.network_error), Snackbar.LENGTH_INDEFINITE)
-            .apply {
-                anchorView = binding.inputLayout.messageInput
-                setAction(R.string.hide) { dismiss() }
-            }.show()
+        val snackbar = Snackbar.make(
+            binding.root,
+            getString(R.string.network_error),
+            Snackbar.LENGTH_INDEFINITE
+        ).apply { setAction(R.string.hide) { dismiss() } }
+        (activity as WindowHolder).showSnackbar(snackbar, binding.inputLayout.root)
     }
 
     private fun showLoadingError() {
-        Snackbar.make(binding.root, getString(R.string.network_error), Snackbar.LENGTH_INDEFINITE)
-            .apply {
-                anchorView = binding.inputLayout.messageInput
-                setAction(R.string.retry) { store.accept(DialogEvent.Ui.LoadMessages) }
-            }.show()
+        val snackbar = Snackbar.make(
+            binding.root,
+            getString(R.string.network_error),
+            Snackbar.LENGTH_INDEFINITE
+        ).setAction(R.string.retry) { store.accept(DialogEvent.Ui.LoadMessages) }
+        (activity as WindowHolder).showSnackbar(snackbar, binding.inputLayout.root)
     }
 
     private fun configureToolbar() {

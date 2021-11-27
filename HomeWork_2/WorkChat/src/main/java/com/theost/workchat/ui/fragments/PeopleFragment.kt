@@ -20,6 +20,7 @@ import com.theost.workchat.ui.adapters.core.BaseAdapter
 import com.theost.workchat.ui.adapters.delegates.PeopleAdapterDelegate
 import com.theost.workchat.ui.interfaces.NavigationHolder
 import com.theost.workchat.ui.interfaces.PeopleListener
+import com.theost.workchat.ui.interfaces.WindowHolder
 import com.theost.workchat.utils.DisplayUtils
 import com.theost.workchat.utils.PrefUtils
 import vivid.money.elmslie.android.base.ElmFragment
@@ -108,9 +109,12 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
     }
 
     private fun showLoadingError() {
-        Snackbar.make(binding.root, getString(R.string.network_error), Snackbar.LENGTH_INDEFINITE)
-            .setAction(R.string.retry) { store.accept(PeopleEvent.Ui.LoadPeople) }
-            .show()
+        val snackbar = Snackbar.make(
+            binding.root,
+            getString(R.string.network_error),
+            Snackbar.LENGTH_INDEFINITE
+        ).setAction(R.string.retry) { store.accept(PeopleEvent.Ui.LoadPeople) }
+        (activity as WindowHolder).showSnackbar(snackbar)
     }
 
     private fun configureToolbar() {

@@ -15,6 +15,7 @@ import com.theost.workchat.elm.profile.ProfileEvent
 import com.theost.workchat.elm.profile.ProfileState
 import com.theost.workchat.elm.profile.ProfileStore
 import com.theost.workchat.ui.interfaces.NavigationHolder
+import com.theost.workchat.ui.interfaces.WindowHolder
 import com.theost.workchat.utils.PrefUtils
 import vivid.money.elmslie.android.base.ElmFragment
 import vivid.money.elmslie.core.store.Store
@@ -72,7 +73,8 @@ class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileState>()
             when (user.status) {
                 UserStatus.ONLINE -> binding.userStatusOnline.visibility = View.VISIBLE
                 UserStatus.IDLE -> binding.userStatusIdle.visibility = View.VISIBLE
-                UserStatus.OFFLINE -> { /* do nothing */ }
+                UserStatus.OFFLINE -> { /* do nothing */
+                }
             }
         }
 
@@ -102,9 +104,12 @@ class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileState>()
     }
 
     private fun showLoadingError() {
-        Snackbar.make(binding.root, getString(R.string.network_error), Snackbar.LENGTH_INDEFINITE)
-            .setAction(R.string.retry) { store.accept(ProfileEvent.Ui.LoadProfile) }
-            .show()
+        val snackbar = Snackbar.make(
+            binding.root,
+            getString(R.string.network_error),
+            Snackbar.LENGTH_INDEFINITE
+        ).setAction(R.string.retry) { store.accept(ProfileEvent.Ui.LoadProfile) }
+        (activity as WindowHolder).showSnackbar(snackbar)
     }
 
     private fun configureToolbar(isCurrentUser: Boolean) {

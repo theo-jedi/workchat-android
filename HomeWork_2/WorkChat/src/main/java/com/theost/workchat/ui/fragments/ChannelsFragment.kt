@@ -18,6 +18,7 @@ import com.theost.workchat.ui.adapters.delegates.ChannelAdapterDelegate
 import com.theost.workchat.ui.adapters.delegates.TopicAdapterDelegate
 import com.theost.workchat.ui.interfaces.SearchHandler
 import com.theost.workchat.ui.interfaces.TopicListener
+import com.theost.workchat.ui.interfaces.WindowHolder
 import com.theost.workchat.utils.PrefUtils
 import vivid.money.elmslie.android.base.ElmFragment
 import vivid.money.elmslie.core.store.Store
@@ -125,11 +126,12 @@ class ChannelsFragment : ElmFragment<ChannelsEvent, ChannelsEffect, ChannelsStat
     }
 
     private fun showLoadingError() {
-        Snackbar.make(binding.root, getString(R.string.network_error), Snackbar.LENGTH_INDEFINITE)
-            .apply {
-                anchorView = binding.channelsList
-                setAction(R.string.retry) { store.accept(ChannelsEvent.Ui.LoadChannels) }
-            }.show()
+        val snackbar = Snackbar.make(
+            binding.root,
+            getString(R.string.network_error),
+            Snackbar.LENGTH_INDEFINITE
+        ).setAction(R.string.retry) { store.accept(ChannelsEvent.Ui.LoadChannels) }
+        (activity as WindowHolder).showSnackbar(snackbar)
     }
 
     override fun onDestroy() {

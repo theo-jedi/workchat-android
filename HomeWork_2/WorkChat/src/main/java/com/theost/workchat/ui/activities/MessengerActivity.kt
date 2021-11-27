@@ -6,6 +6,7 @@ import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import com.google.android.material.snackbar.Snackbar
 import com.theost.workchat.R
 import com.theost.workchat.databinding.ActivityMessengerBinding
 import com.theost.workchat.ui.fragments.DialogFragment
@@ -15,13 +16,16 @@ import com.theost.workchat.ui.fragments.StreamsFragment
 import com.theost.workchat.ui.interfaces.NavigationHolder
 import com.theost.workchat.ui.interfaces.PeopleListener
 import com.theost.workchat.ui.interfaces.TopicListener
+import com.theost.workchat.ui.interfaces.WindowHolder
 import com.theost.workchat.ui.viewmodels.MessengerViewModel
 import com.theost.workchat.utils.DisplayUtils
 import com.theost.workchat.utils.PrefUtils
 
-class MessengerActivity : FragmentActivity(), NavigationHolder, PeopleListener, TopicListener {
+class MessengerActivity : FragmentActivity(), WindowHolder, NavigationHolder, PeopleListener,
+    TopicListener {
 
     private val viewModel: MessengerViewModel by viewModels()
+    private var snackbar: Snackbar? = null
 
     private lateinit var binding: ActivityMessengerBinding
 
@@ -45,7 +49,7 @@ class MessengerActivity : FragmentActivity(), NavigationHolder, PeopleListener, 
     }
 
     override fun onBackPressed() {
-        DisplayUtils.hideKeyboard(this)
+        hideFloatingViews()
 
         if (supportFragmentManager.backStackEntryCount > 1) {
             super.onBackPressed()
@@ -60,6 +64,22 @@ class MessengerActivity : FragmentActivity(), NavigationHolder, PeopleListener, 
             R.id.navPeople -> navigateFragment(PeopleFragment.newFragment(), "people")
             R.id.navProfile -> navigateFragment(ProfileFragment.newFragment(), "profile")
         }
+    }
+
+    private fun hideFloatingViews() {
+        DisplayUtils.hideKeyboard(this)
+        hideSnackbar()
+    }
+
+    override fun showSnackbar(snackbar: Snackbar, view: View?) {
+        this.snackbar = snackbar.apply {
+            anchorView = view ?: binding.bottomNavigation
+            show()
+        }
+    }
+
+    override fun hideSnackbar() {
+        this.snackbar?.dismiss()
     }
 
     override fun showNavigation() {
@@ -82,9 +102,15 @@ class MessengerActivity : FragmentActivity(), NavigationHolder, PeopleListener, 
         startFragment(DialogFragment.newFragment(channelName, topicName))
     }
 
+    private fun updateCurrentUser() {
+        if (PrefUtils.getCurrentUserId(this) == 0) {
+            viewModel.updateData()
+        }
+    }
+
     private fun navigateFragment(fragment: Fragment, tag: String) {
-        viewModel.updateData() // todo replace with network listener
-        DisplayUtils.hideKeyboard(this)
+        updateCurrentUser() // todo replace with network listener
+        hideFloatingViews()
 
         if (supportFragmentManager.findFragmentByTag(tag) == null) {
             if (supportFragmentManager.backStackEntryCount > 0) supportFragmentManager.popBackStack()
@@ -97,7 +123,7 @@ class MessengerActivity : FragmentActivity(), NavigationHolder, PeopleListener, 
     }
 
     private fun startFragment(fragment: Fragment) {
-        DisplayUtils.hideKeyboard(this)
+        hideFloatingViews()
         hideNavigation()
 
         supportFragmentManager.beginTransaction()
