@@ -1,11 +1,11 @@
 package com.theost.workchat.data.repositories
 
-import com.theost.workchat.application.WorkChatApp
 import com.theost.workchat.data.models.core.Message
 import com.theost.workchat.data.models.state.ResourceType
+import com.theost.workchat.database.db.CacheDatabase
 import com.theost.workchat.database.entities.mapToMessage
 import com.theost.workchat.database.entities.mapToMessageEntity
-import com.theost.workchat.network.api.RetrofitHelper
+import com.theost.workchat.network.api.Api
 import com.theost.workchat.network.dto.mapToMessage
 import com.theost.workchat.utils.StringUtils
 import io.reactivex.Completable
@@ -13,13 +13,9 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
 
-object MessagesRepository {
+class MessagesRepository(private val service: Api, database: CacheDatabase) {
 
-    private const val CACHE_DIALOG_SIZE = 50
-    private const val DIALOG_PAGE_SIZE = 20
-    const val DIALOG_NEXT_PAGE = 5
-
-    private val service = RetrofitHelper.retrofitService
+    private val messagesDao = database.messagesDao()
 
     fun getMessages(
         channelName: String,
@@ -112,7 +108,7 @@ object MessagesRepository {
         channelName: String,
         topicName: String
     ): Single<Result<List<Message>>> {
-        return WorkChatApp.cacheDatabase.messagesDao().getDialogMessages(channelName, topicName)
+        return messagesDao.getDialogMessages(channelName, topicName)
             .map { messages ->
                 Result.success(messages
                     .sortedBy { messageEntity -> messageEntity.time }
@@ -130,8 +126,7 @@ object MessagesRepository {
         topicName: String,
         messages: List<Message>
     ) {
-        WorkChatApp.cacheDatabase.messagesDao()
-            .insertAll(messages.map { message -> message.mapToMessageEntity(channelName, topicName) })
+        messagesDao.insertAll(messages.map { message -> message.mapToMessageEntity(channelName, topicName) })
             .subscribeOn(Schedulers.io())
             .subscribe()
     }
@@ -142,6 +137,12 @@ object MessagesRepository {
             topic = topicName,
             content = content
         ).subscribeOn(Schedulers.io())
+    }
+
+    companion object {
+        private const val CACHE_DIALOG_SIZE = 50
+        private const val DIALOG_PAGE_SIZE = 20
+        const val DIALOG_NEXT_PAGE = 5
     }
 
 }

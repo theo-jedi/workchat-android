@@ -79,4 +79,8 @@ dependencies {
     implementation "com.github.vivid-money.elmslie:elmslie-core:$elmslieVersion"
     implementation "com.github.vivid-money.elmslie:elmslie-android:$elmslieVersion"
     implementation "com.github.vivid-money.elmslie:elmslie-rxjava-2:$elmslieVersion"
+
+    // Dagger 2
+    implementation "com.google.dagger:dagger:$daggerVersion"
+    kapt "com.google.dagger:dagger-compiler:$daggerVersion"
 }

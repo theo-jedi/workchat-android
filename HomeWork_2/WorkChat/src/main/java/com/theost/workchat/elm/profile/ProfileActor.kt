@@ -6,10 +6,10 @@ import com.theost.workchat.data.repositories.UsersRepository
 import io.reactivex.Observable
 import vivid.money.elmslie.core.ActorCompat
 
-class ProfileActor : ActorCompat<ProfileCommand, ProfileEvent> {
+class ProfileActor(private val usersRepository: UsersRepository) : ActorCompat<ProfileCommand, ProfileEvent> {
     override fun execute(command: ProfileCommand): Observable<ProfileEvent> = when (command) {
         is ProfileCommand.LoadProfile -> {
-            UsersRepository.getUser(command.userId).map { result ->
+            usersRepository.getUser(command.userId).map { result ->
                 result.fold({ user ->
                     ProfileEvent.Internal.ProfileLoadingSuccess(
                         ListUser(

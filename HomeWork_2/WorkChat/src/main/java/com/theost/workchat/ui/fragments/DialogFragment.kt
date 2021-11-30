@@ -1,5 +1,6 @@
 package com.theost.workchat.ui.fragments
 
+import android.content.Context
 import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableString
@@ -13,12 +14,11 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.theost.workchat.R
+import com.theost.workchat.application.WorkChatApp
 import com.theost.workchat.data.models.state.MessageAction
 import com.theost.workchat.databinding.FragmentDialogBinding
-import com.theost.workchat.elm.dialog.DialogEffect
-import com.theost.workchat.elm.dialog.DialogEvent
-import com.theost.workchat.elm.dialog.DialogState
-import com.theost.workchat.elm.dialog.DialogStore
+import com.theost.workchat.di.ui.DaggerDialogComponent
+import com.theost.workchat.elm.dialog.*
 import com.theost.workchat.ui.adapters.callbacks.PaginationAdapterHelper
 import com.theost.workchat.ui.adapters.core.PaginationAdapter
 import com.theost.workchat.ui.adapters.delegates.DateAdapterDelegate
@@ -29,8 +29,12 @@ import com.theost.workchat.ui.interfaces.WindowHolder
 import com.theost.workchat.utils.PrefUtils
 import vivid.money.elmslie.android.base.ElmFragment
 import vivid.money.elmslie.core.store.Store
+import javax.inject.Inject
 
 class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
+
+    @Inject
+    lateinit var actor: DialogActor
 
     private val adapter = PaginationAdapter(PaginationAdapterHelper { position ->
         store.accept(DialogEvent.Ui.LoadNextMessages(position))
@@ -93,10 +97,16 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
         return binding.root
     }
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        DaggerDialogComponent.factory().create(WorkChatApp.appComponent).inject(this)
+    }
+
     override val initEvent: DialogEvent = DialogEvent.Ui.LoadMessages
 
     override fun createStore(): Store<DialogEvent, DialogEffect, DialogState> {
         return DialogStore.getStore(
+            actor,
             DialogState(
                 currentUserId = context?.let { PrefUtils.getCurrentUserId(it) } ?: -1,
                 channelName = arguments?.getString(CHANNEL_NAME_EXTRA) ?: "",

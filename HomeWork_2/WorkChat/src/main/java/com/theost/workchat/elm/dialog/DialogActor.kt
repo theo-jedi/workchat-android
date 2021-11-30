@@ -6,7 +6,10 @@ import com.theost.workchat.data.repositories.ReactionsRepository
 import io.reactivex.Observable
 import vivid.money.elmslie.core.ActorCompat
 
-class DialogActor : ActorCompat<DialogCommand, DialogEvent> {
+class DialogActor(
+    private val messagesRepository: MessagesRepository,
+    private val reactionsRepository: ReactionsRepository
+) : ActorCompat<DialogCommand, DialogEvent> {
     override fun execute(command: DialogCommand): Observable<DialogEvent> = when (command) {
         is DialogCommand.LoadItems -> {
             Observable.just(command.messages).map { messages ->
@@ -23,12 +26,12 @@ class DialogActor : ActorCompat<DialogCommand, DialogEvent> {
             )
         }
         is DialogCommand.LoadMessages -> {
-            MessagesRepository.getMessages(
+            messagesRepository.getMessages(
                 command.channelName,
                 command.topicName,
                 command.resourceType
             ).concatMap { messagesResult ->
-                ReactionsRepository.getReactions().map { reactionsResult ->
+                reactionsRepository.getReactions().map { reactionsResult ->
                     messagesResult.fold({ messages ->
                         reactionsResult.fold({ reactions ->
                             DialogEvent.Internal.MessagesLoadingSuccess(
@@ -44,12 +47,12 @@ class DialogActor : ActorCompat<DialogCommand, DialogEvent> {
             }
         }
         is DialogCommand.LoadNextMessages -> {
-            MessagesRepository.getMessagesFromServer(
+            messagesRepository.getMessagesFromServer(
                 command.channelName,
                 command.topicName,
                 command.messages.last().id
             ).toObservable().concatMap { messagesResult ->
-                ReactionsRepository.getReactions().map { reactionsResult ->
+                reactionsRepository.getReactions().map { reactionsResult ->
                     messagesResult.fold({ messages ->
                         reactionsResult.fold({ reactions ->
                             DialogEvent.Internal.MessagesLoadingSuccess(
@@ -66,12 +69,12 @@ class DialogActor : ActorCompat<DialogCommand, DialogEvent> {
             }
         }
         is DialogCommand.LoadMessage -> {
-            MessagesRepository.getMessageFromServer(
+            messagesRepository.getMessageFromServer(
                 command.channelName,
                 command.topicName,
                 command.messageId
             ).toObservable().concatMap { messageResult ->
-                ReactionsRepository.getReactions().map { reactionsResult ->
+                reactionsRepository.getReactions().map { reactionsResult ->
                     messageResult.fold({ message ->
                         reactionsResult.fold({ reactions ->
                             DialogEvent.Internal.MessagesLoadingSuccess(
@@ -88,7 +91,7 @@ class DialogActor : ActorCompat<DialogCommand, DialogEvent> {
             }
         }
         is DialogCommand.AddMessage -> {
-            MessagesRepository.addMessage(
+            messagesRepository.addMessage(
                 command.channelName,
                 command.topicName,
                 command.content
@@ -97,13 +100,13 @@ class DialogActor : ActorCompat<DialogCommand, DialogEvent> {
             }
         }
         is DialogCommand.AddReaction -> {
-            ReactionsRepository.addReaction(command.messageId, command.reactionName)
+            reactionsRepository.addReaction(command.messageId, command.reactionName)
                 .mapEvents(DialogEvent.Internal.ReactionSendingSuccess(command.messageId)) { error ->
                     DialogEvent.Internal.ReactionSendingError(error)
                 }
         }
         is DialogCommand.RemoveReaction -> {
-            ReactionsRepository.removeReaction(
+            reactionsRepository.removeReaction(
                 command.messageId,
                 command.reactionName,
                 command.reactionCode,
