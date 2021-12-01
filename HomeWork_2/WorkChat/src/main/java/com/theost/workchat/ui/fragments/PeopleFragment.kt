@@ -51,7 +51,7 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
         binding.usersList.setHasFixedSize(true)
         binding.usersList.adapter = adapter.apply {
             addDelegate(PeopleAdapterDelegate { userId ->
-                (activity as PeopleListener).onProfileSelected(userId)
+                (activity as PeopleListener).openProfile(userId)
             })
         }
 
@@ -97,7 +97,7 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
     }
 
     private fun openProfile(userId: Int) {
-        (activity as PeopleListener).onProfileSelected(userId)
+        (activity as PeopleListener).openProfile(userId)
     }
 
     private fun hideEmptyView() {

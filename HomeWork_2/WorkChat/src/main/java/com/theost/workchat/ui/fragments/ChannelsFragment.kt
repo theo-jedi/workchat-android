@@ -110,7 +110,7 @@ class ChannelsFragment : ElmFragment<ChannelsEvent, ChannelsEffect, ChannelsStat
     }
 
     private fun onTopicClick(channelName: String, topicName: String) {
-        (activity as TopicListener).showTopicDialog(channelName, topicName)
+        (activity as TopicListener).openDialog(channelName, topicName)
     }
 
     override fun onSearch(query: String) {
