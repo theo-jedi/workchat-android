@@ -92,6 +92,10 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
             store.accept(DialogEvent.Ui.OnInputTextChanged(editable.toString().trim()))
         }
 
+        binding.messagesList.addOnLayoutChangeListener { _, _, _, _, newBottom, _, _, _, oldBottom ->
+            store.accept(DialogEvent.Ui.OnLayoutChanged(oldBottom, newBottom))
+        }
+
         configureToolbar()
 
         return binding.root
@@ -121,8 +125,9 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
 
     override fun handleEffect(effect: DialogEffect) {
         when (effect) {
-            is DialogEffect.ShowLoadingError -> showLoadingError()
-            is DialogEffect.ShowSendingError -> showSendingError()
+            is DialogEffect.ShowLoadingError -> showRetryError()
+            is DialogEffect.ShowPaginationError -> showError()
+            is DialogEffect.ShowSendingError -> showError()
             is DialogEffect.ShowSendingMessageLoading -> showSendingLoading()
             is DialogEffect.HideSendingMessageLoading -> hideSendingLoading()
             is DialogEffect.ClearSendingMessageContent -> clearMessageContent()
@@ -136,6 +141,7 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
             is DialogEffect.ShowAttachMessageAction -> showAttachMessageAction()
             is DialogEffect.ScrollToBottom -> scrollToBottom()
             is DialogEffect.ScrollToTop -> scrollToTop(effect.position)
+            is DialogEffect.AdjustScroll -> adjustScroll(effect.oldBottom, effect.newBottom)
         }
     }
 
@@ -157,6 +163,10 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
 
     private fun scrollToTop(position: Int) {
         binding.messagesList.scrollToPosition(position)
+    }
+
+    private fun adjustScroll(oldBottom: Int, newBottom: Int) {
+        binding.messagesList.smoothScrollBy(0,oldBottom - newBottom)
     }
 
     private fun showEmptyView() {
@@ -199,7 +209,7 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
         binding.inputLayout.messageInput.isEnabled = true
     }
 
-    private fun showSendingError() {
+    private fun showError() {
         val snackbar = Snackbar.make(
             binding.root,
             getString(R.string.network_error),
@@ -208,7 +218,7 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
         (activity as WindowHolder).showSnackbar(snackbar, binding.inputLayout.root)
     }
 
-    private fun showLoadingError() {
+    private fun showRetryError() {
         val snackbar = Snackbar.make(
             binding.root,
             getString(R.string.network_error),

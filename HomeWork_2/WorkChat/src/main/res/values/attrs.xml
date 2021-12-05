@@ -26,17 +26,7 @@
         <attr name="margins" />
     </declare-styleable>
 
-    <declare-styleable name="DateView">
-        <attr name="dateText" format="string" />
-        <attr name="dateTextColor" format="string" />
-        <attr name="dateBubbleColor" format="color" />
-        <attr name="dateTextSize" format="dimension" />
-        <attr name="dateMargins" format="integer" />
-        <attr name="datePaddingsVertical" format="integer" />
-        <attr name="datePaddingsHorizontal" format="integer" />
-    </declare-styleable>
-
-    <declare-styleable name="ReactionLayout">
+    <declare-styleable name="ReactionsLayout">
         <attr name="reactionHorizontalMargin" format="dimension" />
         <attr name="reactionVerticalMargin" format="dimension" />
         <attr name="percentWidth" format="float" />

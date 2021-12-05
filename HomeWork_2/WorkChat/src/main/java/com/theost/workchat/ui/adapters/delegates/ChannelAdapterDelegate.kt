@@ -7,6 +7,7 @@ import com.theost.workchat.R
 import com.theost.workchat.data.models.ui.ListChannel
 import com.theost.workchat.databinding.ItemChannelBinding
 import com.theost.workchat.ui.interfaces.AdapterDelegate
+import com.theost.workchat.ui.interfaces.DelegateItem
 
 
 class ChannelAdapterDelegate(
@@ -18,11 +19,11 @@ class ChannelAdapterDelegate(
         return ViewHolder(binding, clickListener)
     }
 
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, item: Any, position: Int) {
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, item: DelegateItem, position: Int) {
         (holder as ViewHolder).bind(item as ListChannel)
     }
 
-    override fun isOfViewType(item: Any): Boolean = item is ListChannel
+    override fun isOfViewType(item: DelegateItem): Boolean = item is ListChannel
 
     class ViewHolder(
         private val binding: ItemChannelBinding,

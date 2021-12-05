@@ -7,6 +7,7 @@ import com.theost.workchat.R
 import com.theost.workchat.data.models.ui.ListTopic
 import com.theost.workchat.databinding.ItemTopicBinding
 import com.theost.workchat.ui.interfaces.AdapterDelegate
+import com.theost.workchat.ui.interfaces.DelegateItem
 
 class TopicAdapterDelegate(private val clickListener: (topicName: String) -> Unit) : AdapterDelegate {
 
@@ -22,11 +23,11 @@ class TopicAdapterDelegate(private val clickListener: (topicName: String) -> Uni
         return ViewHolder(binding, backgrounds, clickListener)
     }
 
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, item: Any, position: Int) {
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, item: DelegateItem, position: Int) {
         (holder as ViewHolder).bind(item as ListTopic)
     }
 
-    override fun isOfViewType(item: Any): Boolean = item is ListTopic
+    override fun isOfViewType(item: DelegateItem): Boolean = item is ListTopic
 
     class ViewHolder(
         private val binding: ItemTopicBinding,

@@ -44,8 +44,7 @@ object DialogItemHelper {
         currentUserId: Int
     ): List<ListMessage> {
         val listMessages = mutableListOf<ListMessage>()
-        (messages.indices).forEach { index ->
-            val message = messages[index]
+        messages.forEach { message ->
             val reactions = message.reactions
 
             val messageContent = mapToMessageContent(message.content, emojis)
@@ -111,8 +110,7 @@ object DialogItemHelper {
 
     fun mapToListItems(messages: List<ListMessage>): List<DelegateItem> {
         val listItems = mutableListOf<DelegateItem>()
-        (messages.indices).forEach { i ->
-            val message = messages[i]
+        messages.forEachIndexed { i, message ->
             listItems.add(message)
 
             if (i == messages.lastIndex || DateUtils.notSameDay(message.date, messages[i + 1].date)) {

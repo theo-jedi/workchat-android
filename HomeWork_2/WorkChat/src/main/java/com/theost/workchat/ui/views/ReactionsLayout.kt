@@ -7,7 +7,7 @@ import android.view.View.MeasureSpec.getSize
 import android.view.ViewGroup
 import com.theost.workchat.R
 
-class ReactionLayout @JvmOverloads constructor(
+class ReactionsLayout @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
@@ -33,13 +33,13 @@ class ReactionLayout @JvmOverloads constructor(
     init {
         val typedArray: TypedArray = context.obtainStyledAttributes(
             attrs,
-            R.styleable.ReactionLayout,
+            R.styleable.ReactionsLayout,
             defStyleAttr,
             defStyleRes
         )
-        percentWidth = typedArray.getFloat(R.styleable.ReactionLayout_percentWidth, 1.0f)
-        reactionHorizontalMargin = typedArray.getDimension(R.styleable.ReactionLayout_reactionHorizontalMargin, 20f).toInt()
-        reactionVerticalMargin = typedArray.getDimension(R.styleable.ReactionLayout_reactionVerticalMargin, 20f).toInt()
+        percentWidth = typedArray.getFloat(R.styleable.ReactionsLayout_percentWidth, 1.0f)
+        reactionHorizontalMargin = typedArray.getDimension(R.styleable.ReactionsLayout_reactionHorizontalMargin, 20f).toInt()
+        reactionVerticalMargin = typedArray.getDimension(R.styleable.ReactionsLayout_reactionVerticalMargin, 20f).toInt()
         typedArray.recycle()
     }
 
@@ -57,7 +57,7 @@ class ReactionLayout @JvmOverloads constructor(
 
             child.measure(widthMeasureSpec, heightMeasureSpec)
 
-            if (currentX + child.measuredWidth + reactionHorizontalMargin * 2 > width) {
+            if (currentX + child.measuredWidth + reactionHorizontalMargin > width) {
                 currentX = 0
                 currentY += rowMaxY
             }
@@ -74,7 +74,7 @@ class ReactionLayout @JvmOverloads constructor(
                 maxOf(rowMaxY, child.measuredHeight)
             }
 
-            totalWidth += currentX
+            totalWidth = maxOf(totalWidth, currentX)
             totalHeight = maxOf(totalHeight, currentY + rowMaxY)
         }
 
@@ -91,7 +91,7 @@ class ReactionLayout @JvmOverloads constructor(
         for (i in 0 until childCount) {
             val child = getChildAt(i)
 
-            if (currentX + child.measuredWidth + reactionHorizontalMargin * 2 > measuredWidth) {
+            if (currentX + child.measuredWidth + reactionHorizontalMargin > measuredWidth) {
                 currentX = 0
                 currentY += rowMaxY
             }
@@ -99,11 +99,13 @@ class ReactionLayout @JvmOverloads constructor(
             val isFirstRow = currentY == 0
             val isFirstColumn = currentX == 0
 
-            val top = if (isFirstRow) currentY else currentY + reactionVerticalMargin
-            val left = if (isFirstColumn) currentX else currentX + reactionHorizontalMargin
-
             if (!isFirstColumn) currentX += reactionHorizontalMargin
+
+            val top = if (isFirstRow) currentY else currentY + reactionVerticalMargin
+            val left = currentX
+
             currentX += child.measuredWidth
+
             rowMaxY = if (!isFirstRow) {
                 maxOf(rowMaxY, reactionVerticalMargin + child.measuredHeight)
             } else {

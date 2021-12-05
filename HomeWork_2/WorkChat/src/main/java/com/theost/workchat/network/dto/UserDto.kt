@@ -46,7 +46,9 @@ data class UserDto(
     @SerialName("avatar_url")
     val avatarUrl: String,
     @SerialName("timezone")
-    val timezone: String
+    val timezone: String,
+    @SerialName("is_bot")
+    val isBot: Boolean
 )
 
 @Serializable
@@ -85,7 +87,8 @@ fun UserDto.mapToUser(): User {
         name = name,
         email = email,
         about = timezone,
-        avatarUrl = avatarUrl
+        avatarUrl = avatarUrl,
+        isBot = isBot
     )
 }
 
@@ -95,7 +98,8 @@ fun CurrentUserDto.mapToUser(): User {
         name = name,
         email = email,
         about = timezone,
-        avatarUrl = avatarUrl
+        avatarUrl = avatarUrl,
+        isBot = false
     )
 }
 

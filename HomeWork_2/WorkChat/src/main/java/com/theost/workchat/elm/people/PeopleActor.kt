@@ -15,7 +15,7 @@ class PeopleActor(private val usersRepository: UsersRepository) : ActorCompat<Pe
             usersRepository.getUsers().map { result ->
                 result.fold({ users ->
                     PeopleEvent.Internal.PeopleLoadingSuccess(users
-                        .filterNot { user -> user.id == command.currentUserId }
+                        .filterNot { user -> user.isBot || user.id == command.currentUserId }
                         .sortedBy { user -> user.name }
                         .map { user ->
                             ListUser(

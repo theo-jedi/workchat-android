@@ -106,7 +106,7 @@ class MessageIncomeView @JvmOverloads constructor(
 
         val avatarImageView = getChildAt(0)
         val messageLayout = getChildAt(1)
-        val reactionLayout = getChildAt(2)
+        val reactionsLayout = getChildAt(2)
 
         var totalWidth = 0
         var totalHeight = 0
@@ -143,7 +143,7 @@ class MessageIncomeView @JvmOverloads constructor(
         totalHeight = maxOf(totalHeight, messageLayout.measuredHeight + messageMargin.bottomMargin)
 
         measureChildWithMargins(
-            reactionLayout,
+            reactionsLayout,
             widthMeasureSpec,
             avatarImageView.measuredWidth,
             heightMeasureSpec,
@@ -151,10 +151,10 @@ class MessageIncomeView @JvmOverloads constructor(
         )
 
         // Support margin
-        val reactionMargin = (reactionLayout.layoutParams as MarginLayoutParams)
+        val reactionMargin = (reactionsLayout.layoutParams as MarginLayoutParams)
 
-        totalWidth = maxOf(totalWidth, avatarImageView.measuredWidth + avatarMargin.rightMargin + messageMargin.leftMargin + reactionLayout.measuredWidth)
-        if (reactionLayout.measuredHeight != 0) totalHeight += reactionMargin.topMargin + reactionLayout.measuredHeight
+        totalWidth = maxOf(totalWidth, avatarImageView.measuredWidth + avatarMargin.rightMargin + messageMargin.leftMargin + reactionsLayout.measuredWidth)
+        if (reactionsLayout.measuredHeight != 0) totalHeight += reactionMargin.topMargin + reactionsLayout.measuredHeight
 
         val resultWidth = resolveSize(paddingLeft + totalWidth + paddingRight, widthMeasureSpec)
         val resultHeight = resolveSize(paddingTop + totalHeight + paddingBottom, heightMeasureSpec)
@@ -164,12 +164,12 @@ class MessageIncomeView @JvmOverloads constructor(
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         val avatarImageView = getChildAt(0)
         val messageLayout = getChildAt(1)
-        val reactionLayout = getChildAt(2)
+        val reactionsLayout = getChildAt(2)
 
         // Support margin
         val avatarMargin = (avatarImageView.layoutParams as MarginLayoutParams)
         val messageMargin = (messageLayout.layoutParams as MarginLayoutParams)
-        val reactionMargin = (reactionLayout.layoutParams as MarginLayoutParams)
+        val reactionMargin = (reactionsLayout.layoutParams as MarginLayoutParams)
 
         avatarImageView.layout(
             paddingLeft,
@@ -185,11 +185,11 @@ class MessageIncomeView @JvmOverloads constructor(
             paddingTop + messageLayout.measuredHeight
         )
 
-        reactionLayout.layout(
+        reactionsLayout.layout(
             messageLayout.left,
             messageLayout.bottom + messageMargin.bottomMargin + reactionMargin.topMargin,
-            messageLayout.left + reactionLayout.measuredWidth,
-            messageLayout.bottom + messageMargin.bottomMargin + reactionMargin.topMargin + reactionLayout.measuredHeight
+            messageLayout.left + reactionsLayout.measuredWidth,
+            messageLayout.bottom + messageMargin.bottomMargin + reactionMargin.topMargin + reactionsLayout.measuredHeight
         )
     }
 

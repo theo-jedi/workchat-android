@@ -14,5 +14,7 @@ data class User(
     @SerialName("user_about")
     val about: String,
     @SerialName("avatar_url")
-    val avatarUrl: String
+    val avatarUrl: String,
+    @SerialName("is_bot")
+    val isBot: Boolean
 )

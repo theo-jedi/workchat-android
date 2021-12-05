@@ -76,7 +76,7 @@ class MessageOutcomeView @JvmOverloads constructor(
         (layoutParams as MarginLayoutParams).setMargins(0, marginTop, 0, 0)
 
         val messageLayout = getChildAt(0)
-        val reactionLayout = getChildAt(1)
+        val reactionsLayout = getChildAt(1)
 
         var totalWidth = 0
         var totalHeight = 0
@@ -96,7 +96,7 @@ class MessageOutcomeView @JvmOverloads constructor(
         totalHeight += messageLayout.measuredHeight + messageMargin.bottomMargin
 
         measureChildWithMargins(
-            reactionLayout,
+            reactionsLayout,
             widthMeasureSpec,
             0,
             heightMeasureSpec,
@@ -104,10 +104,10 @@ class MessageOutcomeView @JvmOverloads constructor(
         )
 
         // Support margin
-        val reactionMargin = (reactionLayout.layoutParams as MarginLayoutParams)
+        val reactionMargin = (reactionsLayout.layoutParams as MarginLayoutParams)
 
-        totalWidth = maxOf(totalWidth, reactionMargin.leftMargin + reactionLayout.measuredWidth)
-        if (reactionLayout.measuredHeight != 0) totalHeight += reactionMargin.topMargin + reactionLayout.measuredHeight
+        totalWidth = maxOf(totalWidth, reactionMargin.leftMargin + reactionsLayout.measuredWidth)
+        if (reactionsLayout.measuredHeight != 0) totalHeight += reactionMargin.topMargin + reactionsLayout.measuredHeight
 
         val resultWidth = resolveSize(paddingLeft + totalWidth + paddingRight, widthMeasureSpec)
         val resultHeight = resolveSize(paddingTop + totalHeight + paddingBottom, heightMeasureSpec)
@@ -116,24 +116,24 @@ class MessageOutcomeView @JvmOverloads constructor(
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         val messageLayout = getChildAt(0)
-        val reactionLayout = getChildAt(1)
+        val reactionsLayout = getChildAt(1)
 
         // Support margin
         val messageMargin = (messageLayout.layoutParams as MarginLayoutParams)
-        val reactionMargin = (reactionLayout.layoutParams as MarginLayoutParams)
+        val reactionMargin = (reactionsLayout.layoutParams as MarginLayoutParams)
 
         messageLayout.layout(
-            paddingLeft,
+            measuredWidth - paddingRight - messageLayout.measuredWidth,
             paddingTop,
-            paddingLeft + messageLayout.measuredWidth,
+            measuredWidth - paddingRight,
             paddingTop + messageLayout.measuredHeight
         )
 
-        reactionLayout.layout(
-            paddingLeft,
+        reactionsLayout.layout(
+            measuredWidth - paddingRight - reactionsLayout.measuredWidth,
             messageLayout.bottom + messageMargin.bottomMargin + reactionMargin.topMargin,
-            paddingLeft + reactionLayout.measuredWidth,
-            messageLayout.bottom + messageMargin.bottomMargin + reactionMargin.topMargin + reactionLayout.measuredHeight
+            measuredWidth - paddingRight,
+            messageLayout.bottom + messageMargin.bottomMargin + reactionMargin.topMargin + reactionsLayout.measuredHeight
         )
     }
 

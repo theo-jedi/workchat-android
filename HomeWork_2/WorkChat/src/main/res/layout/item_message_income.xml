@@ -27,8 +27,8 @@
         android:paddingBottom="12dp"
         app:cornerRadius="18dp" />
 
-    <com.theost.workchat.ui.views.ReactionLayout
-        android:id="@+id/reactionLayout"
+    <com.theost.workchat.ui.views.ReactionsLayout
+        android:id="@+id/reactionsLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
