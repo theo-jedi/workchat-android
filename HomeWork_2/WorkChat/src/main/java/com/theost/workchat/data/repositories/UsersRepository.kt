@@ -1,6 +1,7 @@
 package com.theost.workchat.data.repositories
 
 import com.theost.workchat.data.models.core.User
+import com.theost.workchat.data.models.state.CacheStatus
 import com.theost.workchat.data.models.state.UserStatus
 import com.theost.workchat.database.db.CacheDatabase
 import com.theost.workchat.database.entities.mapToUser
@@ -14,13 +15,19 @@ import io.reactivex.schedulers.Schedulers
 
 class UsersRepository(private val service: Api, database: CacheDatabase) {
 
+    private var cacheStatus: CacheStatus = CacheStatus.NOT_UPDATED
+
     private val usersDao = database.usersDao()
 
     fun getUsers(): Observable<Result<List<User>>> {
-        return Observable.concat(
-            getUsersFromCache().toObservable(),
-            getUsersFromServer().toObservable()
-        )
+        return if (cacheStatus == CacheStatus.UPDATED) {
+            getUsersFromCache().toObservable()
+        } else {
+            return Observable.concat(
+                getUsersFromCache().toObservable(),
+                getUsersFromServer().toObservable()
+            )
+        }
     }
 
     private fun getUsersFromServer(): Single<Result<List<User>>> {
@@ -87,15 +94,28 @@ class UsersRepository(private val service: Api, database: CacheDatabase) {
             .subscribeOn(Schedulers.io())
     }
 
-    fun getUserPresence(id: Int): Single<Result<UserStatus>> {
+    fun getUserPresence(id: Int): Observable<Result<UserStatus>> {
+        return Observable.concat(
+            getUserPresenceFromCache().toObservable(),
+            getUserPresenceFromServer(id).toObservable()
+        )
+
+    }
+
+    private fun getUserPresenceFromServer(id: Int): Single<Result<UserStatus>> {
         return service.getUserPresence(id)
             .map { response -> Result.success(response.presence.client.mapToStatus()) }
             .onErrorReturn { Result.failure(it) }
             .subscribeOn(Schedulers.io())
     }
 
+    private fun getUserPresenceFromCache(): Single<Result<UserStatus>> {
+        return Single.just(UserStatus.OFFLINE).map { status -> Result.success(status) }
+    }
+
     private fun addUsersToDatabase(users: List<User>) {
         usersDao.insertAll(users.map { user -> user.mapToUserEntity() })
+            .doOnComplete { cacheStatus = CacheStatus.UPDATED }
             .subscribeOn(Schedulers.io())
             .subscribe()
     }
