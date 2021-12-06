@@ -16,7 +16,7 @@ sealed class DialogEffect {
     object ScrollToBottom : DialogEffect()
 
     data class ScrollToTop(val position: Int) : DialogEffect()
-    data class AdjustScroll(val oldBottom: Int, val newBottom: Int) : DialogEffect()
+    data class AdjustScroll(val scrollOffset: Int) : DialogEffect()
     data class ShowTitle(val channel: String, val topic: String) : DialogEffect()
     data class ShowReactionPicker(val messageId: Int) : DialogEffect()
 }

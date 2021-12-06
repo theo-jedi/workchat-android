@@ -186,7 +186,7 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
             }
         }
         is DialogEvent.Ui.OnLayoutChanged -> {
-            effects { +DialogEffect.AdjustScroll(event.oldBottom, event.newBottom) }
+            effects { +DialogEffect.AdjustScroll(event.scrollOffset) }
         }
         is DialogEvent.Ui.OnMessageClicked -> {
             effects { +DialogEffect.ShowReactionPicker(event.messageId) }

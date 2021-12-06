@@ -93,7 +93,7 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
         }
 
         binding.messagesList.addOnLayoutChangeListener { _, _, _, _, newBottom, _, _, _, oldBottom ->
-            store.accept(DialogEvent.Ui.OnLayoutChanged(oldBottom, newBottom))
+            store.accept(DialogEvent.Ui.OnLayoutChanged(oldBottom - newBottom))
         }
 
         configureToolbar()
@@ -141,7 +141,7 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
             is DialogEffect.ShowAttachMessageAction -> showAttachMessageAction()
             is DialogEffect.ScrollToBottom -> scrollToBottom()
             is DialogEffect.ScrollToTop -> scrollToTop(effect.position)
-            is DialogEffect.AdjustScroll -> adjustScroll(effect.oldBottom, effect.newBottom)
+            is DialogEffect.AdjustScroll -> adjustScroll(effect.scrollOffset)
         }
     }
 
@@ -165,8 +165,8 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
         binding.messagesList.scrollToPosition(position)
     }
 
-    private fun adjustScroll(oldBottom: Int, newBottom: Int) {
-        binding.messagesList.smoothScrollBy(0,oldBottom - newBottom)
+    private fun adjustScroll(scrollOffset: Int) {
+        binding.messagesList.smoothScrollBy(0, scrollOffset)
     }
 
     private fun showEmptyView() {

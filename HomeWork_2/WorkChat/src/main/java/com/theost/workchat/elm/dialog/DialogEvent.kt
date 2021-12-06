@@ -24,7 +24,7 @@ sealed class DialogEvent {
 
         data class OnInputTextChanged(val text: String) : Ui()
 
-        data class OnLayoutChanged(val oldBottom: Int, val newBottom: Int) : Ui()
+        data class OnLayoutChanged(val scrollOffset: Int) : Ui()
 
         data class OnMessageActionClicked(val content: String) : Ui()
     }
