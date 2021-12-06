@@ -210,21 +210,25 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
     }
 
     private fun showError() {
-        val snackbar = Snackbar.make(
-            binding.root,
-            getString(R.string.network_error),
-            Snackbar.LENGTH_INDEFINITE
-        ).apply { setAction(R.string.hide) { dismiss() } }
-        (activity as WindowHolder).showSnackbar(snackbar, binding.inputLayout.root)
+        activity?.let { activity ->
+            val snackbar = Snackbar.make(
+                binding.root,
+                getString(R.string.network_error),
+                Snackbar.LENGTH_INDEFINITE
+            ).apply { setAction(R.string.hide) { dismiss() } }
+            (activity as WindowHolder).showSnackbar(snackbar, binding.inputLayout.root)
+        }
     }
 
     private fun showRetryError() {
-        val snackbar = Snackbar.make(
-            binding.root,
-            getString(R.string.network_error),
-            Snackbar.LENGTH_INDEFINITE
-        ).setAction(R.string.retry) { store.accept(DialogEvent.Ui.LoadMessages) }
-        (activity as WindowHolder).showSnackbar(snackbar, binding.inputLayout.root)
+        activity?.let { activity ->
+            val snackbar = Snackbar.make(
+                binding.root,
+                getString(R.string.network_error),
+                Snackbar.LENGTH_INDEFINITE
+            ).setAction(R.string.retry) { store.accept(DialogEvent.Ui.LoadMessages) }
+            (activity as WindowHolder).showSnackbar(snackbar, binding.inputLayout.root)
+        }
     }
 
     private fun configureToolbar() {

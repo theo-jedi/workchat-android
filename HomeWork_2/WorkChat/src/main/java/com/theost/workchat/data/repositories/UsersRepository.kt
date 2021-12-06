@@ -3,6 +3,7 @@ package com.theost.workchat.data.repositories
 import com.theost.workchat.data.models.core.User
 import com.theost.workchat.data.models.state.CacheStatus
 import com.theost.workchat.data.models.state.UserStatus
+import com.theost.workchat.data.models.state.UsersType
 import com.theost.workchat.database.db.CacheDatabase
 import com.theost.workchat.database.entities.mapToUser
 import com.theost.workchat.database.entities.mapToUserEntity
@@ -37,7 +38,7 @@ class UsersRepository(private val service: Api, database: CacheDatabase) {
             .doOnSuccess { result ->
                 if (result.isSuccess) {
                     val users = result.getOrNull()
-                    if (users != null) addUsersToDatabase(users)
+                    if (users != null) addUsersToDatabase(users, UsersType.ALL)
                 }
             }
             .subscribeOn(Schedulers.io())
@@ -69,7 +70,7 @@ class UsersRepository(private val service: Api, database: CacheDatabase) {
                 .doOnSuccess { result ->
                     if (result.isSuccess) {
                         val user = result.getOrNull()
-                        if (user != null) addUsersToDatabase(listOf(user))
+                        if (user != null) addUsersToDatabase(listOf(user), UsersType.SINGLE)
                     }
                 }
                 .subscribeOn(Schedulers.io())
@@ -80,7 +81,7 @@ class UsersRepository(private val service: Api, database: CacheDatabase) {
                 .doOnSuccess { result ->
                     if (result.isSuccess) {
                         val user = result.getOrNull()
-                        if (user != null) addUsersToDatabase(listOf(user))
+                        if (user != null) addUsersToDatabase(listOf(user), UsersType.SINGLE)
                     }
                 }
                 .subscribeOn(Schedulers.io())
@@ -113,9 +114,9 @@ class UsersRepository(private val service: Api, database: CacheDatabase) {
         return Single.just(UserStatus.OFFLINE).map { status -> Result.success(status) }
     }
 
-    private fun addUsersToDatabase(users: List<User>) {
+    private fun addUsersToDatabase(users: List<User>, usersType: UsersType) {
         usersDao.insertAll(users.map { user -> user.mapToUserEntity() })
-            .doOnComplete { cacheStatus = CacheStatus.UPDATED }
+            .doOnComplete { if (usersType == UsersType.ALL) cacheStatus = CacheStatus.UPDATED }
             .subscribeOn(Schedulers.io())
             .subscribe()
     }

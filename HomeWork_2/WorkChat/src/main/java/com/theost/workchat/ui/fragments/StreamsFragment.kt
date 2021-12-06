@@ -42,7 +42,8 @@ class StreamsFragment : Fragment() {
         val channelsTypes = ChannelsType.values()
         val channelsTabs = binding.root.findViewById<TabLayout>(R.id.channelsTabs)
         channelsPages = binding.root.findViewById(R.id.channelsPages)
-        channelsPages.adapter = StreamsAdapter(requireActivity(), channelsTypes)
+
+        channelsPages.adapter = StreamsAdapter(childFragmentManager, lifecycle, channelsTypes)
 
         channelsPagesCallback = object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
@@ -57,7 +58,6 @@ class StreamsFragment : Fragment() {
             tab.text = channelsTypes[position].uiName
         }.attach()
 
-
         configureToolbar()
 
         return binding.root
@@ -69,7 +69,7 @@ class StreamsFragment : Fragment() {
     }
 
     private fun configureToolbar() {
-        (activity as NavigationHolder).showNavigation()
+        activity?.let { activity -> (activity as NavigationHolder).showNavigation() }
         binding.toolbarLayout.toolbar.title = getString(R.string.channels)
         val searchMenuItem = binding.toolbarLayout.toolbar.menu.findItem(R.id.actionSearch)
         val searchManager = context?.getSystemService(SEARCH_SERVICE) as SearchManager
@@ -97,6 +97,7 @@ class StreamsFragment : Fragment() {
     override fun onDestroy() {
         super.onDestroy()
         channelsPages.unregisterOnPageChangeCallback(channelsPagesCallback)
+        channelsPages.adapter = null
         searchView.setOnQueryTextListener(null)
         _binding = null
     }

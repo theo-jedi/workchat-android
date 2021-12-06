@@ -110,7 +110,7 @@ class ChannelsFragment : ElmFragment<ChannelsEvent, ChannelsEffect, ChannelsStat
     }
 
     private fun onTopicClick(channelName: String, topicName: String) {
-        (activity as TopicListener).openDialog(channelName, topicName)
+        activity?.let { activity -> (activity as TopicListener).openDialog(channelName, topicName) }
     }
 
     override fun onSearch(query: String) {
@@ -136,18 +136,21 @@ class ChannelsFragment : ElmFragment<ChannelsEvent, ChannelsEffect, ChannelsStat
     }
 
     private fun showLoadingError() {
-        val snackbar = Snackbar.make(
-            binding.root,
-            getString(R.string.network_error),
-            Snackbar.LENGTH_INDEFINITE
-        ).setAction(R.string.retry) { store.accept(ChannelsEvent.Ui.LoadChannels) }
-        (activity as WindowHolder).showSnackbar(snackbar)
+        activity?.let { activity ->
+            val snackbar = Snackbar.make(
+                binding.root,
+                getString(R.string.network_error),
+                Snackbar.LENGTH_INDEFINITE
+            ).setAction(R.string.retry) { store.accept(ChannelsEvent.Ui.LoadChannels) }
+            (activity as WindowHolder).showSnackbar(snackbar)
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
     }
+
 
     companion object {
         private const val CHANNELS_TYPE_EXTRA = "channels_type"

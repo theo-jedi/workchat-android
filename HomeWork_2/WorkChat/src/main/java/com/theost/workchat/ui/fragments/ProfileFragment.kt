@@ -115,12 +115,14 @@ class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileState>()
     }
 
     private fun showLoadingError() {
-        val snackbar = Snackbar.make(
-            binding.root,
-            getString(R.string.network_error),
-            Snackbar.LENGTH_INDEFINITE
-        ).setAction(R.string.retry) { store.accept(ProfileEvent.Ui.LoadProfile) }
-        (activity as WindowHolder).showSnackbar(snackbar)
+        activity?.let { activity ->
+            val snackbar = Snackbar.make(
+                binding.root,
+                getString(R.string.network_error),
+                Snackbar.LENGTH_INDEFINITE
+            ).setAction(R.string.retry) { store.accept(ProfileEvent.Ui.LoadProfile) }
+            (activity as WindowHolder).showSnackbar(snackbar)
+        }
     }
 
     private fun configureToolbar(isCurrentUser: Boolean) {
@@ -130,7 +132,7 @@ class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileState>()
                 activity?.onBackPressed()
             }
         } else {
-            (activity as NavigationHolder).showNavigation()
+            activity?.let { activity -> (activity as NavigationHolder).showNavigation() }
         }
     }
 
