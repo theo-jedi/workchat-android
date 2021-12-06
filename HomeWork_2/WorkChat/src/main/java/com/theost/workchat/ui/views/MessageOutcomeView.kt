@@ -45,6 +45,8 @@ class MessageOutcomeView @JvmOverloads constructor(
             field = value
             requestLayout()
         }
+    var messageLayout: MessageOutcomeLayout
+    var reactionsLayout: ReactionsLayout
 
     init {
         inflate(context, R.layout.item_message_outcome, this)
@@ -61,6 +63,9 @@ class MessageOutcomeView @JvmOverloads constructor(
         corners = typedArray.getDimension(R.styleable.MessageOutcomeView_corners, CORNERS_DEFAULT)
         marginTop = typedArray.getInteger(R.styleable.MessageOutcomeView_margins, context.resources.getDimension(R.dimen.message_margin).toInt())
         typedArray.recycle()
+
+        messageLayout = getChildAt(0) as MessageOutcomeLayout
+        reactionsLayout = getChildAt(1) as ReactionsLayout
 
         if (bubble == PARAMETER_UNSET) bubble =
             ContextCompat.getColor(context, R.color.message_bubble_outcome)

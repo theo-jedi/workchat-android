@@ -1,8 +1,7 @@
 package com.theost.workchat.ui.adapters.delegates
 
-import android.view.View
+import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.ImageView
 import androidx.core.view.size
 import androidx.recyclerview.widget.RecyclerView
 import com.theost.workchat.R
@@ -14,7 +13,6 @@ import com.theost.workchat.ui.interfaces.AdapterDelegate
 import com.theost.workchat.ui.interfaces.DelegateItem
 import com.theost.workchat.ui.views.MessageIncomeView
 import com.theost.workchat.ui.views.ReactionView
-import com.theost.workchat.ui.views.ReactionsLayout
 
 class MessageIncomeAdapterDelegate(
     private val messageListener: (messageId: Int) -> Unit,
@@ -24,7 +22,11 @@ class MessageIncomeAdapterDelegate(
         return ViewHolder(MessageIncomeView(parent.context), messageListener, reactionListener)
     }
 
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, item: DelegateItem, position: Int) {
+    override fun onBindViewHolder(
+        holder: RecyclerView.ViewHolder,
+        item: DelegateItem,
+        position: Int
+    ) {
         (holder as ViewHolder).bind(item as ListMessage)
     }
 
@@ -42,56 +44,40 @@ class MessageIncomeAdapterDelegate(
             messageIncomeView.username = listMessage.senderName
             messageIncomeView.message = listMessage.content
             messageIncomeView.time = listMessage.time
-            messageIncomeView.findViewById<View>(R.id.messageLayout).setOnLongClickListener {
+
+            val reactionsLayout = messageIncomeView.reactionsLayout.apply { removeAllViews() }
+            messageIncomeView.messageLayout.setOnLongClickListener {
                 messageListener(listMessage.id)
                 true
             }
 
-            val emojiWidth =
-                messageIncomeView.context.resources.getDimension(R.dimen.emoji_view_width).toInt()
-            val emojiHeight =
-                messageIncomeView.context.resources.getDimension(R.dimen.emoji_view_height).toInt()
-            val reactionsLayout = messageIncomeView.findViewById<ReactionsLayout>(R.id.reactionsLayout)
-                .apply { removeAllViews() }
-
+            // Create add button if reactions not empty
             if (listMessage.reactions.isNotEmpty()) {
-                reactionsLayout.addView(
-                    ImageView(messageIncomeView.context).apply {
-                        minimumWidth = emojiWidth
-                        minimumHeight = emojiHeight
-                        maxWidth = emojiWidth
-                        maxHeight = emojiHeight
-                        scaleType = ImageView.ScaleType.CENTER
-                        setBackgroundResource(R.drawable.bg_reaction_view)
-                        setImageResource(R.drawable.ic_add)
-                        setOnClickListener { messageListener(listMessage.id) }
-                    }
-                )
+                val addReactionView = LayoutInflater.from(messageIncomeView.context)
+                    .inflate(R.layout.item_add_reaction, messageIncomeView, false)
+                    .apply { setOnClickListener { messageListener(listMessage.id) } }
+                reactionsLayout.addView(addReactionView)
             }
 
+            // Create reactions buttons
             listMessage.reactions.forEach { reaction ->
-                reactionsLayout.addView(
-                    ReactionView(messageIncomeView.context).apply {
-                        emoji = reaction.emoji
-                        count = reaction.count
-                        isSelected = reaction.isSelected
-                        setOnClickListener { reactionView ->
-                            if (!reactionView.isSelected) {
-                                reactionListener(
-                                    MessageAction.REACTION_ADD,
-                                    listMessage.id,
-                                    reaction
-                                )
-                            } else {
-                                reactionListener(
-                                    MessageAction.REACTION_REMOVE,
-                                    listMessage.id,
-                                    reaction
-                                )
-                            }
+                val reactionView = (LayoutInflater.from(messageIncomeView.context).inflate(
+                    R.layout.item_message_reaction,
+                    messageIncomeView,
+                    false
+                ) as ReactionView).apply {
+                    emoji = reaction.emoji
+                    count = reaction.count
+                    isSelected = reaction.isSelected
+                    setOnClickListener { reactionView ->
+                        if (!reactionView.isSelected) {
+                            reactionListener(MessageAction.REACTION_ADD, listMessage.id, reaction)
+                        } else {
+                            reactionListener(MessageAction.REACTION_REMOVE, listMessage.id, reaction)
                         }
-                    }, reactionsLayout.size - 1
-                )
+                    }
+                }
+                reactionsLayout.addView(reactionView, reactionsLayout.size - 1)
             }
         }
     }
