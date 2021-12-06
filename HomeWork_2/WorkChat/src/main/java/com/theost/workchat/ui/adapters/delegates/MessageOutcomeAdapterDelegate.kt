@@ -2,7 +2,6 @@ package com.theost.workchat.ui.adapters.delegates
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import androidx.core.view.size
 import androidx.recyclerview.widget.RecyclerView
 import com.theost.workchat.R
@@ -10,6 +9,7 @@ import com.theost.workchat.data.models.alias.ReactionListener
 import com.theost.workchat.data.models.state.MessageAction
 import com.theost.workchat.data.models.state.MessageType
 import com.theost.workchat.data.models.ui.ListMessage
+import com.theost.workchat.databinding.ItemMessageOutcomeBinding
 import com.theost.workchat.ui.interfaces.AdapterDelegate
 import com.theost.workchat.ui.interfaces.DelegateItem
 import com.theost.workchat.ui.views.MessageOutcomeView
@@ -20,7 +20,8 @@ class MessageOutcomeAdapterDelegate(
     private val reactionListener: ReactionListener
 ) : AdapterDelegate {
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
-        return ViewHolder(MessageOutcomeView(parent.context), messageListener, reactionListener)
+        val binding = ItemMessageOutcomeBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ViewHolder(binding.root, messageListener, reactionListener)
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, item: DelegateItem, position: Int) {
@@ -39,7 +40,6 @@ class MessageOutcomeAdapterDelegate(
         fun bind(listMessage: ListMessage) {
             messageOutcomeView.message = listMessage.content
             messageOutcomeView.time = listMessage.time
-            messageOutcomeView.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
 
             val reactionsLayout = messageOutcomeView.reactionsLayout.apply { removeAllViews() }
             messageOutcomeView.messageLayout.setOnLongClickListener {

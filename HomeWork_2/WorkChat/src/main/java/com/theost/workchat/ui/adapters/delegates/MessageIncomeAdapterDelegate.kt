@@ -9,6 +9,7 @@ import com.theost.workchat.data.models.alias.ReactionListener
 import com.theost.workchat.data.models.state.MessageAction
 import com.theost.workchat.data.models.state.MessageType
 import com.theost.workchat.data.models.ui.ListMessage
+import com.theost.workchat.databinding.ItemMessageIncomeBinding
 import com.theost.workchat.ui.interfaces.AdapterDelegate
 import com.theost.workchat.ui.interfaces.DelegateItem
 import com.theost.workchat.ui.views.MessageIncomeView
@@ -19,7 +20,8 @@ class MessageIncomeAdapterDelegate(
     private val reactionListener: ReactionListener
 ) : AdapterDelegate {
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
-        return ViewHolder(MessageIncomeView(parent.context), messageListener, reactionListener)
+        val binding = ItemMessageIncomeBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ViewHolder(binding.root, messageListener, reactionListener)
     }
 
     override fun onBindViewHolder(

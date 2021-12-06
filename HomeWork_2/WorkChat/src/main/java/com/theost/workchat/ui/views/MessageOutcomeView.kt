@@ -49,7 +49,7 @@ class MessageOutcomeView @JvmOverloads constructor(
     var reactionsLayout: ReactionsLayout
 
     init {
-        inflate(context, R.layout.item_message_outcome, this)
+        inflate(context, R.layout.item_message_view_outcome, this)
 
         val typedArray: TypedArray = context.obtainStyledAttributes(
             attrs,

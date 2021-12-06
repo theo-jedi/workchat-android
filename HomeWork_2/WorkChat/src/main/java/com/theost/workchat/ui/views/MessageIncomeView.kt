@@ -68,7 +68,7 @@ class MessageIncomeView @JvmOverloads constructor(
     var reactionsLayout: ReactionsLayout
 
     init {
-        inflate(context, R.layout.item_message_income, this)
+        inflate(context, R.layout.item_message_view_income, this)
 
         val typedArray: TypedArray = context.obtainStyledAttributes(
             attrs,
