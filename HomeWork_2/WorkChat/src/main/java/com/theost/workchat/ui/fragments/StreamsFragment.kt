@@ -64,8 +64,9 @@ class StreamsFragment : Fragment() {
     }
 
     private fun onQueryChanged(query: String) {
-        activity?.supportFragmentManager?.findFragmentByTag("f$currentPagesPosition")
-            .let { fragment -> (fragment as? SearchHandler)?.onSearch(query) }
+        childFragmentManager.findFragmentByTag("f$currentPagesPosition").let { fragment ->
+            (fragment as? SearchHandler)?.onSearch(query)
+        }
     }
 
     private fun configureToolbar() {
