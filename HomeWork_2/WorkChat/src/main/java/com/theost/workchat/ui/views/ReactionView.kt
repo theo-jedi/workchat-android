@@ -8,7 +8,6 @@ import android.graphics.PointF
 import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.View
-import androidx.core.content.ContextCompat
 import com.theost.workchat.R
 
 class ReactionView @JvmOverloads constructor(
@@ -28,39 +27,25 @@ class ReactionView @JvmOverloads constructor(
             field = value
             requestLayout()
         }
-    var textSize = 0f
+    var countTextSize = 0f
         set(value) {
             field = value
             requestLayout()
         }
-    var textColor = 0
+    var countTextColor = 0
         set(value) {
             field = value
             requestLayout()
         }
-    var itemWidth = 0
-        set(value) {
-            field = value
-            requestLayout()
-        }
-    var itemHeight = 0
-        set(value) {
-            field = value
-            requestLayout()
-        }
-    var backgroundDrawable = 0
-        set(value) {
-            field = value
-            requestLayout()
-        }
-
-    private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val emojiBounds = Rect()
-    private val textBounds = Rect()
-    private val emojiCoordinate = PointF()
-    private val textCoordinate = PointF()
 
     private val tempFontMetrics = Paint.FontMetrics()
+    private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+
+    private val emojiBounds = Rect()
+    private val textBounds = Rect()
+
+    private val emojiCoordinate = PointF()
+    private val textCoordinate = PointF()
 
     init {
         val typedArray: TypedArray = context.obtainStyledAttributes(
@@ -69,40 +54,27 @@ class ReactionView @JvmOverloads constructor(
             defStyleAttr,
             defStyleRes
         )
-
         emoji = typedArray.getString(R.styleable.ReactionView_emoji).orEmpty()
-        count = typedArray.getInt(R.styleable.ReactionView_text, 0)
-        textSize = typedArray.getDimension(R.styleable.ReactionView_reactionTextSize, SIZE_DEFAULT)
-        textColor = typedArray.getColor(
-            R.styleable.ReactionView_reactionTextColor,
-            ContextCompat.getColor(context, R.color.lighter_gray)
-        )
-        itemWidth = typedArray.getDimension(
-            R.styleable.ReactionView_reactionViewWidth,
-            context.resources.getDimension(R.dimen.emoji_view_width)
-        ).toInt()
-        itemHeight = typedArray.getDimension(
-            R.styleable.ReactionView_reactionViewWidth,
-            context.resources.getDimension(R.dimen.emoji_view_height)
-        ).toInt()
-        backgroundDrawable = typedArray.getResourceId(
-            R.styleable.ReactionView_reactionBackground,
-            R.drawable.bg_reaction_view
-        )
+        count = typedArray.getInt(R.styleable.ReactionView_count, 0)
+        countTextSize = typedArray.getDimension(R.styleable.ReactionView_countTextSize, 0f)
+        countTextColor = typedArray.getColor(R.styleable.ReactionView_countTextColor, 0)
         typedArray.recycle()
 
-        setBackgroundResource(backgroundDrawable)
-
-        textPaint.textSize = textSize
-        textPaint.color = textColor
+        textPaint.textSize = countTextSize
+        textPaint.color = countTextColor
         textPaint.textAlign = Paint.Align.CENTER
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         textPaint.getTextBounds(emoji, 0, emoji.length, emojiBounds)
-        textPaint.getTextBounds(emoji, 0, emoji.length, textBounds)
-        val resultWidth = resolveSize(itemWidth, widthMeasureSpec)
-        val resultHeight = resolveSize(itemHeight, heightMeasureSpec)
+        textPaint.getTextBounds(count.toString(), 0, count.toString().length, textBounds)
+
+        val totalWidth = paddingLeft + emojiBounds.width() + textBounds.width() + paddingRight
+        val totalHeight = paddingTop + maxOf(emojiBounds.height(), textBounds.height()) + paddingBottom
+
+        val resultWidth = resolveSize(maxOf(totalWidth, layoutParams.width), widthMeasureSpec)
+        val resultHeight = resolveSize(maxOf(totalHeight, layoutParams.height), heightMeasureSpec)
+
         setMeasuredDimension(resultWidth, resultHeight)
     }
 
@@ -110,17 +82,15 @@ class ReactionView @JvmOverloads constructor(
         textPaint.getFontMetrics(tempFontMetrics)
 
         emojiCoordinate.x = w / 2f - emojiBounds.width() / 2f
-        emojiCoordinate.y = itemHeight / 2f + emojiBounds.height() / 2 - tempFontMetrics.descent
+        emojiCoordinate.y = measuredHeight / 2f + emojiBounds.height() / 2 - tempFontMetrics.descent
 
-        textCoordinate.x = w / 2f + textBounds.width() / 2f
-        textCoordinate.y = itemHeight / 2f + textBounds.height() / 2 - tempFontMetrics.descent
+        textCoordinate.x = w / 2f + emojiBounds.width() / 2f
+        textCoordinate.y = measuredHeight / 2f + textBounds.height() / 2
     }
 
     override fun onCreateDrawableState(extraSpace: Int): IntArray {
         val drawableState = super.onCreateDrawableState(extraSpace + SUPPORTED_DRAWABLE_STATE.size)
-        if (isSelected) {
-            mergeDrawableStates(drawableState, SUPPORTED_DRAWABLE_STATE)
-        }
+        if (isSelected) mergeDrawableStates(drawableState, SUPPORTED_DRAWABLE_STATE)
         return drawableState
     }
 
@@ -131,8 +101,6 @@ class ReactionView @JvmOverloads constructor(
 
     companion object {
         private val SUPPORTED_DRAWABLE_STATE = intArrayOf(android.R.attr.state_selected)
-
-        private const val SIZE_DEFAULT = 40f
     }
 
 }

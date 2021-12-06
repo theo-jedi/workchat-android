@@ -43,7 +43,7 @@ class MessageIncomeAdapterDelegate(
 
         fun bind(listMessage: ListMessage) {
             messageIncomeView.avatar = listMessage.senderAvatarUrl
-            messageIncomeView.username = listMessage.senderName
+            messageIncomeView.name = listMessage.senderName
             messageIncomeView.message = listMessage.content
             messageIncomeView.time = listMessage.time
 

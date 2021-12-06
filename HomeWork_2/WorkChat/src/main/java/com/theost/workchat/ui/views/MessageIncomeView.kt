@@ -8,7 +8,6 @@ import android.util.AttributeSet
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.cardview.widget.CardView
-import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import com.theost.workchat.R
 
@@ -18,6 +17,9 @@ class MessageIncomeView @JvmOverloads constructor(
     defStyleAttr: Int = 0,
     defStyleRes: Int = 0
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
+
+    var reactionsLayout: ReactionsLayout
+    var messageLayout: MessageIncomeLayout
 
     var avatar: String = ""
         set(value) {
@@ -29,11 +31,11 @@ class MessageIncomeView @JvmOverloads constructor(
                 .error(R.drawable.ic_error_avatar)
                 .into(avatarImageView)
         }
-    var username: String = ""
+    var name: String = ""
         set(value) {
             field = value
             val messageLayout = getChildAt(1) as MessageIncomeLayout
-            messageLayout.username = value
+            messageLayout.name = value
         }
     var time: String = ""
         set(value) {
@@ -47,25 +49,6 @@ class MessageIncomeView @JvmOverloads constructor(
             val messageLayout = getChildAt(1) as MessageIncomeLayout
             messageLayout.message = value
         }
-    var bubble: Int = PARAMETER_UNSET
-        set(value) {
-            field = value
-            val messageLayout = getChildAt(1) as MessageIncomeLayout
-            messageLayout.bubble = value
-        }
-    var corners: Float = CORNERS_DEFAULT
-        set(value) {
-            field = value
-            val messageLayout = getChildAt(1) as MessageIncomeLayout
-            messageLayout.corners = value
-        }
-    var marginTop = 0
-        set(value) {
-            field = value
-            requestLayout()
-        }
-    var messageLayout: MessageIncomeLayout
-    var reactionsLayout: ReactionsLayout
 
     init {
         inflate(context, R.layout.item_message_view_income, this)
@@ -77,26 +60,10 @@ class MessageIncomeView @JvmOverloads constructor(
             defStyleRes
         )
         avatar = typedArray.getString(R.styleable.MessageIncomeView_avatar) ?: ""
-        username = typedArray.getString(R.styleable.MessageIncomeView_username).orEmpty()
+        name = typedArray.getString(R.styleable.MessageIncomeView_name).orEmpty()
         message = SpannableString(typedArray.getString(R.styleable.MessageIncomeView_message).orEmpty())
         time = typedArray.getString(R.styleable.MessageIncomeView_time).orEmpty()
-        bubble = typedArray.getColor(R.styleable.MessageIncomeView_bubble, PARAMETER_UNSET)
-        corners = typedArray.getDimension(R.styleable.MessageIncomeView_corners, CORNERS_DEFAULT)
-        marginTop = typedArray.getInteger(R.styleable.MessageIncomeView_margins, context.resources.getDimension(R.dimen.message_margin).toInt())
         typedArray.recycle()
-
-        messageLayout = getChildAt(1) as MessageIncomeLayout
-        reactionsLayout = getChildAt(2) as ReactionsLayout
-
-        if (bubble == PARAMETER_UNSET) bubble =
-            ContextCompat.getColor(context, R.color.message_bubble_income)
-
-        val messageLayout = getChildAt(1) as MessageIncomeLayout
-        messageLayout.username = username
-        messageLayout.message = message
-        messageLayout.time = time
-        messageLayout.bubble = bubble
-        messageLayout.corners = corners
 
         val avatarImageView = (getChildAt(0) as CardView).getChildAt(0) as ImageView
         Glide.with(this)
@@ -104,11 +71,16 @@ class MessageIncomeView @JvmOverloads constructor(
             .placeholder(R.drawable.ic_loading_avatar)
             .error(R.drawable.ic_error_avatar)
             .into(avatarImageView)
+
+        reactionsLayout = getChildAt(2) as ReactionsLayout
+        messageLayout = (getChildAt(1) as MessageIncomeLayout).apply {
+            this.name = name
+            this.message = message
+            this.time = time
+        }
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        (layoutParams as MarginLayoutParams).setMargins(0, marginTop, 0, 0)
-
         val avatarImageView = getChildAt(0)
         val messageLayout = getChildAt(1)
         val reactionsLayout = getChildAt(2)
@@ -208,11 +180,6 @@ class MessageIncomeView @JvmOverloads constructor(
 
     override fun generateLayoutParams(p: LayoutParams): LayoutParams {
         return MarginLayoutParams(p)
-    }
-
-    companion object {
-        private const val PARAMETER_UNSET = -1
-        private const val CORNERS_DEFAULT = 50f
     }
 
 }

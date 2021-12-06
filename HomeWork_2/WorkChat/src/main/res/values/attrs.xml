@@ -1,45 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <attr name="username" format="string" />
     <attr name="message" format="string" />
     <attr name="time" format="string" />
-    <attr name="bubble" format="color" />
-    <attr name="corners" format="dimension" />
-    <attr name="margins" format="dimension" />
 
     <declare-styleable name="MessageIncomeView">
         <attr name="avatar" format="string" />
-        <attr name="username" />
+        <attr name="name" format="string" />
         <attr name="message" />
         <attr name="time" />
-        <attr name="bubble" />
-        <attr name="corners" />
-        <attr name="margins" />
     </declare-styleable>
 
     <declare-styleable name="MessageOutcomeView">
-        <attr name="username" />
         <attr name="message" />
         <attr name="time" />
-        <attr name="bubble" />
-        <attr name="corners" />
-        <attr name="margins" />
     </declare-styleable>
 
     <declare-styleable name="ReactionsLayout">
-        <attr name="reactionHorizontalMargin" format="dimension" />
-        <attr name="reactionVerticalMargin" format="dimension" />
+        <attr name="horizontalMargins" format="dimension" />
+        <attr name="verticalMargins" format="dimension" />
         <attr name="percentWidth" format="float" />
     </declare-styleable>
 
     <declare-styleable name="ReactionView">
         <attr name="emoji" format="string" />
-        <attr name="text" format="string" />
-        <attr name="reactionViewWidth" format="dimension" />
-        <attr name="reactionViewHeight" format="dimension" />
-        <attr name="reactionTextColor" format="color" />
-        <attr name="reactionTextSize" format="dimension" />
-        <attr name="reactionPadding" format="dimension" />
-        <attr name="reactionBackground" format="dimension" />
+        <attr name="count" format="string" />
+        <attr name="countTextColor" format="color" />
+        <attr name="countTextSize" format="dimension" />
     </declare-styleable>
 </resources>

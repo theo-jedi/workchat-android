@@ -8,6 +8,7 @@
         android:id="@+id/messageLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="@drawable/bg_message_outcome"
         android:paddingStart="12dp"
         android:paddingTop="8dp"
         android:paddingEnd="12dp"
@@ -19,7 +20,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        app:reactionHorizontalMargin="10dp"
-        app:reactionVerticalMargin="10dp" />
+        app:horizontalMargins="10dp"
+        app:verticalMargins="10dp" />
 
 </merge>
