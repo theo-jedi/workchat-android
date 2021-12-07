@@ -5,5 +5,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "WorkChat"
+rootProject.name = "workchat-android"
 include ':WorkChat'

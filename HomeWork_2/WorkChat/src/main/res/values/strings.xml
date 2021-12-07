@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">WorkChat</string>
+    <string name="add_emoji">Добавить эмоджи</string>
 </resources>
