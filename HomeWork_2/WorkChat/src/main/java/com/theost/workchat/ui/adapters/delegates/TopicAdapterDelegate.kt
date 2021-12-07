@@ -11,6 +11,9 @@ import com.theost.workchat.ui.interfaces.DelegateItem
 
 class TopicAdapterDelegate(private val clickListener: (topicName: String) -> Unit) : AdapterDelegate {
 
+    private var topicPosition = -1
+    private var channelId = 0
+
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
         val binding = ItemTopicBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         val backgrounds = mutableListOf<Int>()
@@ -24,7 +27,15 @@ class TopicAdapterDelegate(private val clickListener: (topicName: String) -> Uni
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, item: DelegateItem, position: Int) {
-        (holder as ViewHolder).bind(item as ListTopic)
+        val topicChannelId = (item as ListTopic).channelId
+        if (topicChannelId == channelId) {
+            topicPosition += 1
+        } else {
+            topicPosition = 0
+            channelId = topicChannelId
+        }
+
+        (holder as ViewHolder).bind(item, topicPosition)
     }
 
     override fun isOfViewType(item: DelegateItem): Boolean = item is ListTopic
@@ -35,10 +46,10 @@ class TopicAdapterDelegate(private val clickListener: (topicName: String) -> Uni
         private val clickListener: (topicName: String) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(listItem: ListTopic) {
+        fun bind(listItem: ListTopic, topicPosition: Int) {
             binding.topicName.text = listItem.name
             binding.root.setOnClickListener { clickListener(listItem.name) }
-            binding.root.setBackgroundResource(backgrounds[adapterPosition % backgrounds.size])
+            binding.root.setBackgroundResource(backgrounds[topicPosition % backgrounds.size])
         }
 
     }

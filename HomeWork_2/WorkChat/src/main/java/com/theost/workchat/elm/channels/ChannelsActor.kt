@@ -68,8 +68,9 @@ class ChannelsActor(
                     ChannelsEvent.Internal.TopicsLoadingSuccess(
                         topics.map { topic ->
                             ListTopic(
+                                uid = topic.uid,
                                 name = topic.name,
-                                lastMessageId = topic.lastMessageId
+                                channelId = topic.channelId
                             )
                         }
                     )

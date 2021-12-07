@@ -23,12 +23,15 @@ class TopicsRepository(private val service: Api, database: CacheDatabase) {
 
     private fun getTopicsFromServer(channelId: Int): Single<Result<List<Topic>>> {
         return service.getChannelTopics(channelId)
-            .map { response -> Result.success(response.topics.map { topicDto -> topicDto.mapToTopic() }) }
+            .map { response -> Result.success(response.topics
+                .map { topicDto -> topicDto.mapToTopic(channelId) }
+                .sortedBy { topic -> topic.name }
+            )}
             .onErrorReturn { Result.failure(it) }
             .doOnSuccess { result ->
                 if (result.isSuccess) {
                     val topics = result.getOrNull()
-                    if (topics != null) addTopicsToDatabase(channelId, topics)
+                    if (topics != null) addTopicsToDatabase(topics)
                 }
             }
             .subscribeOn(Schedulers.io())
@@ -36,13 +39,16 @@ class TopicsRepository(private val service: Api, database: CacheDatabase) {
 
     private fun getTopicsFromCache(channelId: Int): Single<Result<List<Topic>>> {
         return topicsDao.getChannelTopics(channelId)
-            .map { topics -> Result.success(topics.map { topicEntity -> topicEntity.mapToTopic() }) }
+            .map { topics -> Result.success(topics
+                .map { topicEntity -> topicEntity.mapToTopic()}
+                .sortedBy { topic -> topic.name }
+            )}
             .onErrorReturn { Result.failure(it) }
             .subscribeOn(Schedulers.io())
     }
 
-    private fun addTopicsToDatabase(channelId: Int, topics: List<Topic>) {
-        topicsDao.insertAll(topics.map { topic -> topic.mapToTopicEntity(channelId) })
+    private fun addTopicsToDatabase(topics: List<Topic>) {
+        topicsDao.insertAll(topics.map { topic -> topic.mapToTopicEntity() })
             .subscribeOn(Schedulers.io())
             .subscribe()
     }
