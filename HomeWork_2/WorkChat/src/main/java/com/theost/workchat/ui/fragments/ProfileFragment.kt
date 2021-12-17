@@ -73,8 +73,8 @@ class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileState>()
 
             Glide.with(this)
                 .load(user.avatarUrl)
-                .placeholder(R.drawable.ic_loading_avatar)
-                .error(R.drawable.ic_error_avatar)
+                .placeholder(R.drawable.ic_avatar_loading)
+                .error(R.drawable.ic_avatar_error)
                 .into(binding.userAvatar)
 
             binding.userName.text = user.name

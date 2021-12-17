@@ -10,7 +10,15 @@ class ReactionsActor(private val reactionsRepository: ReactionsRepository) :
     override fun execute(command: ReactionsCommand): Observable<ReactionsEvent> = when (command) {
         ReactionsCommand.LoadReactions -> {
             reactionsRepository.getReactionsFromCache().toObservable()
-                .switchIfEmpty { reactionsRepository.getReactionsFromServer() }
+                .concatMap { reactionsResult ->
+                    if (reactionsResult.isSuccess && reactionsResult.getOrNull()
+                            ?.isNotEmpty() == true) {
+                        Observable.just(reactionsResult)
+                    } else {
+                        Observable.empty()
+                    }
+                }
+                .switchIfEmpty(reactionsRepository.getReactionsFromServer().toObservable())
                 .map { reactionsResult ->
                     reactionsResult.fold({ reactions ->
                         ReactionsEvent.Internal.ReactionsLoadingSuccess(

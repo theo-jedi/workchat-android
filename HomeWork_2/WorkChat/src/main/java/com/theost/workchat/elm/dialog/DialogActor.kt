@@ -32,7 +32,16 @@ class DialogActor(
                 command.resourceType
             ).concatMap { messagesResult ->
                 reactionsRepository.getReactionsFromCache().toObservable()
-                    .switchIfEmpty { reactionsRepository.getReactionsFromServer() }
+                    .concatMap { reactionsResult ->
+                        if (reactionsResult.isSuccess && reactionsResult.getOrNull()
+                                ?.isNotEmpty() == true
+                        ) {
+                            Observable.just(reactionsResult)
+                        } else {
+                            Observable.empty()
+                        }
+                    }
+                    .switchIfEmpty(reactionsRepository.getReactionsFromServer().toObservable())
                     .map { reactionsResult ->
                         messagesResult.fold({ messages ->
                             reactionsResult.fold({ reactions ->
@@ -55,7 +64,15 @@ class DialogActor(
                 command.messages.last().id
             ).toObservable().concatMap { messagesResult ->
                 reactionsRepository.getReactionsFromCache().toObservable()
-                    .switchIfEmpty { reactionsRepository.getReactionsFromServer() }
+                    .concatMap { reactionsResult ->
+                        if (reactionsResult.isSuccess && reactionsResult.getOrNull()
+                                ?.isNotEmpty() == true) {
+                            Observable.just(reactionsResult)
+                        } else {
+                            Observable.empty()
+                        }
+                    }
+                    .switchIfEmpty(reactionsRepository.getReactionsFromServer().toObservable())
                     .map { reactionsResult ->
                         messagesResult.fold({ messages ->
                             reactionsResult.fold({ reactions ->
@@ -79,7 +96,15 @@ class DialogActor(
                 command.messageId
             ).toObservable().concatMap { messageResult ->
                 reactionsRepository.getReactionsFromCache().toObservable()
-                    .switchIfEmpty { reactionsRepository.getReactionsFromServer() }
+                    .concatMap { reactionsResult ->
+                        if (reactionsResult.isSuccess && reactionsResult.getOrNull()
+                                ?.isNotEmpty() == true) {
+                            Observable.just(reactionsResult)
+                        } else {
+                            Observable.empty()
+                        }
+                    }
+                    .switchIfEmpty(reactionsRepository.getReactionsFromServer().toObservable())
                     .map { reactionsResult ->
                         messageResult.fold({ message ->
                             reactionsResult.fold({ reactions ->

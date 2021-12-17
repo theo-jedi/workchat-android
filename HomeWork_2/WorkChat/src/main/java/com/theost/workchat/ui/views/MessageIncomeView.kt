@@ -27,8 +27,8 @@ class MessageIncomeView @JvmOverloads constructor(
             val avatarImageView = (getChildAt(0) as CardView).getChildAt(0) as ImageView
             Glide.with(this)
                 .load(avatar)
-                .placeholder(R.drawable.ic_loading_avatar)
-                .error(R.drawable.ic_error_avatar)
+                .placeholder(R.drawable.ic_avatar_loading)
+                .error(R.drawable.ic_avatar_error)
                 .into(avatarImageView)
         }
     var name: String = ""
@@ -68,8 +68,8 @@ class MessageIncomeView @JvmOverloads constructor(
         val avatarImageView = (getChildAt(0) as CardView).getChildAt(0) as ImageView
         Glide.with(this)
             .load(avatar)
-            .placeholder(R.drawable.ic_loading_avatar)
-            .error(R.drawable.ic_error_avatar)
+            .placeholder(R.drawable.ic_avatar_loading)
+            .error(R.drawable.ic_avatar_error)
             .into(avatarImageView)
 
         reactionsLayout = getChildAt(2) as ReactionsLayout

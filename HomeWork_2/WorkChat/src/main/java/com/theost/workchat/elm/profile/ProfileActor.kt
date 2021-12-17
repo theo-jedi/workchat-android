@@ -12,7 +12,7 @@ class ProfileActor(
     override fun execute(command: ProfileCommand): Observable<ProfileEvent> = when (command) {
         is ProfileCommand.LoadProfile -> {
             usersRepository.getUserFromCache(command.userId).toObservable()
-                .switchIfEmpty { usersRepository.getUserFromServer(command.userId) }
+                .switchIfEmpty(usersRepository.getUserFromServer(command.userId).toObservable())
                 .concatMap { userResult ->
                     userResult.fold({ user ->
                         usersRepository.getUserPresence(user.id).map { presenceResult ->
