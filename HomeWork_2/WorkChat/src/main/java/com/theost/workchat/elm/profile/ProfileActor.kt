@@ -12,6 +12,13 @@ class ProfileActor(
     override fun execute(command: ProfileCommand): Observable<ProfileEvent> = when (command) {
         is ProfileCommand.LoadProfile -> {
             usersRepository.getUserFromCache(command.userId).toObservable()
+                .concatMap { userResult ->
+                    if (userResult.isSuccess) {
+                        Observable.just(userResult)
+                    } else {
+                        Observable.empty()
+                    }
+                }
                 .switchIfEmpty(usersRepository.getUserFromServer(command.userId).toObservable())
                 .concatMap { userResult ->
                     userResult.fold({ user ->
