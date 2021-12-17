@@ -8,6 +8,7 @@ import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
@@ -16,6 +17,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.theost.workchat.R
 import com.theost.workchat.application.WorkChatApp
 import com.theost.workchat.data.models.state.MessageAction
+import com.theost.workchat.data.models.state.MessageType
 import com.theost.workchat.databinding.FragmentDialogBinding
 import com.theost.workchat.di.ui.DaggerDialogComponent
 import com.theost.workchat.elm.dialog.*
@@ -26,6 +28,7 @@ import com.theost.workchat.ui.adapters.delegates.LoaderAdapterDelegate
 import com.theost.workchat.ui.adapters.delegates.MessageIncomeAdapterDelegate
 import com.theost.workchat.ui.adapters.delegates.MessageOutcomeAdapterDelegate
 import com.theost.workchat.ui.interfaces.WindowHolder
+import com.theost.workchat.utils.ContextUtils
 import com.theost.workchat.utils.PrefUtils
 import vivid.money.elmslie.android.base.ElmFragment
 import vivid.money.elmslie.core.store.Store
@@ -64,8 +67,15 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
             registerAdapterDataObserver(adapterDataObserver)
             addDelegate(LoaderAdapterDelegate())
             addDelegate(DateAdapterDelegate())
-            addDelegate(MessageIncomeAdapterDelegate({ messageId ->
-                store.accept(DialogEvent.Ui.OnMessageClicked(messageId))
+            addDelegate(MessageIncomeAdapterDelegate({ dialogAction, message ->
+                store.accept(
+                    DialogEvent.Ui.OnMessageClicked(
+                        dialogAction,
+                        message.messageType,
+                        message.id,
+                        message.content.toString()
+                    )
+                )
             }, { actionType, messageId, reaction ->
                 store.accept(
                     DialogEvent.Ui.OnReactionClicked(
@@ -73,8 +83,15 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
                     )
                 )
             }))
-            addDelegate(MessageOutcomeAdapterDelegate({ messageId ->
-                store.accept(DialogEvent.Ui.OnMessageClicked(messageId))
+            addDelegate(MessageOutcomeAdapterDelegate({ dialogAction, message ->
+                store.accept(
+                    DialogEvent.Ui.OnMessageClicked(
+                        dialogAction,
+                        message.messageType,
+                        message.id,
+                        message.content.toString()
+                    )
+                )
             }, { actionType, messageId, reaction ->
                 store.accept(
                     DialogEvent.Ui.OnReactionClicked(
@@ -85,11 +102,19 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
         }
 
         binding.inputLayout.actionButton.setOnClickListener {
-            store.accept(DialogEvent.Ui.OnMessageActionClicked(getMessageText()))
+            store.accept(DialogEvent.Ui.OnMessageSendClicked(getMessageText()))
         }
 
         binding.inputLayout.messageInput.addTextChangedListener { editable ->
             store.accept(DialogEvent.Ui.OnInputTextChanged(editable.toString().trim()))
+        }
+
+        binding.inputLayout.linkedClose.setOnClickListener {
+            store.accept(DialogEvent.Ui.OnCloseEdit)
+        }
+
+        binding.inputLayout.editButton.setOnClickListener {
+            store.accept(DialogEvent.Ui.OnMessageEditClicked(binding.inputLayout.messageInput.text.toString()))
         }
 
         binding.messagesList.addOnLayoutChangeListener { _, _, _, _, newBottom, _, _, _, oldBottom ->
@@ -130,19 +155,58 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
             is DialogEffect.ShowSendingError -> showError()
             is DialogEffect.ShowSendingMessageLoading -> showSendingLoading()
             is DialogEffect.HideSendingMessageLoading -> hideSendingLoading()
+            is DialogEffect.ShowEditingMessageLoading -> showEditingLoading()
+            is DialogEffect.HideEditingMessageLoading -> hideEditingLoading()
             is DialogEffect.ClearSendingMessageContent -> clearMessageContent()
             is DialogEffect.ShowDialogLoading -> showDialogLoading()
             is DialogEffect.HideDialogLoading -> hideDialogLoading()
             is DialogEffect.ShowEmpty -> showEmptyView()
             is DialogEffect.HideEmpty -> hideEmptyView()
-            is DialogEffect.ShowReactionPicker -> showReactionPicker(effect.messageId)
             is DialogEffect.ShowTitle -> configureTitle(effect.channel, effect.topic)
             is DialogEffect.ShowSendMessageAction -> showSendMessageAction()
             is DialogEffect.ShowAttachMessageAction -> showAttachMessageAction()
             is DialogEffect.ScrollToBottom -> scrollToBottom()
             is DialogEffect.ScrollToTop -> scrollToTop(effect.position)
             is DialogEffect.AdjustScroll -> adjustScroll(effect.scrollOffset)
+            is DialogEffect.ShowCopySuccess -> showCopySuccess()
+            is DialogEffect.ShowCopyError -> showCopyError()
+            is DialogEffect.CopyMessage -> copyMessage(effect.content)
+            is DialogEffect.ShowMessageEdit -> showMessageEdit(effect.content)
+            is DialogEffect.HideMessageEdit -> hideMessageEdit()
+            is DialogEffect.ShowReactionPicker -> showReactionPicker(effect.messageId)
+            is DialogEffect.ShowActionsPicker -> showActionsPicker(
+                effect.messageType,
+                effect.messageId,
+                effect.content
+            )
         }
+    }
+
+    private fun copyMessage(content: String) {
+        context?.let { context ->
+            val isCopied = ContextUtils.copyToClipboard(context, "Message", content)
+            store.accept(DialogEvent.Ui.OnMessageCopy(isCopied))
+        }
+    }
+
+    private fun showMessageEdit(content: String) {
+        binding.inputLayout.actionButton.visibility = View.INVISIBLE
+        binding.inputLayout.linkedMessage.visibility = View.VISIBLE
+        binding.inputLayout.linkedIcon.visibility = View.VISIBLE
+        binding.inputLayout.linkedClose.visibility = View.VISIBLE
+        binding.inputLayout.editButton.visibility = View.VISIBLE
+
+        binding.inputLayout.linkedMessage.text = content
+        binding.inputLayout.messageInput.setText(content)
+        binding.inputLayout.messageInput.setSelection(content.length)
+    }
+
+    private fun hideMessageEdit() {
+        binding.inputLayout.linkedMessage.visibility = View.GONE
+        binding.inputLayout.linkedIcon.visibility = View.GONE
+        binding.inputLayout.linkedClose.visibility = View.GONE
+        binding.inputLayout.editButton.visibility = View.INVISIBLE
+        binding.inputLayout.actionButton.visibility = View.VISIBLE
     }
 
     private fun showSendMessageAction() {
@@ -184,11 +248,25 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
     private fun showSendingLoading() {
         binding.inputLayout.actionButton.visibility = View.INVISIBLE
         binding.inputLayout.loadingBar.visibility = View.VISIBLE
+        binding.inputLayout.messageInput.isEnabled = false
     }
 
     private fun hideSendingLoading() {
         binding.inputLayout.actionButton.visibility = View.VISIBLE
         binding.inputLayout.loadingBar.visibility = View.GONE
+        binding.inputLayout.messageInput.isEnabled = true
+    }
+
+    private fun showEditingLoading() {
+        binding.inputLayout.editButton.visibility = View.INVISIBLE
+        binding.inputLayout.loadingBar.visibility = View.VISIBLE
+        binding.inputLayout.messageInput.isEnabled = false
+    }
+
+    private fun hideEditingLoading() {
+        binding.inputLayout.editButton.visibility = View.VISIBLE
+        binding.inputLayout.loadingBar.visibility = View.GONE
+        binding.inputLayout.messageInput.isEnabled = true
     }
 
     private fun showDialogLoading() {
@@ -207,6 +285,18 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
         binding.inputLayout.messageInput.animate().alpha(1.0f)
         binding.inputLayout.actionButton.isEnabled = true
         binding.inputLayout.messageInput.isEnabled = true
+    }
+
+    private fun showCopySuccess() {
+        context?.let { context ->
+            Toast.makeText(context, getString(R.string.copied), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun showCopyError() {
+        context?.let { context ->
+            Toast.makeText(context, getString(R.string.error), Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun showError() {
@@ -249,6 +339,14 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
             )
         }
         binding.toolbarLayout.toolbar.title = title
+    }
+
+    private fun showActionsPicker(messageType: MessageType, messageId: Int, content: String) {
+        activity?.let { activity ->
+            ActionsFragment.newFragment(messageType) { dialogAction ->
+                store.accept(DialogEvent.Ui.OnDialogActionClicked(dialogAction, messageId, content))
+            }.show(activity.supportFragmentManager, null)
+        }
     }
 
     private fun showReactionPicker(messageId: Int) {

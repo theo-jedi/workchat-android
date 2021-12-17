@@ -114,7 +114,7 @@ object DialogItemHelper {
             listItems.add(message)
 
             if (i == messages.lastIndex || DateUtils.notSameDay(message.date, messages[i + 1].date)) {
-                listItems.add(ListDate(listItems.size, DateUtils.getDayDate(message.date)))
+                listItems.add(ListDate(DateUtils.getDayDate(message.date)))
             }
         }
 

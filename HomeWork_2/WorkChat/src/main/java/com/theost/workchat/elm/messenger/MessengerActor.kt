@@ -8,11 +8,13 @@ class MessengerActor(
     private val usersRepository: UsersRepository
 ) : ActorCompat<MessengerCommand, MessengerEvent> {
     override fun execute(command: MessengerCommand): Observable<MessengerEvent> = when (command) {
-        MessengerCommand.LoadUser -> usersRepository.getUser().map { result ->
-            result.fold(
-                { user -> MessengerEvent.Internal.DataLoadingSuccess(user.id) },
-                { MessengerEvent.Internal.DataLoadingError(it) }
-            )
-        }
+        MessengerCommand.LoadUser -> usersRepository.getUserFromCache().toObservable()
+            .switchIfEmpty { usersRepository.getUserFromServer() }
+            .map { result ->
+                result.fold(
+                    { user -> MessengerEvent.Internal.DataLoadingSuccess(user.id) },
+                    { MessengerEvent.Internal.DataLoadingError(it) }
+                )
+            }
     }
 }

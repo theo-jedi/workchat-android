@@ -6,6 +6,7 @@ import com.theost.workchat.database.db.CacheDatabase
 import com.theost.workchat.database.entities.mapToMessage
 import com.theost.workchat.database.entities.mapToMessageEntity
 import com.theost.workchat.network.api.Api
+import com.theost.workchat.network.dto.DeleteMessageResponse
 import com.theost.workchat.network.dto.mapToMessage
 import com.theost.workchat.utils.StringUtils
 import io.reactivex.Completable
@@ -42,16 +43,18 @@ class MessagesRepository(private val service: Api, database: CacheDatabase) {
             narrow = StringUtils.namesToNarrow(channelName, topicName)
         ).map { response ->
             Result.success(response.messages
-                .sortedBy { message -> message.timestamp }
+                .sortedByDescending { message -> message.timestamp }
                 .map { messageDto -> messageDto.mapToMessage() }
-                .reversed()
             )
         }.onErrorReturn {
             Result.failure(it)
         }.doOnSuccess { result ->
             if (result.isSuccess) {
                 val messages = result.getOrNull()
-                if (messages != null) addMessagesToDatabase(channelName, topicName, messages)
+                if (messages != null) {
+                    //removeMessagesFromDatabase(channelName, topicName)
+                    addMessagesToDatabase(channelName, topicName, messages)
+                }
             }
         }.subscribeOn(Schedulers.io())
     }
@@ -68,9 +71,8 @@ class MessagesRepository(private val service: Api, database: CacheDatabase) {
             anchor = lastMessageId
         ).map { response ->
             Result.success(response.messages
-                .sortedBy { messageDto -> messageDto.timestamp }
+                .sortedByDescending { messageDto -> messageDto.timestamp }
                 .map { messageDto -> messageDto.mapToMessage() }
-                .reversed()
             )
         }.onErrorReturn {
             Result.failure(it)
@@ -111,10 +113,9 @@ class MessagesRepository(private val service: Api, database: CacheDatabase) {
         return messagesDao.getDialogMessages(channelName, topicName)
             .map { messages ->
                 Result.success(messages
-                    .sortedBy { messageEntity -> messageEntity.time }
-                    .takeLast(CACHE_DIALOG_SIZE)
+                    .sortedByDescending { messageEntity -> messageEntity.time }
+                    .take(CACHE_DIALOG_SIZE)
                     .map { message -> message.mapToMessage() }
-                    .reversed()
                 )
             }
             .onErrorReturn { Result.failure(it) }
@@ -126,9 +127,21 @@ class MessagesRepository(private val service: Api, database: CacheDatabase) {
         topicName: String,
         messages: List<Message>
     ) {
-        messagesDao.insertAll(messages.map { message -> message.mapToMessageEntity(channelName, topicName) })
-            .subscribeOn(Schedulers.io())
-            .subscribe()
+        messagesDao.insertAll(messages.map { message ->
+            message.mapToMessageEntity(
+                channelName,
+                topicName
+            )
+        }).subscribeOn(Schedulers.io()).subscribe()
+    }
+
+    private fun removeMessagesFromDatabase(channelName: String, topicName: String) {
+        messagesDao.deleteTopicMessages(channelName, topicName)
+            .subscribeOn(Schedulers.io()).subscribe()
+    }
+
+    private fun removeMessageFromDatabase(messageId: Int) {
+        messagesDao.delete(messageId).subscribeOn(Schedulers.io()).subscribe()
     }
 
     fun addMessage(channelName: String, topicName: String, content: String): Completable {
@@ -137,6 +150,19 @@ class MessagesRepository(private val service: Api, database: CacheDatabase) {
             topic = topicName,
             content = content
         ).subscribeOn(Schedulers.io())
+    }
+
+    fun editMessage(messageId: Int, content: String): Completable {
+        return service.editMessage(
+            messageId = messageId,
+            content = content
+        ).subscribeOn(Schedulers.io())
+    }
+
+    fun deleteMessage(messageId: Int): Single<DeleteMessageResponse> {
+        return service.deleteMessage(messageId = messageId)
+            .doOnSuccess { removeMessageFromDatabase(messageId = messageId) }
+            .subscribeOn(Schedulers.io())
     }
 
     companion object {

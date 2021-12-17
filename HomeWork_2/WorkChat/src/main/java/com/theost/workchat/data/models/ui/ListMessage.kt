@@ -16,5 +16,5 @@ data class ListMessage(
     val messageType: MessageType
 ) : DelegateItem {
     override fun id(): Any = id
-    override fun content(): Any = reactions
+    override fun content(): Any = content.toString() + reactions.toString()
 }

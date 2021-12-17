@@ -51,18 +51,7 @@ class UsersRepository(private val service: Api, database: CacheDatabase) {
             .subscribeOn(Schedulers.io())
     }
 
-    fun getUser(id: Int = -1): Observable<Result<User>> {
-        return if (id < 0) {
-            getUserFromServer(id).toObservable()
-        } else {
-            return Observable.concat(
-                getUserFromCache(id).toObservable(),
-                getUserFromServer(id).toObservable()
-            )
-        }
-    }
-
-    private fun getUserFromServer(id: Int): Single<Result<User>> {
+    fun getUserFromServer(id: Int = -1): Single<Result<User>> {
         return if (id < 0) {
             service.getCurrentUser()
                 .map { userDto -> Result.success(userDto.mapToUser()) }
@@ -88,7 +77,7 @@ class UsersRepository(private val service: Api, database: CacheDatabase) {
         }
     }
 
-    private fun getUserFromCache(id: Int): Single<Result<User>> {
+    fun getUserFromCache(id: Int = -1): Single<Result<User>> {
         return usersDao.getUser(id)
             .map { userEntity -> Result.success(userEntity.mapToUser()) }
             .onErrorReturn { Result.failure(it) }

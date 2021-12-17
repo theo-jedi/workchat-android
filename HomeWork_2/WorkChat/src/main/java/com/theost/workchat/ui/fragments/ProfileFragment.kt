@@ -81,10 +81,11 @@ class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileState>()
             binding.userAbout.text = user.about
 
             when (user.status) {
-                UserStatus.ONLINE -> binding.userStatusOnline.visibility = View.VISIBLE
-                UserStatus.IDLE -> binding.userStatusIdle.visibility = View.VISIBLE
+                UserStatus.ONLINE -> showStatus(binding.userStatusOnline)
+                UserStatus.IDLE -> showStatus(binding.userStatusIdle)
                 UserStatus.OFFLINE -> {
-                    /* do nothing */
+                    hideStatus(binding.userStatusOnline)
+                    hideStatus(binding.userStatusIdle)
                 }
             }
         }
@@ -98,6 +99,16 @@ class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileState>()
             is ProfileEffect.ShowLoading -> showLoading()
             is ProfileEffect.HideLoading -> hideLoading()
         }
+    }
+
+    private fun showStatus(statusView: View) {
+        statusView.visibility = View.VISIBLE
+        statusView.alpha = 0f
+        statusView.animate().alpha(1f)
+    }
+
+    private fun hideStatus(statusView: View) {
+        statusView.animate().alpha(0f).withEndAction { statusView.visibility = View.GONE }
     }
 
     private fun hideLoading() {

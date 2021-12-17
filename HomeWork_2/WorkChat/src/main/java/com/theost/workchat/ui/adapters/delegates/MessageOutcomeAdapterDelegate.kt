@@ -6,6 +6,7 @@ import androidx.core.view.size
 import androidx.recyclerview.widget.RecyclerView
 import com.theost.workchat.R
 import com.theost.workchat.data.models.alias.ReactionListener
+import com.theost.workchat.data.models.state.DialogAction
 import com.theost.workchat.data.models.state.MessageAction
 import com.theost.workchat.data.models.state.MessageType
 import com.theost.workchat.data.models.ui.ListMessage
@@ -16,15 +17,20 @@ import com.theost.workchat.ui.views.MessageOutcomeView
 import com.theost.workchat.ui.views.ReactionView
 
 class MessageOutcomeAdapterDelegate(
-    private val messageListener: (messageId: Int) -> Unit,
+    private val messageListener: (dialogAction: DialogAction, message: ListMessage) -> Unit,
     private val reactionListener: ReactionListener
 ) : AdapterDelegate {
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
-        val binding = ItemMessageOutcomeBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding =
+            ItemMessageOutcomeBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ViewHolder(binding.root, messageListener, reactionListener)
     }
 
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, item: DelegateItem, position: Int) {
+    override fun onBindViewHolder(
+        holder: RecyclerView.ViewHolder,
+        item: DelegateItem,
+        position: Int
+    ) {
         (holder as ViewHolder).bind(item as ListMessage)
     }
 
@@ -33,7 +39,7 @@ class MessageOutcomeAdapterDelegate(
 
     class ViewHolder(
         private val messageOutcomeView: MessageOutcomeView,
-        private val messageListener: (messageId: Int) -> Unit,
+        private val messageListener: (dialogAction: DialogAction, message: ListMessage) -> Unit,
         private val reactionListener: ReactionListener
     ) : RecyclerView.ViewHolder(messageOutcomeView) {
 
@@ -43,7 +49,7 @@ class MessageOutcomeAdapterDelegate(
 
             val reactionsLayout = messageOutcomeView.reactionsLayout.apply { removeAllViews() }
             messageOutcomeView.messageLayout.setOnLongClickListener {
-                messageListener(listMessage.id)
+                messageListener(DialogAction.SHOW_ACTIONS_PICKER, listMessage)
                 true
             }
 
@@ -51,7 +57,14 @@ class MessageOutcomeAdapterDelegate(
             if (listMessage.reactions.isNotEmpty()) {
                 val addReactionView = LayoutInflater.from(messageOutcomeView.context)
                     .inflate(R.layout.item_add_reaction, messageOutcomeView, false)
-                    .apply { setOnClickListener { messageListener(listMessage.id) } }
+                    .apply {
+                        setOnClickListener {
+                            messageListener(
+                                DialogAction.SHOW_REACTION_PICKER,
+                                listMessage
+                            )
+                        }
+                    }
                 reactionsLayout.addView(addReactionView)
             }
 
@@ -69,7 +82,11 @@ class MessageOutcomeAdapterDelegate(
                         if (!reactionView.isSelected) {
                             reactionListener(MessageAction.REACTION_ADD, listMessage.id, reaction)
                         } else {
-                            reactionListener(MessageAction.REACTION_REMOVE, listMessage.id, reaction)
+                            reactionListener(
+                                MessageAction.REACTION_REMOVE,
+                                listMessage.id,
+                                reaction
+                            )
                         }
                     }
                 }

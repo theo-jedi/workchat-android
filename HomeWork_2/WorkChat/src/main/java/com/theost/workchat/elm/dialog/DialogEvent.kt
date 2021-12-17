@@ -1,6 +1,8 @@
 package com.theost.workchat.elm.dialog
 
+import com.theost.workchat.data.models.state.DialogAction
 import com.theost.workchat.data.models.state.MessageAction
+import com.theost.workchat.data.models.state.MessageType
 import com.theost.workchat.data.models.state.UpdateType
 import com.theost.workchat.data.models.ui.ListMessage
 import com.theost.workchat.ui.interfaces.DelegateItem
@@ -8,11 +10,25 @@ import com.theost.workchat.ui.interfaces.DelegateItem
 sealed class DialogEvent {
     sealed class Ui : DialogEvent() {
         object LoadMessages : Ui()
-        object OnItemsInserted: Ui()
+        object OnItemsInserted : Ui()
+        object OnCloseEdit : Ui()
 
         data class LoadNextMessages(val savedPosition: Int) : Ui()
 
-        data class OnMessageClicked(val messageId: Int) : Ui()
+        data class OnMessageClicked(
+            val dialogAction: DialogAction,
+            val messageType: MessageType,
+            val messageId: Int,
+            val content: String
+        ) : Ui()
+
+        data class OnMessageEditClicked(val content: String) : Ui()
+
+        data class OnDialogActionClicked(
+            val dialogAction: DialogAction,
+            val messageId: Int,
+            val content: String
+        ) : Ui()
 
         data class OnReactionClicked(
             val actionType: MessageAction,
@@ -23,10 +39,9 @@ sealed class DialogEvent {
         ) : Ui()
 
         data class OnInputTextChanged(val text: String) : Ui()
-
         data class OnLayoutChanged(val scrollOffset: Int) : Ui()
-
-        data class OnMessageActionClicked(val content: String) : Ui()
+        data class OnMessageSendClicked(val content: String) : Ui()
+        data class OnMessageCopy(val isCopied: Boolean) : Ui()
     }
 
     sealed class Internal : DialogEvent() {
@@ -41,9 +56,13 @@ sealed class DialogEvent {
             val updateType: UpdateType
         ) : Internal()
 
-        data class ReactionSendingSuccess(val messageId: Int) : Internal()
         object MessageSendingSuccess : Internal()
 
+        data class MessageEditingSuccess(val messageId: Int) : Internal()
+        data class MessageEditingError(val error: Throwable) : Internal()
+        data class MessageDeletionSuccess(val messageId: Int) : Internal()
+        data class MessageDeletionError(val error: Throwable) : Internal()
+        data class ReactionSendingSuccess(val messageId: Int) : Internal()
         data class PaginationLoadingError(val error: Throwable) : Internal()
         data class ReactionSendingError(val error: Throwable) : Internal()
         data class DataLoadingError(val error: Throwable) : Internal()

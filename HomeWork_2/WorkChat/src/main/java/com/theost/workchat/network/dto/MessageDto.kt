@@ -16,6 +16,14 @@ data class GetMessagesResponse(
 )
 
 @Serializable
+data class DeleteMessageResponse(
+    @SerialName("result")
+    val result: String,
+    @SerialName("msg")
+    val message: String
+)
+
+@Serializable
 data class MessageDto(
     @SerialName("id")
     val id: Int,

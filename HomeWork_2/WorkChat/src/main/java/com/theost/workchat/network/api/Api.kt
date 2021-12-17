@@ -72,6 +72,21 @@ interface Api {
         type: String = "stream"
     ): Completable
 
+    @FormUrlEncoded
+    @PATCH("messages/{msg_id}")
+    fun editMessage(
+        @Path("msg_id")
+        messageId: Int,
+        @Field("content")
+        content: String,
+    ): Completable
+
+    @DELETE("messages/{msg_id}")
+    fun deleteMessage(
+        @Path("msg_id")
+        messageId: Int
+    ): Single<DeleteMessageResponse>
+
     @GET("/static/generated/emoji/emoji_codes.json")
     fun getReactions(): Single<GetReactionsResponse>
 

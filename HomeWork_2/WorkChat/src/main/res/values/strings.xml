@@ -21,5 +21,13 @@
     <string name="hide">Скрыть</string>
     <string name="retry">Повторить</string>
 
+    <string name="reaction">Реакция</string>
+    <string name="copy">Копировать</string>
+    <string name="edit">Редактировать</string>
+    <string name="delete">Удалить</string>
+
+    <string name="copied">Скопированно</string>
+    <string name="error">Ошибка</string>
+
     <string name="network_error">Ошибка. Проверьте подключение к интернету!</string>
 </resources>

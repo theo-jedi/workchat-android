@@ -11,33 +11,35 @@ class ProfileActor(
 ) : ActorCompat<ProfileCommand, ProfileEvent> {
     override fun execute(command: ProfileCommand): Observable<ProfileEvent> = when (command) {
         is ProfileCommand.LoadProfile -> {
-            usersRepository.getUser(command.userId).concatMap { userResult ->
-                userResult.fold({ user ->
-                    usersRepository.getUserPresence(user.id).map { presenceResult ->
-                        presenceResult.fold({ status ->
-                            ProfileEvent.Internal.ProfileLoadingSuccess(
-                                ListUser(
-                                    id = user.id,
-                                    name = user.name,
-                                    about = user.about,
-                                    avatarUrl = user.avatarUrl,
-                                    status = status
+            usersRepository.getUserFromCache(command.userId).toObservable()
+                .switchIfEmpty { usersRepository.getUserFromServer(command.userId) }
+                .concatMap { userResult ->
+                    userResult.fold({ user ->
+                        usersRepository.getUserPresence(user.id).map { presenceResult ->
+                            presenceResult.fold({ status ->
+                                ProfileEvent.Internal.ProfileLoadingSuccess(
+                                    ListUser(
+                                        id = user.id,
+                                        name = user.name,
+                                        about = user.about,
+                                        avatarUrl = user.avatarUrl,
+                                        status = status
+                                    )
                                 )
-                            )
-                        }, {
-                            ProfileEvent.Internal.ProfileLoadingSuccess(
-                                ListUser(
-                                    id = user.id,
-                                    name = user.name,
-                                    about = user.about,
-                                    avatarUrl = user.avatarUrl,
-                                    status = UserStatus.OFFLINE
+                            }, {
+                                ProfileEvent.Internal.ProfileLoadingSuccess(
+                                    ListUser(
+                                        id = user.id,
+                                        name = user.name,
+                                        about = user.about,
+                                        avatarUrl = user.avatarUrl,
+                                        status = UserStatus.OFFLINE
+                                    )
                                 )
-                            )
-                        })
-                    }
-                }, { error -> Observable.just(ProfileEvent.Internal.DataLoadingError(error)) })
-            }
+                            })
+                        }
+                    }, { error -> Observable.just(ProfileEvent.Internal.DataLoadingError(error)) })
+                }
         }
     }
 }

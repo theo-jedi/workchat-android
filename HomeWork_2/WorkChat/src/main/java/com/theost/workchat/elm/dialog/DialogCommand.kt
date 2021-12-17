@@ -39,6 +39,13 @@ sealed class DialogCommand {
         val content: String
     ) : DialogCommand()
 
+    data class EditMessage(
+        val messageId: Int,
+        val content: String
+    ) : DialogCommand()
+
+    data class DeleteMessage(val messageId: Int) : DialogCommand()
+
     data class AddReaction(val messageId: Int, val reactionName: String) : DialogCommand()
 
     data class RemoveReaction(

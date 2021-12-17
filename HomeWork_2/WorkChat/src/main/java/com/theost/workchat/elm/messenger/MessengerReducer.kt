@@ -12,7 +12,7 @@ class MessengerReducer :
             state { copy(status = ResourceStatus.SUCCESS, currentUserId = event.userId) }
         }
         is MessengerEvent.Internal.DataLoadingError -> {
-            /* do nothing */
+            Log.d("messenger_reducer", "User loading error")
         }
         is MessengerEvent.Ui.OnBackPress -> {
             effects { +MessengerEffect.HideFloatingViews }

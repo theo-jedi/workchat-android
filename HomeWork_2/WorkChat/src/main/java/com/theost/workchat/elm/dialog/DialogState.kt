@@ -14,6 +14,8 @@ data class DialogState(
     val inputStatus: InputStatus = InputStatus.EMPTY,
     val items: List<DelegateItem> = emptyList(),
     val messages: List<ListMessage> = emptyList(),
+    val editedMessageId: Int = -1,
+    val editedMessageContent: String = "",
     val channelName: String = "",
     val topicName: String = "",
     val currentUserId: Int = -1,

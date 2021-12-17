@@ -22,7 +22,13 @@ interface MessagesDao {
     fun insertAll(messages: List<MessageEntity>): Completable
 
     @Delete
-    fun delete(topic: MessageEntity): Completable
+    fun delete(message: MessageEntity): Completable
+
+    @Query("DELETE FROM messages WHERE id = :messageId")
+    fun delete(messageId: Int): Completable
+
+    @Query("DELETE FROM messages WHERE channel_name = :channelName AND topic_name = :topicName")
+    fun deleteTopicMessages(channelName: String, topicName: String): Completable
 
     @Query("DELETE FROM messages")
     fun deleteAll(): Completable
