@@ -33,7 +33,7 @@
         android:layout_gravity="bottom|end"
         android:background="@drawable/ic_status_online"
         android:elevation="2dp"
-        android:visibility="gone"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/avatarLayout" />
 
@@ -44,7 +44,7 @@
         android:layout_gravity="bottom|end"
         android:background="@drawable/ic_status_idle"
         android:elevation="2dp"
-        android:visibility="gone"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/avatarLayout" />
 

@@ -43,7 +43,10 @@ class PeopleAdapterDelegate(private val clickListener: (userId: Int) -> Unit) : 
             when (listItem.status) {
                 UserStatus.ONLINE -> binding.userStatusOnline.visibility = View.VISIBLE
                 UserStatus.IDLE -> binding.userStatusIdle.visibility = View.VISIBLE
-                else -> {}
+                else -> {
+                    binding.userStatusOnline.visibility = View.INVISIBLE
+                    binding.userStatusIdle.visibility = View.INVISIBLE
+                }
             }
         }
 
