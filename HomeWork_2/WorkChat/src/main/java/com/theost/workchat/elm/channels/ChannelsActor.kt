@@ -65,15 +65,25 @@ class ChannelsActor(
         is ChannelsCommand.LoadTopics -> {
             topicsRepository.getTopics(channelId = command.channelId).map { result ->
                 result.fold({ topics ->
-                    ChannelsEvent.Internal.TopicsLoadingSuccess(
-                        topics.map { topic ->
-                            ListTopic(
-                                uid = topic.uid,
-                                name = topic.name,
-                                channelId = topic.channelId
+                    var topicPosition = -1
+                    val listTopics = mutableListOf<ListTopic>().apply {
+                        topics.forEachIndexed { index, topic ->
+                            if (index == 0 || topics[index].channelId == topics[index - 1].channelId) {
+                                topicPosition += 1
+                            } else {
+                                topicPosition = 0
+                            }
+                            add(
+                                ListTopic(
+                                    uid = topic.uid,
+                                    name = topic.name,
+                                    channelId = topic.channelId,
+                                    position = topicPosition
+                                )
                             )
                         }
-                    )
+                    }.toList()
+                    ChannelsEvent.Internal.TopicsLoadingSuccess(listTopics)
                 }, { error -> ChannelsEvent.Internal.DataLoadingError(error) })
             }
         }
