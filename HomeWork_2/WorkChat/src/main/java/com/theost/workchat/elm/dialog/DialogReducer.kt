@@ -147,7 +147,8 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
         is DialogEvent.Ui.LoadNextMessages -> {
             if (state.paginationStatus != PaginationStatus.FULLY
                 && state.status != ResourceStatus.LOADING
-                && event.savedPosition != state.savedPosition) {
+                && event.savedPosition != state.savedPosition
+            ) {
                 state {
                     copy(
                         status = ResourceStatus.LOADING,
@@ -237,9 +238,6 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
                     { /* do nothing */ }
                 }
             }
-        }
-        is DialogEvent.Ui.OnLayoutChanged -> {
-            effects { +DialogEffect.AdjustScroll(event.scrollOffset) }
         }
         is DialogEvent.Ui.OnMessageClicked -> {
             when (event.dialogAction) {

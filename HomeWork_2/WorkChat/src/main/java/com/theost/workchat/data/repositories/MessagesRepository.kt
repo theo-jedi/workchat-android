@@ -52,7 +52,7 @@ class MessagesRepository(private val service: Api, database: CacheDatabase) {
             if (result.isSuccess) {
                 val messages = result.getOrNull()
                 if (messages != null) {
-                    //removeMessagesFromDatabase(channelName, topicName)
+                    removeMessagesFromDatabase(channelName, topicName)
                     addMessagesToDatabase(channelName, topicName, messages)
                 }
             }

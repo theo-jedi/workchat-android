@@ -39,7 +39,6 @@ sealed class DialogEvent {
         ) : Ui()
 
         data class OnInputTextChanged(val text: String) : Ui()
-        data class OnLayoutChanged(val scrollOffset: Int) : Ui()
         data class OnMessageSendClicked(val content: String) : Ui()
         data class OnMessageCopy(val isCopied: Boolean) : Ui()
     }
