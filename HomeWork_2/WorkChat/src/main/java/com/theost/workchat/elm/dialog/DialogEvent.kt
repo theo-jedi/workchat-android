@@ -12,6 +12,7 @@ sealed class DialogEvent {
         object LoadMessages : Ui()
         object OnItemsInserted : Ui()
         object OnCloseEdit : Ui()
+        object OnDownClicked : Ui()
 
         data class LoadNextMessages(val savedPosition: Int) : Ui()
 
@@ -38,6 +39,7 @@ sealed class DialogEvent {
             val reactionType: String
         ) : Ui()
 
+        data class OnScrolled(val position: Int, val offset: Int) : Ui()
         data class OnInputTextChanged(val text: String) : Ui()
         data class OnMessageSendClicked(val content: String) : Ui()
         data class OnMessageCopy(val isCopied: Boolean) : Ui()

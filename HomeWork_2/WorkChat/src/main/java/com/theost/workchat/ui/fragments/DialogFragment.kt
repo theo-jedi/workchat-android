@@ -12,6 +12,7 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.theost.workchat.R
@@ -50,6 +51,15 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
         override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
             super.onItemRangeInserted(positionStart, itemCount)
             store.accept(DialogEvent.Ui.OnItemsInserted)
+        }
+    }
+
+    private val scrollListener = object : RecyclerView.OnScrollListener() {
+        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+            super.onScrolled(recyclerView, dx, dy)
+            val layoutManager = binding.messagesList.layoutManager as LinearLayoutManager
+            val position = layoutManager.findFirstVisibleItemPosition()
+            store.accept(DialogEvent.Ui.OnScrolled(position, dy))
         }
     }
 
@@ -100,6 +110,10 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
                 )
             }))
         }
+
+        binding.messagesList.addOnScrollListener(scrollListener)
+
+        binding.downButton.setOnClickListener { store.accept(DialogEvent.Ui.OnDownClicked) }
 
         binding.inputLayout.actionButton.setOnClickListener {
             store.accept(DialogEvent.Ui.OnMessageSendClicked(getMessageText()))
@@ -161,6 +175,7 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
             is DialogEffect.ShowTitle -> configureTitle(effect.channel, effect.topic)
             is DialogEffect.ShowSendMessageAction -> showSendMessageAction()
             is DialogEffect.ShowAttachMessageAction -> showAttachMessageAction()
+            is DialogEffect.ScrollSmoothToBottom -> scrollSmoothToBottom()
             is DialogEffect.ScrollToBottom -> scrollToBottom()
             is DialogEffect.ScrollToTop -> scrollToTop(effect.position)
             is DialogEffect.ShowCopySuccess -> showCopySuccess()
@@ -168,6 +183,8 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
             is DialogEffect.CopyMessage -> copyMessage(effect.content)
             is DialogEffect.ShowMessageEdit -> showMessageEdit(effect.content)
             is DialogEffect.HideMessageEdit -> hideMessageEdit()
+            is DialogEffect.ShowDownButton -> showDownButton()
+            is DialogEffect.HideDownButton -> hideDownButton()
             is DialogEffect.ShowReactionPicker -> showReactionPicker(effect.messageId)
             is DialogEffect.ShowActionsPicker -> showActionsPicker(
                 effect.messageType,
@@ -214,6 +231,18 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
 
     private fun getMessageText(): String {
         return binding.inputLayout.messageInput.text.toString().trim()
+    }
+
+    private fun showDownButton() {
+        binding.downButton.visibility = View.VISIBLE
+    }
+
+    private fun hideDownButton() {
+        binding.downButton.visibility = View.GONE
+    }
+
+    private fun scrollSmoothToBottom() {
+        binding.messagesList.smoothScrollToPosition(0)
     }
 
     private fun scrollToBottom() {
@@ -359,6 +388,7 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
     override fun onDestroy() {
         super.onDestroy()
         adapter.unregisterAdapterDataObserver(adapterDataObserver)
+        binding.messagesList.removeOnScrollListener(scrollListener)
         _binding = null
     }
 

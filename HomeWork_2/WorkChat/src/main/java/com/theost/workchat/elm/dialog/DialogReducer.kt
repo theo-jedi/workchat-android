@@ -4,6 +4,7 @@ import android.util.Log
 import com.theost.workchat.data.models.state.*
 import com.theost.workchat.data.models.ui.ListLoader
 import vivid.money.elmslie.core.store.dsl_reducer.DslReducer
+import kotlin.math.absoluteValue
 
 class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogCommand>() {
     override fun Result.reduce(event: DialogEvent): Any = when (event) {
@@ -222,6 +223,31 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
                 }
             }
         }
+        is DialogEvent.Ui.OnDownClicked -> {
+            state { copy(downStatus = DownStatus.SCROLLING) }
+            effects { +DialogEffect.HideDownButton }
+            effects { +DialogEffect.ScrollSmoothToBottom }
+        }
+        is DialogEvent.Ui.OnScrolled -> {
+            if (event.position <= DOWN_BUTTON_POSITION) {
+                state { copy(downStatus = DownStatus.HIDDEN, scrollOffset = 0) }
+                effects { +DialogEffect.HideDownButton }
+            } else if ((state.scrollOffset + event.offset).absoluteValue > DOWN_BUTTON_SCROLL) {
+                if (state.scrollOffset + event.offset > 0) {
+                    if (state.downStatus != DownStatus.SCROLLING) {
+                        state { copy(downStatus = DownStatus.VISIBLE, scrollOffset = 0) }
+                        effects { +DialogEffect.ShowDownButton }
+                    } else {
+                        { /* do nothing */ }
+                    }
+                } else {
+                    state { copy(downStatus = DownStatus.HIDDEN, scrollOffset = 0) }
+                    effects { +DialogEffect.HideDownButton }
+                }
+            } else {
+                state { copy(scrollOffset = state.scrollOffset + event.offset) }
+            }
+        }
         is DialogEvent.Ui.OnInputTextChanged -> {
             if (event.text.isEmpty()) {
                 if (state.inputStatus == InputStatus.FILLED) {
@@ -296,5 +322,10 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
             effects { +DialogEffect.HideMessageEdit }
             effects { +DialogEffect.ClearSendingMessageContent }
         }
+    }
+
+    companion object {
+        const val DOWN_BUTTON_SCROLL = 100
+        const val DOWN_BUTTON_POSITION = 2
     }
 }

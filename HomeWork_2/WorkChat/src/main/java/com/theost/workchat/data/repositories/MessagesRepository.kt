@@ -167,7 +167,7 @@ class MessagesRepository(private val service: Api, database: CacheDatabase) {
 
     companion object {
         private const val CACHE_DIALOG_SIZE = 50
-        private const val DIALOG_PAGE_SIZE = 20
+        private const val DIALOG_PAGE_SIZE = 30
         const val DIALOG_NEXT_PAGE = 5
     }
 
