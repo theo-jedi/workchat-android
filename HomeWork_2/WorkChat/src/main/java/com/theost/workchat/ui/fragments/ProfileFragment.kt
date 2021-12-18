@@ -1,11 +1,13 @@
 package com.theost.workchat.ui.fragments
 
 import android.content.Context
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.swiperefreshlayout.widget.CircularProgressDrawable
 import com.bumptech.glide.Glide
 import com.google.android.material.snackbar.Snackbar
 import com.theost.workchat.R
@@ -16,6 +18,7 @@ import com.theost.workchat.di.ui.DaggerProfileComponent
 import com.theost.workchat.elm.profile.*
 import com.theost.workchat.ui.interfaces.NavigationHolder
 import com.theost.workchat.ui.interfaces.WindowHolder
+import com.theost.workchat.utils.ApiUtils
 import com.theost.workchat.utils.PrefUtils
 import vivid.money.elmslie.android.base.ElmFragment
 import vivid.money.elmslie.core.store.Store
@@ -28,6 +31,15 @@ class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileState>()
 
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
+
+    private val circularProgressDrawable by lazy {
+        CircularProgressDrawable(requireContext()).apply {
+            setColorSchemeColors(Color.WHITE)
+            strokeWidth = 14f
+            centerRadius = 60f
+            start()
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -72,8 +84,8 @@ class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileState>()
             val user = state.profile
 
             Glide.with(this)
-                .load(user.avatarUrl)
-                .placeholder(R.drawable.ic_avatar_loading)
+                .load(ApiUtils.avatarUrlToMedium(user.avatarUrl))
+                .placeholder(circularProgressDrawable)
                 .error(R.drawable.ic_avatar_error)
                 .into(binding.userAvatar)
 

@@ -31,7 +31,10 @@ class TopicsRepository(private val service: Api, database: CacheDatabase) {
             .doOnSuccess { result ->
                 if (result.isSuccess) {
                     val topics = result.getOrNull()
-                    if (topics != null) addTopicsToDatabase(topics)
+                    if (topics != null) {
+                        removeTopicsFromDatabase(channelId)
+                        addTopicsToDatabase(topics)
+                    }
                 }
             }
             .subscribeOn(Schedulers.io())
@@ -51,6 +54,10 @@ class TopicsRepository(private val service: Api, database: CacheDatabase) {
         topicsDao.insertAll(topics.map { topic -> topic.mapToTopicEntity() })
             .subscribeOn(Schedulers.io())
             .subscribe()
+    }
+
+    private fun removeTopicsFromDatabase(channelId: Int) {
+        topicsDao.deleteChannelTopics(channelId).subscribeOn(Schedulers.io()).subscribe()
     }
 
 }

@@ -89,7 +89,6 @@ class UsersRepository(private val service: Api, database: CacheDatabase) {
             getUserPresenceFromCache().toObservable(),
             getUserPresenceFromServer(id).toObservable()
         )
-
     }
 
     private fun getUserPresenceFromServer(id: Int): Single<Result<UserStatus>> {
@@ -105,7 +104,11 @@ class UsersRepository(private val service: Api, database: CacheDatabase) {
 
     private fun addUsersToDatabase(users: List<User>, usersType: UsersType) {
         usersDao.insertAll(users.map { user -> user.mapToUserEntity() })
-            .doOnComplete { if (usersType == UsersType.ALL) cacheStatus = CacheStatus.UPDATED }
+            .doOnComplete {
+                if (usersType == UsersType.ALL && users.isNotEmpty()) {
+                    cacheStatus = CacheStatus.UPDATED
+                }
+            }
             .subscribeOn(Schedulers.io())
             .subscribe()
     }

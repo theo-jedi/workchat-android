@@ -20,7 +20,10 @@ class ReactionsRepository(private val service: Api, database: CacheDatabase) {
             .doOnSuccess { result ->
                 if (result.isSuccess) {
                     val reactions = result.getOrNull()
-                    if (reactions != null) addReactionsToDatabase(reactions)
+                    if (reactions != null) {
+                        removeReactionsFromDatabase()
+                        addReactionsToDatabase(reactions)
+                    }
                 }
             }
             .subscribeOn(Schedulers.io())
@@ -37,6 +40,10 @@ class ReactionsRepository(private val service: Api, database: CacheDatabase) {
         reactionsDao.insertAll(reactions.map { reaction -> reaction.mapToReactionEntity() })
             .subscribeOn(Schedulers.io())
             .subscribe()
+    }
+
+    private fun removeReactionsFromDatabase() {
+        reactionsDao.deleteAll().subscribeOn(Schedulers.io()).subscribe()
     }
 
     fun addReaction(messageId: Int, reactionName: String): Completable {
