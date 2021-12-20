@@ -10,10 +10,19 @@
         android:id="@+id/toolbarLayout"
         layout="@layout/toolbar" />
 
+    <include
+        android:id="@+id/shimmerLayout"
+        layout="@layout/shimmer_fragment_people"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbarLayout" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/usersList"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:visibility="gone"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbarLayout"

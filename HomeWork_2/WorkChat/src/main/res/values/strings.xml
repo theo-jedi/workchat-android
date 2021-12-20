@@ -10,11 +10,15 @@
     <string name="write_message">Написать…</string>
     <string name="log_out">Выйти</string>
 
-    <string name="deleted_user">Неизвестно</string>
     <string name="deleted_message">Сообщение удалено</string>
 
     <string name="online">В сети</string>
     <string name="offline">Не в сети</string>
 
     <string name="no_messages">Нет сообщений</string>
+    <string name="no_reactions">Нет доступных реакций</string>
+    <string name="hide">Скрыть</string>
+    <string name="retry">Повторить</string>
+
+    <string name="network_error">Ошибка. Проверьте подключение к интернету!</string>
 </resources>

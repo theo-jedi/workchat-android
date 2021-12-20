@@ -6,14 +6,17 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import com.google.android.material.snackbar.Snackbar
+import com.theost.workchat.R
 import com.theost.workchat.data.models.state.ChannelsType
+import com.theost.workchat.data.models.state.ResourceStatus
 import com.theost.workchat.databinding.FragmentChannelsBinding
-import com.theost.workchat.ui.viewmodels.ChannelsViewModel
 import com.theost.workchat.ui.adapters.core.BaseAdapter
 import com.theost.workchat.ui.adapters.delegates.ChannelAdapterDelegate
 import com.theost.workchat.ui.adapters.delegates.TopicAdapterDelegate
 import com.theost.workchat.ui.interfaces.SearchHandler
 import com.theost.workchat.ui.interfaces.TopicListener
+import com.theost.workchat.ui.viewmodels.ChannelsViewModel
 
 class ChannelsFragment : Fragment(), SearchHandler {
 
@@ -43,8 +46,16 @@ class ChannelsFragment : Fragment(), SearchHandler {
             })
         }
 
-        viewModel.allData.observe(viewLifecycleOwner) { adapter.submitList(it)}
-        viewModel.loadData(userId, channelsType)
+        viewModel.loadingStatus.observe(viewLifecycleOwner) { status ->
+            when (status) {
+                ResourceStatus.SUCCESS -> hideShimmerLayout()
+                ResourceStatus.ERROR -> { showLoadingError() }
+                ResourceStatus.LOADING ->  {}
+                else -> {}
+            }
+        }
+        viewModel.allData.observe(viewLifecycleOwner) { adapter.submitList(it) }
+        loadData()
 
         return binding.root
     }
@@ -61,8 +72,23 @@ class ChannelsFragment : Fragment(), SearchHandler {
         _binding = null
     }
 
+    private fun loadData() {
+        viewModel.loadData(userId, channelsType)
+    }
+
     override fun onSearch(query: String) {
         viewModel.filterData(query)
+    }
+
+    private fun hideShimmerLayout() {
+        binding.shimmerLayout.shimmer.visibility = View.GONE
+        binding.channelsList.visibility = View.VISIBLE
+    }
+
+    private fun showLoadingError() {
+        Snackbar.make(binding.root, getString(R.string.network_error), Snackbar.LENGTH_INDEFINITE)
+            .setAction(R.string.retry) { loadData() }
+            .show()
     }
 
     companion object {

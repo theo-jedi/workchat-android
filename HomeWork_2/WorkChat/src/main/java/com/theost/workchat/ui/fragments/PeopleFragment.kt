@@ -10,7 +10,9 @@ import android.widget.ImageView
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import com.google.android.material.snackbar.Snackbar
 import com.theost.workchat.R
+import com.theost.workchat.data.models.state.ResourceStatus
 import com.theost.workchat.databinding.FragmentPeopleBinding
 import com.theost.workchat.ui.adapters.core.BaseAdapter
 import com.theost.workchat.ui.adapters.delegates.PeopleAdapterDelegate
@@ -44,10 +46,22 @@ class PeopleFragment : Fragment() {
             })
         }
 
+        viewModel.loadingStatus.observe(viewLifecycleOwner) { status ->
+            when (status) {
+                ResourceStatus.SUCCESS -> hideShimmerLayout()
+                ResourceStatus.ERROR -> { showLoadingError() }
+                ResourceStatus.LOADING ->  {}
+                else -> {}
+            }
+        }
         viewModel.allData.observe(viewLifecycleOwner) { adapter.submitList(it) }
-        viewModel.loadData(userId)
+        loadData()
 
         return binding.root
+    }
+
+    private fun loadData() {
+        viewModel.loadData(userId)
     }
 
     override fun onDestroy() {
@@ -76,13 +90,23 @@ class PeopleFragment : Fragment() {
                     onQueryChanged(newText)
                     return true
                 }
-
             })
         }
     }
 
     private fun onQueryChanged(query: String) {
         viewModel.filterData(query)
+    }
+
+    private fun hideShimmerLayout() {
+        binding.shimmerLayout.shimmer.visibility = View.GONE
+        binding.usersList.visibility = View.VISIBLE
+    }
+
+    private fun showLoadingError() {
+        Snackbar.make(binding.root, getString(R.string.network_error), Snackbar.LENGTH_INDEFINITE)
+            .setAction(R.string.retry) { loadData() }
+            .show()
     }
 
     companion object {

@@ -8,12 +8,21 @@
         android:id="@+id/toolbarLayout"
         layout="@layout/toolbar" />
 
+    <include
+        android:id="@+id/shimmerLayout"
+        layout="@layout/shimmer_fragment_profile"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbarLayout" />
+
     <androidx.cardview.widget.CardView
         android:id="@+id/avatarLayout"
         android:layout_width="185dp"
         android:layout_height="185dp"
         android:layout_marginBottom="15dp"
         android:backgroundTint="@android:color/transparent"
+        android:visibility="invisible"
         app:cardCornerRadius="15dp"
         app:layout_constraintBottom_toBottomOf="@+id/guidelineCenter"
         app:layout_constraintEnd_toEndOf="parent"
@@ -35,6 +44,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="32sp"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/guidelineCenter" />
@@ -45,6 +55,7 @@
         android:layout_height="wrap_content"
         android:textColor="@color/light_gray"
         android:textSize="20sp"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/userName" />
@@ -57,6 +68,7 @@
         android:text="@string/online"
         android:textColor="@color/green"
         android:textSize="16sp"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/userAbout" />
@@ -68,7 +80,7 @@
         android:layout_height="60dp"
         android:text="@string/log_out"
         android:textSize="16sp"
-        android:visibility="invisible"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

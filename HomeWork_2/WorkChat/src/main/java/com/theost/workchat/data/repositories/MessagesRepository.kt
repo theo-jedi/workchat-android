@@ -1,10 +1,13 @@
 package com.theost.workchat.data.repositories
 
 import com.theost.workchat.data.models.core.Message
+import com.theost.workchat.data.models.core.RxResource
 import com.theost.workchat.utils.DateUtils
+import io.reactivex.rxjava3.core.Completable
+import io.reactivex.rxjava3.core.Single
+import io.reactivex.rxjava3.schedulers.Schedulers
 import java.util.*
 
-/* Todo RxJava */
 object MessagesRepository {
 
     private val messages = mutableListOf(
@@ -14,22 +17,17 @@ object MessagesRepository {
         Message(3, 1, 0, ":)", DateUtils.getRandomDateBefore())
     )
 
-    fun getMessages(dialogId: Int): List<Message> {
-        return messages.filter { it.dialogId == dialogId }
+    fun getMessages(dialogId: Int): Single<RxResource<List<Message>>> {
+        return Single.just(messages.toList())
+            .map { list -> RxResource.success(list.filter { it.dialogId == dialogId }) }
+            .onErrorReturn { RxResource.error(it, null) }
+            .subscribeOn(Schedulers.io())
     }
 
-    fun addMessage(userId: Int, dialogId: Int, text: String): Boolean {
-        return simulateMessageCreation(userId, dialogId, text)
-    }
-
-    fun removeMessage(id: Int): Boolean {
-        messages.removeAll { it.id == id }
-        return true
-    }
-
-    fun removeMessages(ids: List<Int>): Boolean {
-        messages.removeAll { it.id in ids }
-        return true
+    fun addMessage(userId: Int, dialogId: Int, text: String): Completable {
+        return Completable.fromAction {
+            simulateMessageCreation(userId, dialogId, text)
+        }.subscribeOn(Schedulers.io())
     }
 
     private fun simulateMessageCreation(userId: Int, dialogId: Int, text: String): Boolean {
