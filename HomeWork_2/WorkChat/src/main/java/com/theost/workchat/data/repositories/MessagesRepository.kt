@@ -111,11 +111,10 @@ class MessagesRepository(private val service: Api, database: CacheDatabase) {
         channelName: String,
         topicName: String
     ): Single<Result<List<Message>>> {
-        return messagesDao.getDialogMessages(channelName, topicName)
+        return messagesDao.getLastDialogMessages(channelName, topicName, CACHE_DIALOG_SIZE)
             .map { messages ->
                 Result.success(messages
                     .sortedByDescending { messageEntity -> messageEntity.time }
-                    .take(CACHE_DIALOG_SIZE)
                     .map { message -> message.mapToMessage() }
                     .run { ApiUtils.addEmptyMessage(this) }
                 )

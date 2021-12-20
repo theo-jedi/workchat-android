@@ -18,6 +18,13 @@ interface MessagesDao {
     @Query("SELECT * FROM messages WHERE channel_name = :channelName AND topic_name = :topicName")
     fun getDialogMessages(channelName: String, topicName: String): Single<List<MessageEntity>>
 
+    @Query("SELECT * FROM messages WHERE channel_name = :channelName AND topic_name = :topicName ORDER BY time DESC LIMIT :count")
+    fun getLastDialogMessages(
+        channelName: String,
+        topicName: String,
+        count: Int
+    ): Single<List<MessageEntity>>
+
     @Insert(onConflict = REPLACE)
     fun insertAll(messages: List<MessageEntity>): Completable
 
