@@ -34,8 +34,7 @@
             android:layout_height="match_parent"
             android:adjustViewBounds="true"
             android:contentDescription="@string/profile"
-            android:scaleType="fitXY"
-            android:src="@mipmap/sample_avatar" />
+            android:scaleType="fitXY" />
 
     </androidx.cardview.widget.CardView>
 

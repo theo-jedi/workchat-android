@@ -1,0 +1,30 @@
+package com.theost.workchat.database.dao
+
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy.REPLACE
+import androidx.room.Query
+import com.theost.workchat.database.entities.MessageEntity
+import io.reactivex.rxjava3.core.Completable
+import io.reactivex.rxjava3.core.Single
+
+@Dao
+interface MessagesDao {
+
+    @Query("SELECT * FROM messages")
+    fun getAll(): Single<List<MessageEntity>>
+
+    @Query("SELECT * FROM messages WHERE channel_name = :channelName AND topic_name = :topicName")
+    fun getDialogMessages(channelName: String, topicName: String): Single<List<MessageEntity>>
+
+    @Insert(onConflict = REPLACE)
+    fun insertAll(messages: List<MessageEntity>): Completable
+
+    @Delete
+    fun delete(topic: MessageEntity): Completable
+
+    @Query("DELETE FROM messages")
+    fun deleteAll(): Completable
+
+}

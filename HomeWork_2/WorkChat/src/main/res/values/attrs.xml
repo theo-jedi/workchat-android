@@ -45,6 +45,8 @@
     <declare-styleable name="ReactionView">
         <attr name="emoji" format="string" />
         <attr name="text" format="string" />
+        <attr name="reactionViewWidth" format="dimension" />
+        <attr name="reactionViewHeight" format="dimension" />
         <attr name="reactionTextColor" format="color" />
         <attr name="reactionTextSize" format="dimension" />
         <attr name="reactionPadding" format="dimension" />

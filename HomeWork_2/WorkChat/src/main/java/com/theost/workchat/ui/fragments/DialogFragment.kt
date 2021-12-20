@@ -11,18 +11,19 @@ import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.theost.workchat.R
-import com.theost.workchat.data.models.state.InputStatus
-import com.theost.workchat.data.models.state.MessageAction
-import com.theost.workchat.data.models.state.ResourceStatus
-import com.theost.workchat.data.models.state.ScrollStatus
+import com.theost.workchat.data.models.state.*
+import com.theost.workchat.data.repositories.MessagesRepository
 import com.theost.workchat.databinding.FragmentDialogBinding
 import com.theost.workchat.ui.adapters.core.BaseAdapter
 import com.theost.workchat.ui.adapters.delegates.DateAdapterDelegate
 import com.theost.workchat.ui.adapters.delegates.MessageIncomeAdapterDelegate
 import com.theost.workchat.ui.adapters.delegates.MessageOutcomeAdapterDelegate
 import com.theost.workchat.ui.viewmodels.DialogViewModel
+import com.theost.workchat.utils.PrefUtils
 
 class DialogFragment : Fragment() {
 
@@ -32,12 +33,44 @@ class DialogFragment : Fragment() {
 
     private var channelName: String = ""
     private var topicName: String = ""
+
     private var isDialogLoaded: Boolean = false
+
+    private var lastScrollPosition: Int = 0
 
     private val viewModel: DialogViewModel by viewModels()
 
     private var _binding: FragmentDialogBinding? = null
     private val binding get() = _binding!!
+
+    private val adapterDataObserver = object : RecyclerView.AdapterDataObserver() {
+        override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+            super.onItemRangeInserted(positionStart, itemCount)
+            if (!isDialogLoaded) {
+                onFirstDataLoaded()
+            } else if (scrollStatus == ScrollStatus.WAITING) {
+                scrollStatus = ScrollStatus.STAY
+                binding.messagesList.smoothScrollToPosition(0)
+            } else if (scrollStatus == ScrollStatus.IDLE) {
+                scrollStatus = ScrollStatus.STAY
+                binding.messagesList.scrollToPosition(lastScrollPosition + 1)
+            }
+        }
+    }
+
+    private val scrollListener = object : RecyclerView.OnScrollListener() {
+        override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+            super.onScrollStateChanged(recyclerView, newState)
+            val lastPosition =
+                (binding.messagesList.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
+            if (lastPosition > lastScrollPosition
+                && adapter.itemCount - lastPosition <= MessagesRepository.DIALOG_NEXT_PAGE
+            ) {
+                loadNextData()
+            }
+            lastScrollPosition = lastPosition
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -54,53 +87,107 @@ class DialogFragment : Fragment() {
         binding.inputLayout.actionButton.setOnClickListener { onInputActionClicked() }
 
         binding.messagesList.adapter = adapter.apply {
-            addDelegate(MessageIncomeAdapterDelegate() { actionType, messageId, reactionId ->
-                onMessageAction(actionType, messageId, reactionId)
+            addDelegate(MessageIncomeAdapterDelegate() { actionType, messageId, reaction ->
+                onMessageAction(
+                    actionType,
+                    messageId,
+                    reaction?.name,
+                    reaction?.code,
+                    reaction?.type
+                )
             })
-            addDelegate(MessageOutcomeAdapterDelegate() { actionType, messageId, reactionId ->
-                onMessageAction(actionType, messageId, reactionId)
+            addDelegate(MessageOutcomeAdapterDelegate() { actionType, messageId, reaction ->
+                onMessageAction(
+                    actionType,
+                    messageId,
+                    reaction?.name,
+                    reaction?.code,
+                    reaction?.type
+                )
             })
             addDelegate(DateAdapterDelegate())
+            registerAdapterDataObserver(adapterDataObserver)
         }
+
+        binding.messagesList.addOnScrollListener(scrollListener)
 
         viewModel.loadingStatus.observe(viewLifecycleOwner) { status ->
             when (status) {
-                ResourceStatus.SUCCESS -> { onDataLoaded() }
-                ResourceStatus.ERROR -> { showLoadingError() }
-                ResourceStatus.LOADING ->  { onDataLoading() }
-                else -> {}
+                ResourceStatus.SUCCESS -> {
+                    onDataLoaded()
+                }
+                ResourceStatus.ERROR -> {
+                    showLoadingError()
+                }
+                ResourceStatus.EMPTY -> {
+                    binding.emptyLayout.emptyView.visibility = View.VISIBLE
+                }
+                ResourceStatus.LOADING -> {
+                    onDataLoading()
+                }
+                else -> {
+                }
+            }
+        }
+
+        viewModel.paginationStatus.observe(viewLifecycleOwner) { status ->
+            when (status) {
+                PaginationStatus.SUCCESS -> {
+                    binding.paginationLoadingBar.visibility = View.GONE
+                }
+                PaginationStatus.ERROR -> {
+                    binding.paginationLoadingBar.visibility = View.GONE
+                    scrollStatus = ScrollStatus.STAY
+                }
+                PaginationStatus.LOADING -> {
+                    binding.paginationLoadingBar.visibility = View.VISIBLE
+                    scrollStatus = ScrollStatus.IDLE
+                }
+                PaginationStatus.FULLY_LOADED -> {
+                    binding.paginationLoadingBar.visibility = View.GONE
+                    scrollStatus = ScrollStatus.STAY
+                }
+                else -> {
+                }
             }
         }
 
         viewModel.sendingMessageStatus.observe(viewLifecycleOwner) { status ->
             when (status) {
-                ResourceStatus.LOADING -> { showInputLoading() }
-                ResourceStatus.SUCCESS -> { onMessageSent() }
+                ResourceStatus.LOADING -> {
+                    showInputLoading()
+                }
+                ResourceStatus.SUCCESS -> {
+                    onMessageSent()
+                }
                 ResourceStatus.ERROR -> {
                     hideInputLoading()
                     showSendingError()
                 }
-                else -> {}
+                else -> {
+                }
             }
         }
 
-        viewModel.sendingReactionStatus.observe(viewLifecycleOwner) { status ->
+        viewModel.sendingReactionData.observe(viewLifecycleOwner) {
+            val status = it.first
+            val messageId = it.second
             when (status) {
-                ResourceStatus.SUCCESS -> { loadData() }
-                ResourceStatus.ERROR -> { showSendingError() }
-                else -> {}
+                ResourceStatus.SUCCESS -> {
+                    viewModel.updateMessage(messageId)
+                }
+                ResourceStatus.ERROR -> {
+                    showSendingError()
+                }
+                else -> {
+                }
             }
         }
 
-        viewModel.titleData.observe(viewLifecycleOwner) { configureTitle(it.first, it.second)}
+        viewModel.titleData.observe(viewLifecycleOwner) { configureTitle(it.first, it.second) }
 
         viewModel.allData.observe(viewLifecycleOwner) { list ->
             adapter.submitList(list)
-            binding.emptyLayout.emptyView.visibility = if (list.isNotEmpty()) View.GONE else View.VISIBLE
-            if (scrollStatus == ScrollStatus.WAITING) {
-                scrollStatus = ScrollStatus.STAY
-                binding.messagesList.smoothScrollToPosition(0)
-            }
         }
 
         loadData()
@@ -119,6 +206,7 @@ class DialogFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
+        adapter.unregisterAdapterDataObserver(adapterDataObserver)
         _binding = null
     }
 
@@ -131,17 +219,29 @@ class DialogFragment : Fragment() {
 
     private fun configureTitle(channel: String, topic: String) {
         val title = SpannableString("#$channel #$topic")
-        title.setSpan(
-            ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.green)),
-            channel.length + 1,
-            title.length,
-            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
+        context?.let { context ->
+            title.setSpan(
+                ForegroundColorSpan(ContextCompat.getColor(context, R.color.green)),
+                channel.length + 1,
+                title.length,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
         binding.toolbarLayout.toolbar.title = title
     }
 
     private fun loadData() {
-        viewModel.loadMessages(channelName, topicName)
+        context?.let { context ->
+            viewModel.loadData(
+                channelName,
+                topicName,
+                PrefUtils.getCurrentUserId(context)
+            )
+        }
+    }
+
+    private fun loadNextData() {
+        viewModel.loadNextMessages()
     }
 
     private fun onInputTextChanged(text: String) {
@@ -157,7 +257,8 @@ class DialogFragment : Fragment() {
 
     private fun onInputActionClicked() {
         when (inputStatus) {
-            InputStatus.EMPTY -> { /* todo file attachment */ }
+            InputStatus.EMPTY -> { /* todo file attachment */
+            }
             InputStatus.FILLED -> sendMessage()
         }
     }
@@ -166,18 +267,38 @@ class DialogFragment : Fragment() {
         viewModel.addMessage(getMessageText())
     }
 
-    private fun onMessageAction(actionType: MessageAction, messageId: Int, reactionName: String) {
+    private fun onMessageAction(
+        actionType: MessageAction,
+        messageId: Int,
+        reactionName: String?,
+        reactionCode: String?,
+        reactionType: String?
+    ) {
         when (actionType) {
             MessageAction.REACTION_CHOOSE -> pickReaction(messageId)
-            MessageAction.REACTION_ADD -> viewModel.addReaction(messageId = messageId, reactionName = reactionName)
-            MessageAction.REACTION_REMOVE -> viewModel.removeReaction(messageId = messageId, reactionName = reactionName)
+            MessageAction.REACTION_ADD -> viewModel.addReaction(
+                messageId = messageId,
+                reactionName = reactionName.orEmpty()
+            )
+            MessageAction.REACTION_REMOVE -> viewModel.removeReaction(
+                messageId = messageId,
+                reactionName = reactionName.orEmpty(),
+                reactionCode = reactionCode.orEmpty(),
+                reactionType = reactionType.orEmpty()
+            )
         }
     }
 
     private fun pickReaction(messageId: Int) {
         if (!isDetached) {
             ReactionBottomSheetFragment.newFragment { reaction ->
-                onMessageAction(MessageAction.REACTION_ADD, messageId, reaction.name)
+                onMessageAction(
+                    MessageAction.REACTION_ADD,
+                    messageId,
+                    reaction.name,
+                    reaction.code,
+                    reaction.type
+                )
             }.show(requireActivity().supportFragmentManager, null)
         }
     }
@@ -194,7 +315,7 @@ class DialogFragment : Fragment() {
     private fun onMessageSent() {
         binding.inputLayout.messageInput.setText("")
         scrollStatus = ScrollStatus.WAITING
-        loadData()
+        viewModel.loadMessages()
     }
 
     private fun onDataLoading() {
@@ -207,18 +328,18 @@ class DialogFragment : Fragment() {
         }
     }
 
+    private fun onFirstDataLoaded() {
+        isDialogLoaded = true
+        binding.loadingBar.visibility = View.GONE
+        binding.inputLayout.actionButton.animate().alpha(1.0f)
+        binding.inputLayout.messageInput.animate().alpha(1.0f)
+        binding.inputLayout.actionButton.isEnabled = true
+        binding.inputLayout.messageInput.isEnabled = true
+        binding.messagesList.scrollToPosition(0)
+    }
+
     private fun onDataLoaded() {
-        if (!isDialogLoaded) {
-            isDialogLoaded = true
-            binding.loadingBar.visibility = View.GONE
-            binding.inputLayout.actionButton.animate().alpha(1.0f)
-            binding.inputLayout.messageInput.animate().alpha(1.0f)
-            binding.inputLayout.actionButton.isEnabled = true
-            binding.inputLayout.messageInput.isEnabled = true
-            binding.messagesList.scrollToPosition(0)
-        } else {
-            hideInputLoading()
-        }
+        hideInputLoading()
     }
 
     private fun hideInputLoading() {

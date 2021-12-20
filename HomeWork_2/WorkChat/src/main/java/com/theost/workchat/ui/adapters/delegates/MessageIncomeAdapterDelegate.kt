@@ -9,12 +9,13 @@ import com.theost.workchat.R
 import com.theost.workchat.data.models.state.MessageAction
 import com.theost.workchat.data.models.state.MessageType
 import com.theost.workchat.data.models.ui.ListMessage
+import com.theost.workchat.data.models.ui.ListMessageReaction
 import com.theost.workchat.ui.interfaces.AdapterDelegate
 import com.theost.workchat.ui.views.MessageIncomeView
 import com.theost.workchat.ui.views.ReactionLayout
 import com.theost.workchat.ui.views.ReactionView
 
-class MessageIncomeAdapterDelegate(private val actionListener: (actionType: MessageAction, messageId: Int, reactionName: String) -> Unit) :
+class MessageIncomeAdapterDelegate(private val actionListener: (actionType: MessageAction, messageId: Int, reaction: ListMessageReaction?) -> Unit) :
     AdapterDelegate {
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
         val messageView = MessageIncomeView(parent.context)
@@ -30,7 +31,7 @@ class MessageIncomeAdapterDelegate(private val actionListener: (actionType: Mess
 
     class ViewHolder(
         private val messageIncomeView: MessageIncomeView,
-        private val actionListener: (actionType: MessageAction, messageId: Int, reactionName: String) -> Unit
+        private val actionListener: (actionType: MessageAction, messageId: Int, reaction: ListMessageReaction?) -> Unit
     ) :
         RecyclerView.ViewHolder(messageIncomeView) {
 
@@ -40,7 +41,7 @@ class MessageIncomeAdapterDelegate(private val actionListener: (actionType: Mess
             messageIncomeView.message = listMessage.content
             messageIncomeView.time = listMessage.time
             messageIncomeView.findViewById<View>(R.id.messageLayout).setOnLongClickListener {
-                actionListener(MessageAction.REACTION_CHOOSE, listMessage.id, "")
+                actionListener(MessageAction.REACTION_CHOOSE, listMessage.id, null)
                 true
             }
 
@@ -56,11 +57,13 @@ class MessageIncomeAdapterDelegate(private val actionListener: (actionType: Mess
                     ImageView(messageIncomeView.context).apply {
                         minimumWidth = emojiWidth
                         minimumHeight = emojiHeight
+                        maxWidth = emojiWidth
+                        maxHeight = emojiHeight
                         scaleType = ImageView.ScaleType.CENTER
                         setBackgroundResource(R.drawable.bg_reaction_view)
                         setImageResource(R.drawable.ic_add)
                         setOnClickListener {
-                            actionListener(MessageAction.REACTION_CHOOSE, listMessage.id, "")
+                            actionListener(MessageAction.REACTION_CHOOSE, listMessage.id, null)
                         }
                     }
                 )
@@ -73,18 +76,17 @@ class MessageIncomeAdapterDelegate(private val actionListener: (actionType: Mess
                         count = reaction.count
                         isSelected = reaction.isSelected
                         setOnClickListener { reactionView ->
-                            reactionView.isSelected = !reactionView.isSelected
-                            if (reactionView.isSelected) {
+                            if (!reactionView.isSelected) {
                                 actionListener(
                                     MessageAction.REACTION_ADD,
                                     listMessage.id,
-                                    reaction.name
+                                    reaction
                                 )
                             } else {
                                 actionListener(
                                     MessageAction.REACTION_REMOVE,
                                     listMessage.id,
-                                    reaction.name
+                                    reaction
                                 )
                             }
                         }

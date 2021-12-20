@@ -8,7 +8,7 @@ import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.theost.workchat.data.models.state.ResourceStatus
 import com.theost.workchat.data.models.ui.ListReaction
-import com.theost.workchat.databinding.ReactionsBottomSheetBinding
+import com.theost.workchat.databinding.FragmentReactionsSheetBinding
 import com.theost.workchat.ui.adapters.core.BaseAdapter
 import com.theost.workchat.ui.adapters.delegates.ReactionAdapterDelegate
 import com.theost.workchat.ui.viewmodels.ReactionsViewModel
@@ -20,7 +20,7 @@ class ReactionBottomSheetFragment(
     private val viewModel: ReactionsViewModel by viewModels()
     private val adapter = BaseAdapter()
 
-    private var _binding: ReactionsBottomSheetBinding? = null
+    private var _binding: FragmentReactionsSheetBinding? = null
     private val binding get() = _binding!!
 
     override fun onCreateView(
@@ -28,7 +28,7 @@ class ReactionBottomSheetFragment(
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = ReactionsBottomSheetBinding.inflate(layoutInflater)
+        _binding = FragmentReactionsSheetBinding.inflate(layoutInflater)
 
         binding.retryButton.setOnClickListener { loadData() }
 
@@ -42,7 +42,8 @@ class ReactionBottomSheetFragment(
         viewModel.loadingStatus.observe(viewLifecycleOwner) { status ->
             when (status) {
                 ResourceStatus.LOADING -> showLoading()
-                ResourceStatus.SUCCESS -> configureLayout()
+                ResourceStatus.SUCCESS -> hideLoading()
+                ResourceStatus.EMPTY -> showLoading()
                 ResourceStatus.ERROR -> showLoadingError()
                 else -> {}
             }
@@ -58,11 +59,8 @@ class ReactionBottomSheetFragment(
         viewModel.loadData()
     }
 
-    private fun configureLayout() {
+    private fun hideLoading() {
         binding.loadingBar.visibility = View.GONE
-        if (adapter.itemCount == 0) {
-            binding.emptyView.visibility = View.VISIBLE
-        }
     }
 
     private fun showLoading() {

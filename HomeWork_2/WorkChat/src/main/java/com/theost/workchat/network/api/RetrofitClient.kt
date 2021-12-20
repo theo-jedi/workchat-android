@@ -1,4 +1,4 @@
-package com.theost.workchat.network
+package com.theost.workchat.network.api
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.ExperimentalSerializationApi

@@ -9,7 +9,6 @@ import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.View
 import androidx.core.content.ContextCompat
-import androidx.core.view.setPadding
 import com.theost.workchat.R
 
 class ReactionView @JvmOverloads constructor(
@@ -39,7 +38,12 @@ class ReactionView @JvmOverloads constructor(
             field = value
             requestLayout()
         }
-    var padding = 0
+    var itemWidth = 0
+        set(value) {
+            field = value
+            requestLayout()
+        }
+    var itemHeight = 0
         set(value) {
             field = value
             requestLayout()
@@ -73,7 +77,14 @@ class ReactionView @JvmOverloads constructor(
             R.styleable.ReactionView_reactionTextColor,
             ContextCompat.getColor(context, R.color.lighter_gray)
         )
-        padding = typedArray.getDimension(R.styleable.ReactionView_reactionPadding, PADDING_DEFAULT).toInt()
+        itemWidth = typedArray.getDimension(
+            R.styleable.ReactionView_reactionViewWidth,
+            context.resources.getDimension(R.dimen.emoji_view_width)
+        ).toInt()
+        itemHeight = typedArray.getDimension(
+            R.styleable.ReactionView_reactionViewWidth,
+            context.resources.getDimension(R.dimen.emoji_view_height)
+        ).toInt()
         backgroundDrawable = typedArray.getResourceId(
             R.styleable.ReactionView_reactionBackground,
             R.drawable.bg_reaction_view
@@ -81,7 +92,6 @@ class ReactionView @JvmOverloads constructor(
         typedArray.recycle()
 
         setBackgroundResource(backgroundDrawable)
-        setPadding(padding)
 
         textPaint.textSize = textSize
         textPaint.color = textColor
@@ -90,26 +100,9 @@ class ReactionView @JvmOverloads constructor(
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         textPaint.getTextBounds(emoji, 0, emoji.length, emojiBounds)
-
-        var totalWidth = 0
-        var totalHeight = 0
-
-        val emojiWidth = emojiBounds.width()
-        val emojiHeight = emojiBounds.height()
-
-        totalWidth += emojiWidth
-        totalHeight = maxOf(totalHeight, emojiHeight)
-
         textPaint.getTextBounds(emoji, 0, emoji.length, textBounds)
-
-        val textWidth = textBounds.width()
-        val textHeight = textBounds.height()
-
-        totalWidth += textWidth
-        totalHeight = maxOf(totalHeight, textHeight)
-
-        val resultWidth = resolveSize(paddingLeft + totalWidth + paddingRight, widthMeasureSpec)
-        val resultHeight = resolveSize(paddingTop + totalHeight + paddingBottom, heightMeasureSpec)
+        val resultWidth = resolveSize(itemWidth, widthMeasureSpec)
+        val resultHeight = resolveSize(itemHeight, heightMeasureSpec)
         setMeasuredDimension(resultWidth, resultHeight)
     }
 
@@ -117,10 +110,10 @@ class ReactionView @JvmOverloads constructor(
         textPaint.getFontMetrics(tempFontMetrics)
 
         emojiCoordinate.x = w / 2f - emojiBounds.width() / 2f
-        emojiCoordinate.y = h / 2f + emojiBounds.height() / 2 - tempFontMetrics.descent
+        emojiCoordinate.y = itemHeight / 2f + emojiBounds.height() / 2 - tempFontMetrics.descent
 
         textCoordinate.x = w / 2f + textBounds.width() / 2f
-        textCoordinate.y = h / 2f + textBounds.height() / 2 - tempFontMetrics.descent
+        textCoordinate.y = itemHeight / 2f + textBounds.height() / 2 - tempFontMetrics.descent
     }
 
     override fun onCreateDrawableState(extraSpace: Int): IntArray {
@@ -140,7 +133,6 @@ class ReactionView @JvmOverloads constructor(
         private val SUPPORTED_DRAWABLE_STATE = intArrayOf(android.R.attr.state_selected)
 
         private const val SIZE_DEFAULT = 40f
-        private const val PADDING_DEFAULT = 28f
     }
 
 }

@@ -64,6 +64,7 @@ class StreamsFragment : Fragment() {
     override fun onDestroy() {
         super.onDestroy()
         channelsPages.unregisterOnPageChangeCallback(channelsPagesCallback)
+        searchView.setOnQueryTextListener(null)
         _binding = null
     }
 

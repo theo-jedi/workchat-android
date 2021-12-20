@@ -2,6 +2,7 @@ package com.theost.workchat.ui.activities
 
 import android.os.Bundle
 import android.view.View
+import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -14,9 +15,13 @@ import com.theost.workchat.ui.fragments.StreamsFragment
 import com.theost.workchat.ui.interfaces.NavigationHolder
 import com.theost.workchat.ui.interfaces.PeopleListener
 import com.theost.workchat.ui.interfaces.TopicListener
+import com.theost.workchat.ui.viewmodels.MessengerViewModel
 import com.theost.workchat.utils.DisplayUtils
+import com.theost.workchat.utils.PrefUtils
 
 class MessengerActivity : FragmentActivity(), NavigationHolder, PeopleListener, TopicListener {
+
+    private val viewModel: MessengerViewModel by viewModels()
 
     private lateinit var binding: ActivityMessengerBinding
 
@@ -30,6 +35,13 @@ class MessengerActivity : FragmentActivity(), NavigationHolder, PeopleListener, 
             true
         }
         binding.bottomNavigation.selectedItemId = R.id.navChannels
+
+        viewModel.currentUserId.observe(this) { userId ->
+            PrefUtils.putCurrentUserId(
+                context = this,
+                userId = userId
+            )
+        }
     }
 
     override fun onBackPressed() {
@@ -71,6 +83,7 @@ class MessengerActivity : FragmentActivity(), NavigationHolder, PeopleListener, 
     }
 
     private fun navigateFragment(fragment: Fragment, tag: String) {
+        viewModel.updateData() // todo replace with network listener
         DisplayUtils.hideKeyboard(this)
 
         if (supportFragmentManager.findFragmentByTag(tag) == null) {

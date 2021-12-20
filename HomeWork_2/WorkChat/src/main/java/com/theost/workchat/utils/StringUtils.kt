@@ -1,21 +1,41 @@
 package com.theost.workchat.utils
 
-import kotlinx.serialization.json.JsonElement
-
 object StringUtils {
 
-    fun codeToEmoji(code: String): String {
+    private const val UNKNOWN_EMOJI = "⬜"
+
+    @Throws(NumberFormatException::class)
+    fun simpleToEmoji(code: String): String {
         return String(Character.toChars(Integer.parseInt(code, 16)))
     }
 
-    fun jsonToEmoji(jsonElement: JsonElement?): String {
-        if (jsonElement != null) {
-            val emojiCode = jsonElement.toString()
-            if (!emojiCode.contains("-")) {
-                return codeToEmoji(emojiCode.replace("\"",""))
-            }
+    fun combinedToEmoji(code: String): String {
+        val codes = code.split("-")
+        return simpleToEmoji(codes[0]) + simpleToEmoji(codes[1])
+    }
+
+    fun utfToEmoji(code: String): String {
+        return if (code.contains("-")) {
+            combinedToEmoji(code)
+        } else {
+            simpleToEmoji(code)
         }
-        return ""
+    }
+
+    fun codeToEmoji(code: String): String {
+        return try {
+            utfToEmoji(code)
+        } catch (e: NumberFormatException) {
+            UNKNOWN_EMOJI
+        }
+    }
+
+    fun jsonToEmoji(code: String): String {
+        return try {
+            codeToEmoji(code.replace("\"", ""))
+        } catch (e: NumberFormatException) {
+            ""
+        }
     }
 
 }

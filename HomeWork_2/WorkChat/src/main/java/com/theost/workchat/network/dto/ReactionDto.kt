@@ -1,4 +1,4 @@
-package com.theost.workchat.data.models.dto
+package com.theost.workchat.network.dto
 
 import com.theost.workchat.data.models.core.Reaction
 import com.theost.workchat.utils.StringUtils
@@ -19,16 +19,27 @@ data class ReactionDto(
     @SerialName("emoji_name")
     val name: String,
     @SerialName("emoji_code")
-    val code: String
+    val code: String,
+    @SerialName("reaction_type")
+    val type: String
 )
 
 fun GetReactionsResponse.mapToReactions(): List<Reaction> {
     val reactions = mutableListOf<Reaction>()
     val emojis = mutableSetOf<String>()
     reactionsObject.keys.forEach { key ->
-        val emoji = StringUtils.jsonToEmoji(reactionsObject[key])
+        val code = reactionsObject[key].toString()
+        val emoji = StringUtils.jsonToEmoji(code)
         if (emoji.isNotEmpty() && !emojis.contains(emoji)) {
-            reactions.add(Reaction(userId = -1, name = key, emoji = emoji))
+            reactions.add(
+                Reaction(
+                    userId = -1,
+                    name = key,
+                    code = code,
+                    type = "",
+                    emoji = emoji
+                )
+            )
             emojis.add(emoji)
         }
     }
@@ -39,6 +50,8 @@ fun ReactionDto.mapToReaction(): Reaction {
     return Reaction(
         userId = userId,
         name = name,
+        code = code,
+        type = type,
         emoji = StringUtils.codeToEmoji(code)
     )
 }

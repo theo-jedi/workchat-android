@@ -23,7 +23,11 @@ class MessageIncomeView @JvmOverloads constructor(
         set(value) {
             field = value
             val avatarImageView = (getChildAt(0) as CardView).getChildAt(0) as ImageView
-            if (avatar != "") Glide.with(this).load(avatar).into(avatarImageView)
+            Glide.with(this)
+                .load(avatar)
+                .placeholder(R.drawable.ic_loading_avatar)
+                .error(R.drawable.ic_error_avatar)
+                .into(avatarImageView)
         }
     var username: String = ""
         set(value) {
@@ -90,7 +94,11 @@ class MessageIncomeView @JvmOverloads constructor(
         messageLayout.corners = corners
 
         val avatarImageView = (getChildAt(0) as CardView).getChildAt(0) as ImageView
-        if (avatar != "") Glide.with(this).load(avatar).into(avatarImageView)
+        Glide.with(this)
+            .load(avatar)
+            .placeholder(R.drawable.ic_loading_avatar)
+            .error(R.drawable.ic_error_avatar)
+            .into(avatarImageView)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {

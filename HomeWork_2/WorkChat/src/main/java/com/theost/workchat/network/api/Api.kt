@@ -1,6 +1,6 @@
-package com.theost.workchat.network
+package com.theost.workchat.network.api
 
-import com.theost.workchat.data.models.dto.*
+import com.theost.workchat.network.dto.*
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Single
 import retrofit2.http.*
@@ -23,7 +23,7 @@ interface Api {
     fun getUserPresence(
         @Path(value = "user_id")
         userId: Int
-    ) : Single<GetUserPresenceResponse>
+    ): Single<GetUserPresenceResponse>
 
     @GET("streams")
     fun getChannels(): Single<GetChannelsResponse>
@@ -47,6 +47,18 @@ interface Api {
         narrow: String
     ): Single<GetMessagesResponse>
 
+    @GET("messages")
+    fun getMessages(
+        @Query(value = "anchor")
+        anchor: Int,
+        @Query(value = "num_before")
+        numBefore: Int,
+        @Query(value = "num_after")
+        numAfter: Int,
+        @Query(value = "narrow")
+        narrow: String
+    ): Single<GetMessagesResponse>
+
     @FormUrlEncoded
     @POST("messages")
     fun addMessage(
@@ -61,7 +73,7 @@ interface Api {
     ): Completable
 
     @GET("/static/generated/emoji/emoji_codes.json")
-    fun getReactions() : Single<GetReactionsResponse>
+    fun getReactions(): Single<GetReactionsResponse>
 
     @FormUrlEncoded
     @POST("messages/{message_id}/reactions")
@@ -70,14 +82,18 @@ interface Api {
         messageId: Int,
         @Field("emoji_name")
         emojiName: String
-    ) : Completable
+    ): Completable
 
     @DELETE("messages/{message_id}/reactions")
     fun removeReaction(
         @Path("message_id")
         messageId: Int,
         @Query("emoji_name")
-        emojiName: String
-    ) : Completable
+        emojiName: String,
+        @Query("emoji_code")
+        emojiCode: String,
+        @Query("reaction_type")
+        reactionType: String
+    ): Completable
 
 }

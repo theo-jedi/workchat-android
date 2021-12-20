@@ -20,10 +20,14 @@ import com.theost.workchat.ui.interfaces.NavigationHolder
 import com.theost.workchat.ui.interfaces.PeopleListener
 import com.theost.workchat.ui.viewmodels.PeopleViewModel
 import com.theost.workchat.utils.DisplayUtils
+import com.theost.workchat.utils.PrefUtils
 
 class PeopleFragment : Fragment() {
 
     private val adapter = BaseAdapter()
+    private var currentUserId: Int = -1
+
+    private lateinit var searchView: SearchView
 
     private val viewModel: PeopleViewModel by viewModels()
 
@@ -39,6 +43,11 @@ class PeopleFragment : Fragment() {
         _binding = FragmentPeopleBinding.inflate(layoutInflater)
         configureToolbar()
 
+        context?.let { context ->
+            currentUserId = PrefUtils.getCurrentUserId(context)
+        }
+
+        binding.usersList.setHasFixedSize(true)
         binding.usersList.adapter = adapter.apply {
             addDelegate(PeopleAdapterDelegate { userId ->
                 (activity as PeopleListener).onProfileSelected(userId)
@@ -47,9 +56,9 @@ class PeopleFragment : Fragment() {
 
         viewModel.loadingStatus.observe(viewLifecycleOwner) { status ->
             when (status) {
-                ResourceStatus.SUCCESS -> hideShimmerLayout()
+                ResourceStatus.SUCCESS -> { hideShimmerLayout() }
                 ResourceStatus.ERROR -> { showLoadingError() }
-                ResourceStatus.LOADING ->  {}
+                ResourceStatus.LOADING ->  { showShimmerLayout() }
                 else -> {}
             }
         }
@@ -60,11 +69,12 @@ class PeopleFragment : Fragment() {
     }
 
     private fun loadData() {
-        viewModel.loadData()
+        viewModel.loadData(currentUserId)
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        searchView.setOnQueryTextListener(null)
         _binding = null
     }
 
@@ -72,8 +82,8 @@ class PeopleFragment : Fragment() {
         (activity as NavigationHolder).showNavigation()
         binding.toolbarLayout.toolbar.title = getString(R.string.people)
         val searchMenuItem = binding.toolbarLayout.toolbar.menu.findItem(R.id.actionSearch)
-        val searchView = searchMenuItem.actionView as SearchView
         val searchManager = context?.getSystemService(SEARCH_SERVICE) as SearchManager
+        searchView = searchMenuItem.actionView as SearchView
         searchMenuItem.isVisible = true
         searchView.apply {
             findViewById<ImageView>(R.id.search_close_btn).setImageResource(R.drawable.ic_close)
@@ -100,6 +110,11 @@ class PeopleFragment : Fragment() {
     private fun hideShimmerLayout() {
         binding.shimmerLayout.shimmer.visibility = View.GONE
         binding.usersList.visibility = View.VISIBLE
+    }
+
+    private fun showShimmerLayout() {
+        binding.shimmerLayout.shimmer.visibility = View.VISIBLE
+        binding.usersList.visibility = View.GONE
     }
 
     private fun showLoadingError() {

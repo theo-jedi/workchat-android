@@ -19,16 +19,27 @@ class ReactionsViewModel : ViewModel() {
         _loadingStatus.postValue(ResourceStatus.LOADING)
         ReactionsRepository.getReactions().subscribe({ resource ->
             if (resource.data != null) {
-                val reactions = resource.data.map { ListReaction(it.name, it.emoji) }
-                _allData.postValue(reactions)
-                _loadingStatus.postValue(ResourceStatus.SUCCESS)
+                if (resource.data.isNotEmpty()) {
+                    val reactions = resource.data.map {
+                        ListReaction(
+                            name = it.name,
+                            code = it.code,
+                            type = it.type,
+                            emoji = it.emoji
+                        )
+                    }
+                    _allData.postValue(reactions)
+                    _loadingStatus.postValue(ResourceStatus.SUCCESS)
+                } else {
+                    _loadingStatus.postValue(ResourceStatus.EMPTY)
+                }
             } else {
                 resource.error?.printStackTrace()
-                _loadingStatus.postValue(ResourceStatus.ERROR)
+                //_loadingStatus.postValue(ResourceStatus.ERROR)
             }
         }, {
             it.printStackTrace()
-            _loadingStatus.postValue(ResourceStatus.ERROR)
+            //_loadingStatus.postValue(ResourceStatus.ERROR)
         })
     }
 

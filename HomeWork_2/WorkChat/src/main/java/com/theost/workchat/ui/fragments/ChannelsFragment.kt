@@ -17,6 +17,7 @@ import com.theost.workchat.ui.adapters.delegates.TopicAdapterDelegate
 import com.theost.workchat.ui.interfaces.SearchHandler
 import com.theost.workchat.ui.interfaces.TopicListener
 import com.theost.workchat.ui.viewmodels.ChannelsViewModel
+import com.theost.workchat.utils.PrefUtils
 
 class ChannelsFragment : Fragment(), SearchHandler {
 
@@ -38,9 +39,10 @@ class ChannelsFragment : Fragment(), SearchHandler {
         super.onCreate(savedInstanceState)
         _binding = FragmentChannelsBinding.inflate(layoutInflater)
 
+        binding.channelsList.setHasFixedSize(true)
         binding.channelsList.adapter = adapter.apply {
             addDelegate(ChannelAdapterDelegate() { channelId, channelName, isSelected ->
-                selectedChannelName = if (selectedChannelName != channelName) channelName else ""
+                selectedChannelName = channelName
                 viewModel.updateTopics(channelId, isSelected)
             })
             addDelegate(TopicAdapterDelegate() { topicName ->
@@ -52,15 +54,18 @@ class ChannelsFragment : Fragment(), SearchHandler {
             when (status) {
                 ResourceStatus.SUCCESS -> hideLoading()
                 ResourceStatus.ERROR -> { showLoadingError() }
-                ResourceStatus.LOADING ->  {}
+                ResourceStatus.LOADING ->  { showShimmerLayout() }
                 else -> {}
             }
         }
-        viewModel.allData.observe(viewLifecycleOwner) { adapter.submitList(it)}
+        viewModel.subscribedChannelsIds.observe(viewLifecycleOwner) { channels ->
+            context?.let { context ->
+                PrefUtils.putSubscribedChannels(context, channels)
+            }
+        }
+        viewModel.allData.observe(viewLifecycleOwner) { adapter.submitList(it) }
 
         loadData()
-
-        configureEmptyLayout()
 
         return binding.root
     }
@@ -78,7 +83,9 @@ class ChannelsFragment : Fragment(), SearchHandler {
     }
 
     private fun loadData() {
-        viewModel.loadData(channelsType)
+        context?.let { context ->
+            viewModel.loadData(channelsType, PrefUtils.getSubscribedChannels(context))
+        }
     }
 
     override fun onSearch(query: String) {
@@ -87,7 +94,6 @@ class ChannelsFragment : Fragment(), SearchHandler {
 
     private fun hideLoading() {
         hideShimmerLayout()
-        updateEmptyLayout()
     }
 
     private fun hideShimmerLayout() {
@@ -95,12 +101,9 @@ class ChannelsFragment : Fragment(), SearchHandler {
         binding.channelsList.visibility = View.VISIBLE
     }
 
-    private fun configureEmptyLayout() {
-        binding.emptyLayout.emptyView.text = getString(R.string.no_channels)
-    }
-
-    private fun updateEmptyLayout() {
-        binding.emptyLayout.emptyView.visibility = if (adapter.itemCount > 0) View.GONE else View.VISIBLE
+    private fun showShimmerLayout() {
+        binding.shimmerLayout.shimmer.visibility = View.VISIBLE
+        binding.channelsList.visibility = View.GONE
     }
 
     private fun showLoadingError() {
