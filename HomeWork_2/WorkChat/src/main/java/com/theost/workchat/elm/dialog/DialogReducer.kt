@@ -167,6 +167,7 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
             if (state.paginationStatus != PaginationStatus.FULLY
                 && state.status != ResourceStatus.LOADING
                 && event.savedPosition != state.savedPosition
+                && state.isScrolled
             ) {
                 if (state.items.count() >= MessagesRepository.DIALOG_PAGE_SIZE) {
                     state {
@@ -191,12 +192,21 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
             } else {
                 Log.d("dialog_reducer", "Dialog is loading or fully loaded")
             }
+            Log.d("dialog_reducer", "Dialog is loading or fully loaded")
         }
         is DialogEvent.Ui.OnItemsInserted -> {
             when (state.scrollStatus) {
-                ScrollStatus.SCROLL_BOTTOM -> effects { +DialogEffect.ScrollToBottom }
-                ScrollStatus.SCROLL_TOP -> effects { +DialogEffect.ScrollToTop(state.savedPosition) }
-                ScrollStatus.STAY -> { Log.d("dialog_reducer", "ScrollStatus - STAY") }
+                ScrollStatus.SCROLL_BOTTOM -> {
+                    state { copy(scrollStatus = ScrollStatus.STAY) }
+                    effects { +DialogEffect.ScrollToBottom }
+                }
+                ScrollStatus.SCROLL_TOP -> {
+                    state { copy(scrollStatus = ScrollStatus.STAY) }
+                    effects { +DialogEffect.ScrollToTop(state.savedPosition) }
+                }
+                ScrollStatus.STAY -> {
+                    Log.d("dialog_reducer", "ScrollStatus - STAY")
+                }
             }
         }
         is DialogEvent.Ui.OnMessageSendClicked -> {
@@ -249,8 +259,19 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
             effects { +DialogEffect.ScrollSmoothToBottom }
         }
         is DialogEvent.Ui.OnScrolled -> {
+            if (event.position == 0) state { copy(isScrolled = true) }
             if (event.position <= DOWN_BUTTON_POSITION) {
                 state { copy(downStatus = DownStatus.HIDDEN, scrollOffset = 0) }
+                if (event.position >= state.items.count() - MessagesRepository.DIALOG_PAGE_SIZE) {
+                    commands {
+                        +DialogCommand.LoadNextMessages(
+                            state.channelName,
+                            state.topicName,
+                            state.currentUserId,
+                            state.messages
+                        )
+                    }
+                }
                 effects { +DialogEffect.HideDownButton }
             } else if ((state.scrollOffset + event.offset).absoluteValue > DOWN_BUTTON_SCROLL) {
                 if (state.scrollOffset + event.offset > 0) {

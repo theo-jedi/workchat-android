@@ -62,6 +62,7 @@ class PhotoIncomeAdapterDelegate : AdapterDelegate {
 
             GlideApp.with(binding.root)
                 .load(authorizedUrl)
+                .override(Target.SIZE_ORIGINAL)
                 .listener(object : RequestListener<Drawable> {
                     override fun onResourceReady(
                         resource: Drawable?,

@@ -18,5 +18,6 @@ data class DialogState(
     val topicName: String = "",
     val currentUserId: Int = -1,
     val savedPosition: Int = 0,
-    val scrollOffset: Int = 0
+    val scrollOffset: Int = 0,
+    val isScrolled: Boolean = false
 )
