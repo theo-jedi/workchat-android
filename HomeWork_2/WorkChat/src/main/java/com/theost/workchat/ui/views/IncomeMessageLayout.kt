@@ -1,50 +1,58 @@
 package com.theost.workchat.ui.views
 
 import android.content.Context
-import android.content.res.TypedArray
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
+import android.widget.TextView
 import com.theost.workchat.R
 
-class MessageLayout @JvmOverloads constructor(
+class IncomeMessageLayout @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
     defStyleRes: Int = 0
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
-    var backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-    var cornerRadius = 0f
+    var username: String = ""
         set(value) {
             field = value
-            requestLayout()
+            val nameTextView = getChildAt(0) as TextView
+            nameTextView.text = value
         }
-    var bubbleColor = 0
+    var time: String = ""
         set(value) {
             field = value
-            requestLayout()
+            val timeTextView = getChildAt(1) as TextView
+            timeTextView.text = value
         }
+    var message: String = ""
+        set(value) {
+            field = value
+            val messageTextView = getChildAt(2) as TextView
+            messageTextView.text = value
+        }
+    var bubble: Int = PARAMETER_UNSET
+        set(value) {
+            field = value
+            paint.color = value
+        }
+    var corners = 0f
+
+    private var paint = Paint(Paint.ANTI_ALIAS_FLAG)
 
     init {
-        inflate(context, R.layout.message_layout, this)
+        inflate(context, R.layout.layout_message_income, this)
 
-        val typedArray: TypedArray = context.obtainStyledAttributes(
-            attrs,
-            R.styleable.MessageLayout,
-            defStyleAttr,
-            defStyleRes
-        )
-        bubbleColor = typedArray.getColor(
-            R.styleable.MessageLayout_bubbleColor,
-            ContextCompat.getColor(context, R.color.dark_gray)
-        )
-        cornerRadius  = typedArray.getDimension(R.styleable.MessageLayout_cornerRadius, 50f)
-        typedArray.recycle()
+        val nameTextView = getChildAt(0) as TextView
+        val timeTextView = getChildAt(1) as TextView
+        val messageTextView = getChildAt(2) as TextView
 
-        backgroundPaint.color = bubbleColor
+        nameTextView.text = username
+        timeTextView.text = time
+        messageTextView.text = message
+        paint.color = bubble
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -67,7 +75,7 @@ class MessageLayout @JvmOverloads constructor(
         val nameMargin = (nameTextView.layoutParams as MarginLayoutParams)
 
         totalWidth += nameTextView.measuredWidth + nameMargin.rightMargin
-        totalHeight = maxOf(totalHeight, nameTextView.measuredHeight + nameMargin.bottomMargin)
+        totalHeight += nameTextView.measuredHeight + nameMargin.bottomMargin
 
         measureChildWithMargins(
             timeTextView,
@@ -81,9 +89,18 @@ class MessageLayout @JvmOverloads constructor(
         val timeMargin = (timeTextView.layoutParams as MarginLayoutParams)
 
         totalWidth += timeMargin.leftMargin + timeTextView.measuredWidth
-        totalHeight = maxOf(totalHeight,timeTextView.measuredHeight + timeMargin.bottomMargin)
+        totalHeight = maxOf(
+            totalHeight,
+            timeTextView.measuredHeight + maxOf(nameMargin.bottomMargin, timeMargin.bottomMargin)
+        )
 
-        measureChildWithMargins(messageTextView, widthMeasureSpec,0,heightMeasureSpec, totalHeight)
+        measureChildWithMargins(
+            messageTextView,
+            widthMeasureSpec,
+            0,
+            heightMeasureSpec,
+            totalHeight
+        )
 
         // Support margin
         val messageMargin = (messageTextView.layoutParams as MarginLayoutParams)
@@ -102,9 +119,9 @@ class MessageLayout @JvmOverloads constructor(
             0f,
             canvas.width.toFloat(),
             canvas.height.toFloat(),
-            cornerRadius,
-            cornerRadius,
-            backgroundPaint
+            corners,
+            corners,
+            paint
         )
         super.dispatchDraw(canvas)
     }
@@ -120,24 +137,27 @@ class MessageLayout @JvmOverloads constructor(
         val messageMargin = (messageTextView.layoutParams as MarginLayoutParams)
 
         nameTextView.layout(
-            paddingLeft + nameMargin.leftMargin,
-            paddingTop + nameMargin.topMargin,
-            paddingLeft + nameMargin.leftMargin + nameTextView.measuredWidth,
-            paddingTop + nameMargin.topMargin + nameTextView.measuredHeight
+            paddingLeft,
+            paddingTop,
+            paddingLeft + nameTextView.measuredWidth,
+            paddingTop + nameTextView.measuredHeight
         )
 
         timeTextView.layout(
-            width - paddingRight - timeTextView.measuredWidth,
-            paddingTop + timeMargin.topMargin,
-            width - paddingRight,
-            paddingTop + timeMargin.topMargin + timeTextView.measuredWidth
+            nameTextView.right + nameMargin.rightMargin + timeMargin.leftMargin,
+            paddingTop,
+            nameTextView.right + nameMargin.rightMargin + timeMargin.leftMargin + timeTextView.measuredWidth,
+            paddingTop + timeTextView.measuredHeight
         )
 
         messageTextView.layout(
             paddingLeft + messageMargin.leftMargin,
-            nameTextView.bottom + messageMargin.topMargin,
+            maxOf(nameTextView.bottom, timeTextView.bottom),
             paddingLeft + messageMargin.leftMargin + messageTextView.measuredWidth,
-            nameTextView.bottom + messageMargin.topMargin + nameTextView.measuredHeight
+            maxOf(nameTextView.bottom, timeTextView.bottom) + maxOf(
+                nameMargin.bottomMargin,
+                timeMargin.bottomMargin
+            ) + nameMargin.topMargin + nameTextView.measuredHeight
         )
     }
 
@@ -151,6 +171,10 @@ class MessageLayout @JvmOverloads constructor(
 
     override fun generateLayoutParams(p: LayoutParams): LayoutParams {
         return MarginLayoutParams(p)
+    }
+
+    companion object {
+        private const val PARAMETER_UNSET = -1
     }
 
 }

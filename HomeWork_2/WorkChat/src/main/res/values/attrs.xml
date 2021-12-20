@@ -1,22 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <declare-styleable name="MessageLayout">
-        <attr name="bubbleColor" format="string" />
-        <attr name="cornerRadius" format="dimension" />
+    <attr name="username" format="string" />
+    <attr name="message" format="string" />
+    <attr name="time" format="string" />
+    <attr name="bubble" format="color" />
+    <attr name="corners" format="dimension" />
+    <attr name="margins" format="dimension" />
+
+    <declare-styleable name="IncomeMessageView">
+        <attr name="avatar" format="string" />
+        <attr name="username" />
+        <attr name="message" />
+        <attr name="time" />
+        <attr name="bubble" />
+        <attr name="corners" />
+        <attr name="margins" />
     </declare-styleable>
 
-    <declare-styleable name="EmojiView">
+    <declare-styleable name="OutcomeMessageView">
+        <attr name="username" />
+        <attr name="message" />
+        <attr name="time" />
+        <attr name="bubble" />
+        <attr name="corners" />
+        <attr name="margins" />
+    </declare-styleable>
+
+    <declare-styleable name="DateView">
+        <attr name="dateText" format="string" />
+        <attr name="dateTextColor" format="string" />
+        <attr name="dateBubbleColor" format="color" />
+        <attr name="dateTextSize" format="dimension" />
+        <attr name="dateMargins" format="integer" />
+        <attr name="datePaddingsVertical" format="integer" />
+        <attr name="datePaddingsHorizontal" format="integer" />
+    </declare-styleable>
+
+    <declare-styleable name="ReactionLayout">
+        <attr name="reactionHorizontalMargin" format="dimension" />
+        <attr name="reactionVerticalMargin" format="dimension" />
+        <attr name="percentWidth" format="float" />
+    </declare-styleable>
+
+    <declare-styleable name="ReactionView">
         <attr name="emoji" format="string" />
         <attr name="text" format="string" />
-        <attr name="emojiTextColor" format="color" />
-        <attr name="emojiTextSize" format="dimension" />
-        <attr name="emojiPadding" format="dimension" />
-        <attr name="emojiBackground" format="dimension" />
-    </declare-styleable>
-
-    <declare-styleable name="EmojiLayout">
-        <attr name="emojiHorizontalMargin" format="dimension" />
-        <attr name="emojiVerticalMargin" format="dimension" />
-        <attr name="percentWidth" format="float" />
+        <attr name="reactionTextColor" format="color" />
+        <attr name="reactionTextSize" format="dimension" />
+        <attr name="reactionPadding" format="dimension" />
+        <attr name="reactionBackground" format="dimension" />
     </declare-styleable>
 </resources>

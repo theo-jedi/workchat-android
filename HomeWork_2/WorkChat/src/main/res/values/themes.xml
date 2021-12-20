@@ -1,13 +1,29 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
+
     <style name="Theme.WorkChat" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <item name="colorPrimary">@color/green</item>
         <item name="colorPrimaryVariant">@color/green</item>
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorSecondary">@color/green</item>
         <item name="colorSecondaryVariant">@color/green</item>
-        <item name="colorOnSecondary">@color/black</item>
+        <item name="colorOnSecondary">@color/black_1</item>
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <item name="bottomSheetDialogTheme">@style/Theme.WorkChat.BottomSheet</item>
         <item name="android:navigationBarColor">@color/background</item>
         <item name="android:windowBackground">@color/background</item>
+    </style>
+
+    <style name="Theme.WorkChat.Dialogs" parent="Theme.WorkChat">
+        <item name="android:navigationBarColor">@color/message_background</item>
+    </style>
+
+    <style name="Theme.WorkChat.BottomSheet" parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Theme.WorkChat.BottomSheet.Modal</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:navigationBarColor">@color/message_background</item>
+    </style>
+
+    <style name="Theme.WorkChat.BottomSheet.Modal" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@drawable/bg_reaction_dialog</item>
     </style>
 </resources>

@@ -4,12 +4,20 @@
     <color name="dark_green">#006153</color>
 
     <color name="white">#FFFFFFFF</color>
-    <color name="black">#070707</color>
-
-    <color name="light_gray">#CCCCCC</color>
+    <color name="lighter_gray">#CCCCCC</color>
+    <color name="light_gray">#999999</color>
     <color name="gray">#3A3A3A</color>
-    <color name="dark_gray">#1C1C1C</color>
-    <color name="darker_gray">#121212</color>
 
-    <color name="background">@color/darker_gray</color>
+    <color name="black_1">#121212</color>
+    <color name="black_2">#1C1C1C</color>
+    <color name="black_3">#1E1E1E</color>
+    <color name="black_4">#282828</color>
+    <color name="black_5">#464646</color>
+
+    <color name="background">@color/black_1</color>
+    <color name="message_background">@color/black_3</color>
+    <color name="input_background">@color/black_4</color>
+
+    <color name="message_bubble_income">@color/black_2</color>
+    <color name="message_bubble_outcome">@color/green</color>
 </resources>
