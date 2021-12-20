@@ -1,6 +1,7 @@
 package com.theost.workchat.ui.fragments
 
 import android.app.SearchManager
+import android.content.Context
 import android.content.Context.SEARCH_SERVICE
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -11,11 +12,10 @@ import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import com.google.android.material.snackbar.Snackbar
 import com.theost.workchat.R
+import com.theost.workchat.application.WorkChatApp
 import com.theost.workchat.databinding.FragmentPeopleBinding
-import com.theost.workchat.elm.people.PeopleEffect
-import com.theost.workchat.elm.people.PeopleEvent
-import com.theost.workchat.elm.people.PeopleState
-import com.theost.workchat.elm.people.PeopleStore
+import com.theost.workchat.di.ui.DaggerPeopleComponent
+import com.theost.workchat.elm.people.*
 import com.theost.workchat.ui.adapters.core.BaseAdapter
 import com.theost.workchat.ui.adapters.delegates.PeopleAdapterDelegate
 import com.theost.workchat.ui.interfaces.NavigationHolder
@@ -25,8 +25,12 @@ import com.theost.workchat.utils.DisplayUtils
 import com.theost.workchat.utils.PrefUtils
 import vivid.money.elmslie.android.base.ElmFragment
 import vivid.money.elmslie.core.store.Store
+import javax.inject.Inject
 
 class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
+
+    @Inject
+    lateinit var actor: PeopleActor
 
     private lateinit var searchView: SearchView
     private val adapter: BaseAdapter = BaseAdapter()
@@ -47,7 +51,7 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
         binding.usersList.setHasFixedSize(true)
         binding.usersList.adapter = adapter.apply {
             addDelegate(PeopleAdapterDelegate { userId ->
-                (activity as PeopleListener).onProfileSelected(userId)
+                (activity as PeopleListener).openProfile(userId)
             })
         }
 
@@ -56,10 +60,16 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
         return binding.root
     }
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        DaggerPeopleComponent.factory().create(WorkChatApp.appComponent).inject(this)
+    }
+
     override val initEvent: PeopleEvent = PeopleEvent.Ui.LoadPeople
 
     override fun createStore(): Store<PeopleEvent, PeopleEffect, PeopleState> {
         return PeopleStore.getStore(
+            actor,
             PeopleState(
                 currentUserId = context?.let { PrefUtils.getCurrentUserId(it) } ?: -1
             )
@@ -87,7 +97,7 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
     }
 
     private fun openProfile(userId: Int) {
-        (activity as PeopleListener).onProfileSelected(userId)
+        (activity as PeopleListener).openProfile(userId)
     }
 
     private fun hideEmptyView() {

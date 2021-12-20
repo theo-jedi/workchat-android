@@ -1,5 +1,6 @@
 package com.theost.workchat.ui.fragments
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -7,12 +8,11 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.google.android.material.snackbar.Snackbar
 import com.theost.workchat.R
+import com.theost.workchat.application.WorkChatApp
 import com.theost.workchat.data.models.state.ChannelsType
 import com.theost.workchat.databinding.FragmentChannelsBinding
-import com.theost.workchat.elm.channels.ChannelsEffect
-import com.theost.workchat.elm.channels.ChannelsEvent
-import com.theost.workchat.elm.channels.ChannelsState
-import com.theost.workchat.elm.channels.ChannelsStore
+import com.theost.workchat.di.ui.DaggerChannelsComponent
+import com.theost.workchat.elm.channels.*
 import com.theost.workchat.ui.adapters.core.BaseAdapter
 import com.theost.workchat.ui.adapters.delegates.ChannelAdapterDelegate
 import com.theost.workchat.ui.adapters.delegates.TopicAdapterDelegate
@@ -22,9 +22,13 @@ import com.theost.workchat.ui.interfaces.WindowHolder
 import com.theost.workchat.utils.PrefUtils
 import vivid.money.elmslie.android.base.ElmFragment
 import vivid.money.elmslie.core.store.Store
+import javax.inject.Inject
 
 class ChannelsFragment : ElmFragment<ChannelsEvent, ChannelsEffect, ChannelsState>(),
     SearchHandler {
+
+    @Inject
+    lateinit var actor: ChannelsActor
 
     private val adapter: BaseAdapter = BaseAdapter()
 
@@ -54,10 +58,16 @@ class ChannelsFragment : ElmFragment<ChannelsEvent, ChannelsEffect, ChannelsStat
         return binding.root
     }
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        DaggerChannelsComponent.factory().create(WorkChatApp.appComponent).inject(this)
+    }
+
     override val initEvent: ChannelsEvent = ChannelsEvent.Ui.LoadChannels
 
     override fun createStore(): Store<ChannelsEvent, ChannelsEffect, ChannelsState> {
         return ChannelsStore.getStore(
+            actor,
             ChannelsState(
                 channelsType = arguments?.getSerializable(CHANNELS_TYPE_EXTRA) as? ChannelsType
                     ?: ChannelsType.ALL,
@@ -100,7 +110,7 @@ class ChannelsFragment : ElmFragment<ChannelsEvent, ChannelsEffect, ChannelsStat
     }
 
     private fun onTopicClick(channelName: String, topicName: String) {
-        (activity as TopicListener).showTopicDialog(channelName, topicName)
+        (activity as TopicListener).openDialog(channelName, topicName)
     }
 
     override fun onSearch(query: String) {

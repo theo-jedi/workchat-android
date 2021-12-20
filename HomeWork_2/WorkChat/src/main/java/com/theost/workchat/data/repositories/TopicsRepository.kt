@@ -1,18 +1,18 @@
 package com.theost.workchat.data.repositories
 
-import com.theost.workchat.application.WorkChatApp
 import com.theost.workchat.data.models.core.Topic
+import com.theost.workchat.database.db.CacheDatabase
 import com.theost.workchat.database.entities.mapToTopic
 import com.theost.workchat.database.entities.mapToTopicEntity
-import com.theost.workchat.network.api.RetrofitHelper
+import com.theost.workchat.network.api.Api
 import com.theost.workchat.network.dto.mapToTopic
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
 
-object TopicsRepository {
+class TopicsRepository(private val service: Api, database: CacheDatabase) {
 
-    private val service = RetrofitHelper.retrofitService
+    private val topicsDao = database.topicsDao()
 
     fun getTopics(channelId: Int): Observable<Result<List<Topic>>> {
         return Observable.concat(
@@ -35,15 +35,14 @@ object TopicsRepository {
     }
 
     private fun getTopicsFromCache(channelId: Int): Single<Result<List<Topic>>> {
-        return WorkChatApp.cacheDatabase.topicsDao().getChannelTopics(channelId)
+        return topicsDao.getChannelTopics(channelId)
             .map { topics -> Result.success(topics.map { topicEntity -> topicEntity.mapToTopic() }) }
             .onErrorReturn { Result.failure(it) }
             .subscribeOn(Schedulers.io())
     }
 
     private fun addTopicsToDatabase(channelId: Int, topics: List<Topic>) {
-        WorkChatApp.cacheDatabase.topicsDao()
-            .insertAll(topics.map { topic -> topic.mapToTopicEntity(channelId) })
+        topicsDao.insertAll(topics.map { topic -> topic.mapToTopicEntity(channelId) })
             .subscribeOn(Schedulers.io())
             .subscribe()
     }

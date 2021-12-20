@@ -12,7 +12,10 @@ import vivid.money.elmslie.core.ActorCompat
 import java.util.concurrent.TimeUnit
 
 
-class ChannelsActor : ActorCompat<ChannelsCommand, ChannelsEvent> {
+class ChannelsActor(
+    private val channelsRepository: ChannelsRepository,
+    private val topicsRepository: TopicsRepository
+) : ActorCompat<ChannelsCommand, ChannelsEvent> {
     override fun execute(command: ChannelsCommand): Observable<ChannelsEvent> = when (command) {
         is ChannelsCommand.LoadItems -> {
             Observable.just(command.topics).concatMap { topics ->
@@ -25,7 +28,7 @@ class ChannelsActor : ActorCompat<ChannelsCommand, ChannelsEvent> {
             )
         }
         is ChannelsCommand.LoadChannels -> {
-            ChannelsRepository.getChannels(
+            channelsRepository.getChannels(
                 channelsType = command.channelsType,
                 subscribedChannels = command.subscribedChannels
             ).map { result ->
@@ -60,7 +63,7 @@ class ChannelsActor : ActorCompat<ChannelsCommand, ChannelsEvent> {
                 )
         }
         is ChannelsCommand.LoadTopics -> {
-            TopicsRepository.getTopics(channelId = command.channelId).map { result ->
+            topicsRepository.getTopics(channelId = command.channelId).map { result ->
                 result.fold({ topics ->
                     ChannelsEvent.Internal.TopicsLoadingSuccess(
                         topics.map { topic ->

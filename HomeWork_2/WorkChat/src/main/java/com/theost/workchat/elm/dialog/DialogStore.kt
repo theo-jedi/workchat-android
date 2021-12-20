@@ -4,10 +4,10 @@ import vivid.money.elmslie.core.ElmStoreCompat
 
 object DialogStore {
 
-    fun getStore(initialState: DialogState) = ElmStoreCompat(
+    fun getStore(actor: DialogActor, initialState: DialogState) = ElmStoreCompat(
         initialState = initialState,
         reducer = DialogReducer(),
-        actor = DialogActor()
+        actor = actor
     )
 
 }

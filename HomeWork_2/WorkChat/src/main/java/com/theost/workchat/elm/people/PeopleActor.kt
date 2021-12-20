@@ -9,10 +9,10 @@ import io.reactivex.schedulers.Schedulers
 import vivid.money.elmslie.core.ActorCompat
 import java.util.concurrent.TimeUnit
 
-class PeopleActor : ActorCompat<PeopleCommand, PeopleEvent> {
+class PeopleActor(private val usersRepository: UsersRepository) : ActorCompat<PeopleCommand, PeopleEvent> {
     override fun execute(command: PeopleCommand): Observable<PeopleEvent> = when (command) {
         is PeopleCommand.LoadPeople -> {
-            UsersRepository.getUsers().map { result ->
+            usersRepository.getUsers().map { result ->
                 result.fold({ users ->
                     PeopleEvent.Internal.PeopleLoadingSuccess(users
                         .filterNot { user -> user.id == command.currentUserId }

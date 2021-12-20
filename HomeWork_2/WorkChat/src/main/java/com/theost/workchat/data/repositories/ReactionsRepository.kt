@@ -1,22 +1,22 @@
 package com.theost.workchat.data.repositories
 
-import com.theost.workchat.application.WorkChatApp
 import com.theost.workchat.data.models.core.Reaction
 import com.theost.workchat.data.models.state.CacheStatus
+import com.theost.workchat.database.db.CacheDatabase
 import com.theost.workchat.database.entities.mapToReaction
 import com.theost.workchat.database.entities.mapToReactionEntity
-import com.theost.workchat.network.api.RetrofitHelper
+import com.theost.workchat.network.api.Api
 import com.theost.workchat.network.dto.mapToReactions
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
 
-object ReactionsRepository {
+class ReactionsRepository(private val service: Api, database: CacheDatabase) {
 
     private var cacheStatus: CacheStatus = CacheStatus.NOT_UPDATED
 
-    private val service = RetrofitHelper.retrofitService
+    private val reactionsDao = database.reactionsDao()
 
     fun getReactions(): Observable<Result<List<Reaction>>> {
         return if (cacheStatus == CacheStatus.UPDATED) {
@@ -43,15 +43,14 @@ object ReactionsRepository {
     }
 
     private fun getReactionsFromCache(): Single<Result<List<Reaction>>> {
-        return WorkChatApp.cacheDatabase.reactionsDao().getAll()
+        return reactionsDao.getAll()
             .map { response -> Result.success(response.map { reactionEntity -> reactionEntity.mapToReaction() }) }
             .onErrorReturn { Result.failure(it) }
             .subscribeOn(Schedulers.io())
     }
 
     private fun addReactionsToDatabase(reactions: List<Reaction>) {
-        WorkChatApp.cacheDatabase.reactionsDao()
-            .insertAll(reactions.map { reaction -> reaction.mapToReactionEntity() })
+        reactionsDao.insertAll(reactions.map { reaction -> reaction.mapToReactionEntity() })
             .doOnComplete { cacheStatus = CacheStatus.UPDATED }
             .subscribeOn(Schedulers.io())
             .subscribe()

@@ -1,5 +1,6 @@
 package com.theost.workchat.ui.fragments
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -8,19 +9,22 @@ import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.google.android.material.snackbar.Snackbar
 import com.theost.workchat.R
+import com.theost.workchat.application.WorkChatApp
 import com.theost.workchat.data.models.state.UserStatus
 import com.theost.workchat.databinding.FragmentProfileBinding
-import com.theost.workchat.elm.profile.ProfileEffect
-import com.theost.workchat.elm.profile.ProfileEvent
-import com.theost.workchat.elm.profile.ProfileState
-import com.theost.workchat.elm.profile.ProfileStore
+import com.theost.workchat.di.ui.DaggerProfileComponent
+import com.theost.workchat.elm.profile.*
 import com.theost.workchat.ui.interfaces.NavigationHolder
 import com.theost.workchat.ui.interfaces.WindowHolder
 import com.theost.workchat.utils.PrefUtils
 import vivid.money.elmslie.android.base.ElmFragment
 import vivid.money.elmslie.core.store.Store
+import javax.inject.Inject
 
 class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileState>() {
+
+    @Inject
+    lateinit var actor: ProfileActor
 
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
@@ -38,6 +42,11 @@ class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileState>()
         return binding.root
     }
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        DaggerProfileComponent.factory().create(WorkChatApp.appComponent).inject(this)
+    }
+
     override val initEvent: ProfileEvent = ProfileEvent.Ui.LoadProfile
 
     override fun createStore(): Store<ProfileEvent, ProfileEffect, ProfileState> {
@@ -50,6 +59,7 @@ class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileState>()
         }
 
         return ProfileStore.getStore(
+            actor,
             ProfileState(
                 userId = userId,
                 isCurrentUser = isCurrentUser

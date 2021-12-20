@@ -1,20 +1,20 @@
 package com.theost.workchat.data.repositories
 
-import com.theost.workchat.application.WorkChatApp
 import com.theost.workchat.data.models.core.User
 import com.theost.workchat.data.models.state.UserStatus
+import com.theost.workchat.database.db.CacheDatabase
 import com.theost.workchat.database.entities.mapToUser
 import com.theost.workchat.database.entities.mapToUserEntity
-import com.theost.workchat.network.api.RetrofitHelper
+import com.theost.workchat.network.api.Api
 import com.theost.workchat.network.dto.mapToStatus
 import com.theost.workchat.network.dto.mapToUser
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
 
-object UsersRepository {
+class UsersRepository(private val service: Api, database: CacheDatabase) {
 
-    private val service = RetrofitHelper.retrofitService
+    private val usersDao = database.usersDao()
 
     fun getUsers(): Observable<Result<List<User>>> {
         return Observable.concat(
@@ -37,7 +37,7 @@ object UsersRepository {
     }
 
     private fun getUsersFromCache(): Single<Result<List<User>>> {
-        return WorkChatApp.cacheDatabase.usersDao().getAll()
+        return usersDao.getAll()
             .map { users -> Result.success(users.map { userEntity -> userEntity.mapToUser() }) }
             .onErrorReturn { Result.failure(it) }
             .subscribeOn(Schedulers.io())
@@ -81,7 +81,7 @@ object UsersRepository {
     }
 
     private fun getUserFromCache(id: Int): Single<Result<User>> {
-        return WorkChatApp.cacheDatabase.usersDao().getUser(id)
+        return usersDao.getUser(id)
             .map { userEntity -> Result.success(userEntity.mapToUser()) }
             .onErrorReturn { Result.failure(it) }
             .subscribeOn(Schedulers.io())
@@ -95,8 +95,7 @@ object UsersRepository {
     }
 
     private fun addUsersToDatabase(users: List<User>) {
-        WorkChatApp.cacheDatabase.usersDao()
-            .insertAll(users.map { user -> user.mapToUserEntity() })
+        usersDao.insertAll(users.map { user -> user.mapToUserEntity() })
             .subscribeOn(Schedulers.io())
             .subscribe()
     }

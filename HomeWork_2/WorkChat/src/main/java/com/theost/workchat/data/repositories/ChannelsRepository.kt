@@ -1,19 +1,19 @@
 package com.theost.workchat.data.repositories
 
-import com.theost.workchat.application.WorkChatApp
 import com.theost.workchat.data.models.core.Channel
 import com.theost.workchat.data.models.state.ChannelsType
+import com.theost.workchat.database.db.CacheDatabase
 import com.theost.workchat.database.entities.mapToChannel
 import com.theost.workchat.database.entities.mapToChannelEntity
-import com.theost.workchat.network.api.RetrofitHelper
+import com.theost.workchat.network.api.Api
 import com.theost.workchat.network.dto.mapToChannel
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
 
-object ChannelsRepository {
+class ChannelsRepository(private val service: Api, database: CacheDatabase) {
 
-    private val service = RetrofitHelper.retrofitService
+    private val channelsDao = database.channelsDao()
 
     fun getChannels(
         channelsType: ChannelsType,
@@ -56,7 +56,7 @@ object ChannelsRepository {
         subscribedChannels: List<Int>
     ): Single<Result<List<Channel>>> {
         return if (channelsType == ChannelsType.SUBSCRIBED) {
-            WorkChatApp.cacheDatabase.channelsDao().getAll()
+            channelsDao.getAll()
                 .map { channels ->
                     Result.success(channels
                         .filter { channelEntity -> subscribedChannels.contains(channelEntity.id) }
@@ -66,7 +66,7 @@ object ChannelsRepository {
                 .onErrorReturn { Result.failure(it) }
                 .subscribeOn(Schedulers.io())
         } else {
-            WorkChatApp.cacheDatabase.channelsDao().getAll()
+            channelsDao.getAll()
                 .map { channels -> Result.success(channels.map { channelEntity -> channelEntity.mapToChannel() }) }
                 .onErrorReturn { Result.failure(it) }
                 .subscribeOn(Schedulers.io())
@@ -74,8 +74,7 @@ object ChannelsRepository {
     }
 
     private fun addChannelsToDatabase(channels: List<Channel>) {
-        WorkChatApp.cacheDatabase.channelsDao()
-            .insertAll(channels.map { channel -> channel.mapToChannelEntity() })
+        channelsDao.insertAll(channels.map { channel -> channel.mapToChannelEntity() })
             .subscribeOn(Schedulers.io())
             .subscribe()
     }

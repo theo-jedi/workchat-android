@@ -4,10 +4,10 @@ import vivid.money.elmslie.core.ElmStoreCompat
 
 object PeopleStore {
 
-    fun getStore(initialState: PeopleState) = ElmStoreCompat(
+    fun getStore(actor: PeopleActor, initialState: PeopleState) = ElmStoreCompat(
         initialState = initialState,
         reducer = PeopleReducer(),
-        actor = PeopleActor()
+        actor = actor
     )
 
 }

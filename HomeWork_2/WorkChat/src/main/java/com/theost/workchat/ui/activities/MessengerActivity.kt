@@ -2,13 +2,14 @@ package com.theost.workchat.ui.activities
 
 import android.os.Bundle
 import android.view.View
-import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import com.google.android.material.snackbar.Snackbar
 import com.theost.workchat.R
+import com.theost.workchat.application.WorkChatApp
 import com.theost.workchat.databinding.ActivityMessengerBinding
+import com.theost.workchat.di.ui.DaggerMessengerComponent
+import com.theost.workchat.elm.messenger.*
 import com.theost.workchat.ui.fragments.DialogFragment
 import com.theost.workchat.ui.fragments.PeopleFragment
 import com.theost.workchat.ui.fragments.ProfileFragment
@@ -17,16 +18,19 @@ import com.theost.workchat.ui.interfaces.NavigationHolder
 import com.theost.workchat.ui.interfaces.PeopleListener
 import com.theost.workchat.ui.interfaces.TopicListener
 import com.theost.workchat.ui.interfaces.WindowHolder
-import com.theost.workchat.ui.viewmodels.MessengerViewModel
 import com.theost.workchat.utils.DisplayUtils
 import com.theost.workchat.utils.PrefUtils
+import vivid.money.elmslie.android.base.ElmActivity
+import vivid.money.elmslie.core.store.Store
+import javax.inject.Inject
 
-class MessengerActivity : FragmentActivity(), WindowHolder, NavigationHolder, PeopleListener,
-    TopicListener {
+class MessengerActivity : ElmActivity<MessengerEvent, MessengerEffect, MessengerState>(),
+    WindowHolder, NavigationHolder, PeopleListener, TopicListener {
 
-    private val viewModel: MessengerViewModel by viewModels()
+    @Inject
+    lateinit var actor: MessengerActor
+
     private var snackbar: Snackbar? = null
-
     private lateinit var binding: ActivityMessengerBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,23 +38,15 @@ class MessengerActivity : FragmentActivity(), WindowHolder, NavigationHolder, Pe
         binding = ActivityMessengerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.bottomNavigation.setOnItemSelectedListener {
-            onNavigationItemSelected(it.itemId)
+        binding.bottomNavigation.setOnItemSelectedListener { menuItem ->
+            store.accept(MessengerEvent.Ui.OnNavigationClick(menuItem.itemId))
             true
         }
-        binding.bottomNavigation.selectedItemId = R.id.navChannels
 
-        viewModel.currentUserId.observe(this) { userId ->
-            PrefUtils.putCurrentUserId(
-                context = this,
-                userId = userId
-            )
-        }
+        DaggerMessengerComponent.factory().create(WorkChatApp.appComponent).inject(this)
     }
 
     override fun onBackPressed() {
-        hideFloatingViews()
-
         if (supportFragmentManager.backStackEntryCount > 1) {
             super.onBackPressed()
         } else {
@@ -58,17 +54,41 @@ class MessengerActivity : FragmentActivity(), WindowHolder, NavigationHolder, Pe
         }
     }
 
-    private fun onNavigationItemSelected(itemId: Int) {
-        when (itemId) {
-            R.id.navChannels -> navigateFragment(StreamsFragment.newFragment(), "channels")
-            R.id.navPeople -> navigateFragment(PeopleFragment.newFragment(), "people")
-            R.id.navProfile -> navigateFragment(ProfileFragment.newFragment(), "profile")
+    override val initEvent: MessengerEvent = MessengerEvent.Ui.Init(R.id.navChannels)
+
+    override fun createStore(): Store<MessengerEvent, MessengerEffect, MessengerState> {
+        return MessengerStore.getStore(
+            actor,
+            MessengerState(currentUserId = PrefUtils.getCurrentUserId(this))
+        )
+    }
+
+    override fun render(state: MessengerState) {
+        if (state.currentUserId != -1) {
+            PrefUtils.putCurrentUserId(
+                context = this,
+                userId = state.currentUserId
+            )
         }
     }
 
-    private fun hideFloatingViews() {
-        DisplayUtils.hideKeyboard(this)
-        hideSnackbar()
+    override fun handleEffect(effect: MessengerEffect) {
+        when (effect) {
+            is MessengerEffect.SelectNavigation -> selectNavigation(effect.itemId)
+            is MessengerEffect.HideNavigation -> hideNavigation()
+            is MessengerEffect.ShowNavigation -> showNavigation()
+            is MessengerEffect.HideFloatingViews -> hideFloatingViews()
+            is MessengerEffect.NavigateStreams -> navigateFragment(StreamsFragment(), FRAGMENT_CHANNELS_TAG)
+            is MessengerEffect.NavigatePeople -> navigateFragment(PeopleFragment.newFragment(), FRAGMENT_PEOPLE_TAG)
+            is MessengerEffect.NavigateProfile -> navigateFragment(ProfileFragment.newFragment(), FRAGMENT_PROFILE_TAG)
+            is MessengerEffect.OpenProfile -> startFragment(ProfileFragment.newFragment(effect.userId))
+            is MessengerEffect.OpenDialog -> startFragment(
+                DialogFragment.newFragment(
+                    effect.channelName,
+                    effect.topicName
+                )
+            )
+        }
     }
 
     override fun showSnackbar(snackbar: Snackbar, view: View?) {
@@ -80,6 +100,10 @@ class MessengerActivity : FragmentActivity(), WindowHolder, NavigationHolder, Pe
 
     override fun hideSnackbar() {
         this.snackbar?.dismiss()
+    }
+
+    private fun selectNavigation(itemId: Int) {
+        binding.bottomNavigation.selectedItemId = itemId
     }
 
     override fun showNavigation() {
@@ -94,27 +118,22 @@ class MessengerActivity : FragmentActivity(), WindowHolder, NavigationHolder, Pe
             .translationY(binding.bottomNavigation.height.toFloat()).duration = 150
     }
 
-    override fun onProfileSelected(userId: Int) {
-        startFragment(ProfileFragment.newFragment(userId))
+    override fun openProfile(userId: Int) {
+        store.accept(MessengerEvent.Ui.OnProfileClick(userId))
     }
 
-    override fun showTopicDialog(channelName: String, topicName: String) {
-        startFragment(DialogFragment.newFragment(channelName, topicName))
+    override fun openDialog(channelName: String, topicName: String) {
+        store.accept(MessengerEvent.Ui.OnDialogClick(channelName, topicName))
     }
 
-    private fun updateCurrentUser() {
-        if (PrefUtils.getCurrentUserId(this) == -1) {
-            viewModel.updateData()
-        }
+    private fun hideFloatingViews() {
+        DisplayUtils.hideKeyboard(this)
+        hideSnackbar()
     }
 
     private fun navigateFragment(fragment: Fragment, tag: String) {
-        updateCurrentUser() // todo replace with network listener
-        hideFloatingViews()
-
         if (supportFragmentManager.findFragmentByTag(tag) == null) {
             if (supportFragmentManager.backStackEntryCount > 0) supportFragmentManager.popBackStack()
-
             supportFragmentManager.beginTransaction()
                 .replace(R.id.fragmentContainer, fragment, tag)
                 .addToBackStack(tag)
@@ -123,9 +142,6 @@ class MessengerActivity : FragmentActivity(), WindowHolder, NavigationHolder, Pe
     }
 
     private fun startFragment(fragment: Fragment) {
-        hideFloatingViews()
-        hideNavigation()
-
         supportFragmentManager.beginTransaction()
             .setCustomAnimations(
                 R.anim.slide_from_right,
@@ -136,6 +152,12 @@ class MessengerActivity : FragmentActivity(), WindowHolder, NavigationHolder, Pe
             .replace(R.id.fragmentContainer, fragment, null)
             .addToBackStack(null)
             .commit()
+    }
+
+    companion object {
+        private const val FRAGMENT_CHANNELS_TAG = "channels"
+        private const val FRAGMENT_PEOPLE_TAG = "people"
+        private const val FRAGMENT_PROFILE_TAG = "profile"
     }
 
 }
