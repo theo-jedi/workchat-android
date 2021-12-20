@@ -35,7 +35,7 @@ fun MessageEntity.mapToMessage(): Message {
     return Message(
         id = id,
         content = content,
-        time = Date(time),
+        date = Date(time),
         senderId = senderId,
         senderName = senderName,
         senderAvatarUrl = senderAvatarUrl,
@@ -47,7 +47,7 @@ fun Message.mapToMessageEntity(channelName: String, topicName: String): MessageE
     return MessageEntity(
         id = id,
         content = content,
-        time = time.time,
+        time = date.time,
         senderId = senderId,
         senderName = senderName,
         senderAvatarUrl = senderAvatarUrl,

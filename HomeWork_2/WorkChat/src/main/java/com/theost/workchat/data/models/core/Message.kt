@@ -5,7 +5,7 @@ import java.util.*
 data class Message(
     val id: Int,
     val content: String,
-    val time: Date,
+    val date: Date,
     val senderId: Int,
     val senderName: String,
     val senderAvatarUrl: String,

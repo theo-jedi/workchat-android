@@ -11,9 +11,7 @@ import com.theost.workchat.ui.interfaces.AdapterDelegate
 class TopicAdapterDelegate(private val clickListener: (topicName: String) -> Unit) : AdapterDelegate {
 
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
-        val binding = ItemTopicBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
-        )
+        val binding = ItemTopicBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         val backgrounds = mutableListOf<Int>()
         parent.context.resources.obtainTypedArray(R.array.topic_backgrounds).let { typedArray ->
             (0 until typedArray.length()).forEach { item ->
@@ -38,7 +36,6 @@ class TopicAdapterDelegate(private val clickListener: (topicName: String) -> Uni
 
         fun bind(listItem: ListTopic) {
             binding.topicName.text = listItem.name
-            binding.topicCount.text = "-" // we can show some useful information here
             binding.root.setOnClickListener { clickListener(listItem.name) }
             binding.root.setBackgroundResource(backgrounds[adapterPosition % backgrounds.size])
         }

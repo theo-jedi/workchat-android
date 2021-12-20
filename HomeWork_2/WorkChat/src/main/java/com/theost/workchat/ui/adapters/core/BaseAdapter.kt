@@ -8,7 +8,7 @@ import com.theost.workchat.ui.interfaces.AdapterDelegate
 import com.theost.workchat.ui.interfaces.DelegateItem
 
 open class BaseAdapter : ListAdapter<DelegateItem, RecyclerView.ViewHolder>(DelegateItemCallback()) {
-    private val delegates: MutableList<AdapterDelegate> = mutableListOf()
+    protected val delegates: MutableList<AdapterDelegate> = mutableListOf()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder =
         delegates[viewType].onCreateViewHolder(parent)

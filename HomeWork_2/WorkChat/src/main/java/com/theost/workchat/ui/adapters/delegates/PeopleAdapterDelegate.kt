@@ -11,13 +11,10 @@ import com.theost.workchat.data.models.ui.ListUser
 import com.theost.workchat.databinding.ItemPeopleBinding
 import com.theost.workchat.ui.interfaces.AdapterDelegate
 
-class PeopleAdapterDelegate(private val clickListener: (userId: Int) -> Unit) :
-    AdapterDelegate {
+class PeopleAdapterDelegate(private val clickListener: (userId: Int) -> Unit) : AdapterDelegate {
 
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
-        val binding = ItemPeopleBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
-        )
+        val binding = ItemPeopleBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ViewHolder(binding, clickListener)
     }
 

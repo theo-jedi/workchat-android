@@ -1,7 +1,6 @@
 package com.theost.workchat.data.repositories
 
 import com.theost.workchat.application.WorkChatApp
-import com.theost.workchat.data.models.core.RxResource
 import com.theost.workchat.data.models.core.User
 import com.theost.workchat.data.models.state.UserStatus
 import com.theost.workchat.database.entities.mapToUser
@@ -9,44 +8,42 @@ import com.theost.workchat.database.entities.mapToUserEntity
 import com.theost.workchat.network.api.RetrofitHelper
 import com.theost.workchat.network.dto.mapToStatus
 import com.theost.workchat.network.dto.mapToUser
-import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.core.Single
-import io.reactivex.rxjava3.schedulers.Schedulers
+import io.reactivex.Observable
+import io.reactivex.Single
+import io.reactivex.schedulers.Schedulers
 
 object UsersRepository {
 
     private val service = RetrofitHelper.retrofitService
 
-    fun getUsers(): Observable<RxResource<List<User>>> {
+    fun getUsers(): Observable<Result<List<User>>> {
         return Observable.concat(
             getUsersFromCache().toObservable(),
             getUsersFromServer().toObservable()
         )
     }
 
-    private fun getUsersFromServer(): Single<RxResource<List<User>>> {
+    private fun getUsersFromServer(): Single<Result<List<User>>> {
         return service.getUsers()
-            .map { RxResource.success(it.users.map { user -> user.mapToUser() }) }
-            .onErrorReturn { RxResource.error(it, null) }
-            .doOnSuccess {
-                if (it.data != null) addUsersToDatabase(it.data)
-            }.subscribeOn(Schedulers.io())
-    }
-
-    private fun getUsersFromCache(): Single<RxResource<List<User>>> {
-        return WorkChatApp.cacheDatabase.usersDao().getAll()
-            .map { RxResource.success(it.map { userEntity -> userEntity.mapToUser() }) }
-            .onErrorReturn { RxResource.error(it, null) }
+            .map { response -> Result.success(response.users.map { userDto -> userDto.mapToUser() }) }
+            .onErrorReturn { Result.failure(it) }
+            .doOnSuccess { result ->
+                if (result.isSuccess) {
+                    val users = result.getOrNull()
+                    if (users != null) addUsersToDatabase(users)
+                }
+            }
             .subscribeOn(Schedulers.io())
     }
 
-    private fun addUsersToDatabase(users: List<User>) {
-        WorkChatApp.cacheDatabase.usersDao()
-            .insertAll(users.map { it.mapToUserEntity() })
-            .subscribeOn(Schedulers.io()).subscribe()
+    private fun getUsersFromCache(): Single<Result<List<User>>> {
+        return WorkChatApp.cacheDatabase.usersDao().getAll()
+            .map { users -> Result.success(users.map { userEntity -> userEntity.mapToUser() }) }
+            .onErrorReturn { Result.failure(it) }
+            .subscribeOn(Schedulers.io())
     }
 
-    fun getUser(id: Int = -1): Observable<RxResource<User>> {
+    fun getUser(id: Int = -1): Observable<Result<User>> {
         return if (id < 0) {
             getUserFromServer(id).toObservable()
         } else {
@@ -57,36 +54,51 @@ object UsersRepository {
         }
     }
 
-    private fun getUserFromServer(id: Int): Single<RxResource<User>> {
+    private fun getUserFromServer(id: Int): Single<Result<User>> {
         return if (id < 0) {
             service.getCurrentUser()
-                .map { RxResource.success(it.mapToUser()) }
-                .onErrorReturn { RxResource.error(it, null) }
-                .doOnSuccess {
-                    if (it.data != null) addUsersToDatabase(listOf(it.data))
-                }.subscribeOn(Schedulers.io())
+                .map { userDto -> Result.success(userDto.mapToUser()) }
+                .onErrorReturn { Result.failure(it) }
+                .doOnSuccess { result ->
+                    if (result.isSuccess) {
+                        val user = result.getOrNull()
+                        if (user != null) addUsersToDatabase(listOf(user))
+                    }
+                }
+                .subscribeOn(Schedulers.io())
         } else {
             service.getUser(id)
-                .map { RxResource.success(it.user.mapToUser()) }
-                .onErrorReturn { RxResource.error(it, null) }
-                .doOnSuccess {
-                    if (it.data != null) addUsersToDatabase(listOf(it.data))
-                }.subscribeOn(Schedulers.io())
+                .map { response -> Result.success(response.user.mapToUser()) }
+                .onErrorReturn { Result.failure(it) }
+                .doOnSuccess { result ->
+                    if (result.isSuccess) {
+                        val user = result.getOrNull()
+                        if (user != null) addUsersToDatabase(listOf(user))
+                    }
+                }
+                .subscribeOn(Schedulers.io())
         }
     }
 
-    private fun getUserFromCache(id: Int): Single<RxResource<User>> {
+    private fun getUserFromCache(id: Int): Single<Result<User>> {
         return WorkChatApp.cacheDatabase.usersDao().getUser(id)
-            .map { RxResource.success(it.mapToUser()) }
-            .onErrorReturn { RxResource.error(it, null) }
+            .map { userEntity -> Result.success(userEntity.mapToUser()) }
+            .onErrorReturn { Result.failure(it) }
             .subscribeOn(Schedulers.io())
     }
 
-    fun getUserPresence(id: Int): Single<RxResource<UserStatus>> {
+    fun getUserPresence(id: Int): Single<Result<UserStatus>> {
         return service.getUserPresence(id)
-            .map { RxResource.success(it.presence.client.mapToStatus()) }
-            .onErrorReturn { RxResource.error(it, null) }
+            .map { response -> Result.success(response.presence.client.mapToStatus()) }
+            .onErrorReturn { Result.failure(it) }
             .subscribeOn(Schedulers.io())
+    }
+
+    private fun addUsersToDatabase(users: List<User>) {
+        WorkChatApp.cacheDatabase.usersDao()
+            .insertAll(users.map { user -> user.mapToUserEntity() })
+            .subscribeOn(Schedulers.io())
+            .subscribe()
     }
 
 }

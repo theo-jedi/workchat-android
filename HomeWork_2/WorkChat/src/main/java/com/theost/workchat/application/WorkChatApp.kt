@@ -10,12 +10,20 @@ class WorkChatApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        cacheDatabase =
-            Room.databaseBuilder(applicationContext, CacheDatabase::class.java, "cache_database")
-                .setQueryCallback(
-                    { sqlQuery, bindArgs -> Log.d("cache_database", "SQL Query: $sqlQuery SQL Args: $bindArgs") },
-                    Executors.newSingleThreadExecutor()
-                ).build()
+
+        cacheDatabase = Room.databaseBuilder(
+            applicationContext,
+            CacheDatabase::class.java,
+            "cache_database"
+        ).setQueryCallback(
+            { sqlQuery, bindArgs ->
+                Log.d(
+                    "cache_database",
+                    "SQL Query: $sqlQuery SQL Args: $bindArgs"
+                )
+            },
+            Executors.newSingleThreadExecutor()
+        ).build()
     }
 
     companion object {

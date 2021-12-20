@@ -8,8 +8,7 @@ import com.theost.workchat.ui.views.DateView
 
 class DateAdapterDelegate : AdapterDelegate {
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
-        val dateView = DateView(parent.context)
-        return ViewHolder(dateView)
+        return ViewHolder(DateView(parent.context))
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, item: Any, position: Int) {

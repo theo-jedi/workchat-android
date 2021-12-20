@@ -37,7 +37,7 @@ fun MessageDto.mapToMessage(): Message {
     return Message(
         id = id,
         content = content,
-        time = DateUtils.utcToDate(timestamp),
+        date = DateUtils.utcToDate(timestamp),
         senderId = senderId,
         senderName = senderName,
         senderAvatarUrl = senderAvatarUrl,

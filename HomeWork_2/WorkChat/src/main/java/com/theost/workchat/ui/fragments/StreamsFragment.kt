@@ -26,7 +26,7 @@ class StreamsFragment : Fragment() {
     private lateinit var channelsPagesCallback: ViewPager2.OnPageChangeCallback
     private lateinit var searchView: SearchView
 
-    private var currentPagesPosition = -1
+    private var currentPagesPosition: Int = -1
 
     private var _binding: FragmentStreamsBinding? = null
     private val binding get() = _binding!!
@@ -38,7 +38,6 @@ class StreamsFragment : Fragment() {
     ): View {
         super.onCreate(savedInstanceState)
         _binding = FragmentStreamsBinding.inflate(layoutInflater)
-        configureToolbar()
 
         val channelsTypes = ChannelsType.values()
         val channelsTabs = binding.root.findViewById<TabLayout>(R.id.channelsTabs)
@@ -58,14 +57,15 @@ class StreamsFragment : Fragment() {
             tab.text = channelsTypes[position].uiName
         }.attach()
 
+
+        configureToolbar()
+
         return binding.root
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        channelsPages.unregisterOnPageChangeCallback(channelsPagesCallback)
-        searchView.setOnQueryTextListener(null)
-        _binding = null
+    private fun onQueryChanged(query: String) {
+        activity?.supportFragmentManager?.findFragmentByTag("f$currentPagesPosition")
+            .let { fragment -> (fragment as? SearchHandler)?.onSearch(query) }
     }
 
     private fun configureToolbar() {
@@ -94,9 +94,11 @@ class StreamsFragment : Fragment() {
         }
     }
 
-    private fun onQueryChanged(query: String) {
-        activity?.supportFragmentManager?.findFragmentByTag("f$currentPagesPosition")
-            .let { fragment -> (fragment as? SearchHandler)?.onSearch(query) }
+    override fun onDestroy() {
+        super.onDestroy()
+        channelsPages.unregisterOnPageChangeCallback(channelsPagesCallback)
+        searchView.setOnQueryTextListener(null)
+        _binding = null
     }
 
     companion object {
