@@ -13,17 +13,13 @@ class PeopleActor(private val usersRepository: UsersRepository) :
     ActorCompat<PeopleCommand, PeopleEvent> {
     override fun execute(command: PeopleCommand): Observable<PeopleEvent> = when (command) {
         is PeopleCommand.LoadPeople -> {
-
             usersRepository.getUsers().concatMap { usersResult ->
                 usersResult.fold({ resultUsers ->
                     Observable.fromIterable(
                         resultUsers.filterNot { user -> user.isBot || user.id == command.currentUserId }
                             .sortedBy { user -> user.name }
-                    ).concatMap { resultUser ->
-                        Observable.zip(
-                            usersRepository.getUserPresence(resultUser.id),
-                            Observable.just(resultUser)
-                        ) { presenceResult, user ->
+                    ).concatMap { user ->
+                        usersRepository.getUserPresence(user.id).map { presenceResult ->
                             presenceResult.fold({ status ->
                                 ListUser(
                                     id = user.id,
