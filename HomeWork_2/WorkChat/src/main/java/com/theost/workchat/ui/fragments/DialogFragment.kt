@@ -268,13 +268,11 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
     private fun showSendingLoading() {
         binding.inputLayout.actionButton.visibility = View.INVISIBLE
         binding.inputLayout.loadingBar.visibility = View.VISIBLE
-        binding.inputLayout.messageInput.isEnabled = false
     }
 
     private fun hideSendingLoading() {
         binding.inputLayout.actionButton.visibility = View.VISIBLE
         binding.inputLayout.loadingBar.visibility = View.GONE
-        binding.inputLayout.messageInput.isEnabled = true
     }
 
     private fun showEditingLoading() {

@@ -1,5 +1,9 @@
 package com.theost.workchat.utils
 
+import com.theost.workchat.data.models.core.Message
+import com.theost.workchat.data.models.ui.ListMessage
+import java.util.*
+
 object ApiUtils {
 
     // This method implements undocumented logic of Zulip API
@@ -12,6 +16,37 @@ object ApiUtils {
         } else {
             url
         }
+    }
+
+    // Returns empty message with negative id
+    // Using to highlight cache data
+    fun addEmptyMessage(messages: List<Message>): List<Message> {
+        return messages.toMutableList().apply {
+            add(
+                0, Message(
+                    id = -1,
+                    content = "",
+                    date = Date(),
+                    senderId = -1,
+                    senderName = "",
+                    senderAvatarUrl = "",
+                    reactions = emptyList()
+                )
+            )
+        }.toList()
+    }
+
+    // Removes empty message with negative id
+    fun removeEmptyMessage(messages: List<ListMessage>): List<ListMessage> {
+        return messages.toMutableList().apply { removeAt(getEmptyMessageIndex(messages)) }.toList()
+    }
+
+    fun containsEmptyMessage(messages: List<ListMessage>): Boolean {
+        return getEmptyMessageIndex(messages) != -1
+    }
+
+    fun getEmptyMessageIndex(messages: List<ListMessage>): Int {
+        return messages.indexOfFirst { message -> message.id < 0 }
     }
 
 }

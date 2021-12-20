@@ -10,10 +10,7 @@ import com.theost.workchat.application.WorkChatApp
 import com.theost.workchat.databinding.ActivityMessengerBinding
 import com.theost.workchat.di.ui.DaggerMessengerComponent
 import com.theost.workchat.elm.messenger.*
-import com.theost.workchat.ui.fragments.DialogFragment
-import com.theost.workchat.ui.fragments.PeopleFragment
-import com.theost.workchat.ui.fragments.ProfileFragment
-import com.theost.workchat.ui.fragments.StreamsFragment
+import com.theost.workchat.ui.fragments.*
 import com.theost.workchat.ui.interfaces.NavigationHolder
 import com.theost.workchat.ui.interfaces.PeopleListener
 import com.theost.workchat.ui.interfaces.TopicListener
@@ -78,10 +75,27 @@ class MessengerActivity : ElmActivity<MessengerEvent, MessengerEffect, Messenger
             is MessengerEffect.HideNavigation -> hideNavigation()
             is MessengerEffect.ShowNavigation -> showNavigation()
             is MessengerEffect.HideFloatingViews -> hideFloatingViews()
-            is MessengerEffect.NavigateStreams -> navigateFragment(StreamsFragment.newFragment(), FRAGMENT_CHANNELS_TAG)
-            is MessengerEffect.NavigatePeople -> navigateFragment(PeopleFragment.newFragment(), FRAGMENT_PEOPLE_TAG)
-            is MessengerEffect.NavigateProfile -> navigateFragment(ProfileFragment.newFragment(), FRAGMENT_PROFILE_TAG)
+            is MessengerEffect.UpdateChannels -> updateChannels()
+            is MessengerEffect.NavigateStreams -> navigateFragment(
+                StreamsFragment.newFragment(),
+                FRAGMENT_CHANNELS_TAG
+            )
+            is MessengerEffect.NavigatePeople -> navigateFragment(
+                PeopleFragment.newFragment(),
+                FRAGMENT_PEOPLE_TAG
+            )
+            is MessengerEffect.NavigateProfile -> navigateFragment(
+                ProfileFragment.newFragment(),
+                FRAGMENT_PROFILE_TAG
+            )
             is MessengerEffect.OpenProfile -> startFragment(ProfileFragment.newFragment(effect.userId))
+            is MessengerEffect.OpenChannelCreation -> startFragment(CreationChannelFragment.newFragment())
+            is MessengerEffect.OpenTopicCreation -> startFragment(
+                CreationTopicFragment.newFragment(
+                    effect.channelName,
+                    effect.channelDescription
+                )
+            )
             is MessengerEffect.OpenDialog -> startFragment(
                 DialogFragment.newFragment(
                     effect.channelName,
@@ -126,9 +140,35 @@ class MessengerActivity : ElmActivity<MessengerEvent, MessengerEffect, Messenger
         store.accept(MessengerEvent.Ui.OnDialogClick(channelName, topicName))
     }
 
+    override fun openChannels() {
+        store.accept(MessengerEvent.Ui.OnChannelsOpenClick)
+    }
+
+    override fun createChannel() {
+        store.accept(MessengerEvent.Ui.OnCreateChannelClick)
+    }
+
+    override fun createTopic(channelName: String, description: String) {
+        store.accept(MessengerEvent.Ui.OnCreateTopicClick(channelName, description))
+    }
+
     private fun hideFloatingViews() {
         DisplayUtils.hideKeyboard(this)
         hideSnackbar()
+    }
+
+    private fun updateChannels() {
+        repeat((0..supportFragmentManager.backStackEntryCount).count()) { supportFragmentManager.popBackStack() }
+        supportFragmentManager.beginTransaction()
+            .setCustomAnimations(
+                R.anim.slide_from_left,
+                R.anim.slide_to_right,
+                R.anim.slide_to_right,
+                R.anim.slide_from_left
+            )
+            .replace(R.id.fragmentContainer, StreamsFragment(), FRAGMENT_CHANNELS_TAG)
+            .addToBackStack(FRAGMENT_CHANNELS_TAG)
+            .commit()
     }
 
     private fun navigateFragment(fragment: Fragment, tag: String) {

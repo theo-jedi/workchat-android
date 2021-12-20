@@ -18,6 +18,7 @@ import com.theost.workchat.databinding.FragmentStreamsBinding
 import com.theost.workchat.ui.adapters.core.StreamsAdapter
 import com.theost.workchat.ui.interfaces.NavigationHolder
 import com.theost.workchat.ui.interfaces.SearchHandler
+import com.theost.workchat.ui.interfaces.TopicListener
 import com.theost.workchat.utils.DisplayUtils
 
 class StreamsFragment : Fragment() {
@@ -57,6 +58,10 @@ class StreamsFragment : Fragment() {
         TabLayoutMediator(channelsTabs, channelsPages) { tab, position ->
             tab.text = channelsTypes[position].uiName
         }.attach()
+
+        binding.createButton.setOnClickListener {
+            activity?.let { activity -> (activity as TopicListener).createChannel() }
+        }
 
         configureToolbar()
 

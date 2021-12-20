@@ -4,6 +4,9 @@ sealed class MessengerEvent {
 
     sealed class Ui : MessengerEvent() {
         object OnBackPress : MessengerEvent()
+        object OnCreateChannelClick : MessengerEvent()
+        object OnChannelsOpenClick : MessengerEvent()
+        data class OnCreateTopicClick(val channelName: String, val channelDescription: String) : MessengerEvent()
         data class OnNavigationClick(val itemId: Int) : MessengerEvent()
         data class OnProfileClick(val userId: Int) : MessengerEvent()
         data class OnDialogClick(val channelName: String, val topicName: String) : MessengerEvent()

@@ -8,6 +8,7 @@ import com.theost.workchat.database.entities.mapToMessageEntity
 import com.theost.workchat.network.api.Api
 import com.theost.workchat.network.dto.DeleteMessageResponse
 import com.theost.workchat.network.dto.mapToMessage
+import com.theost.workchat.utils.ApiUtils
 import com.theost.workchat.utils.StringUtils
 import io.reactivex.Completable
 import io.reactivex.Observable
@@ -116,6 +117,7 @@ class MessagesRepository(private val service: Api, database: CacheDatabase) {
                     .sortedByDescending { messageEntity -> messageEntity.time }
                     .take(CACHE_DIALOG_SIZE)
                     .map { message -> message.mapToMessage() }
+                    .run { ApiUtils.addEmptyMessage(this) }
                 )
             }
             .onErrorReturn { Result.failure(it) }
@@ -167,7 +169,7 @@ class MessagesRepository(private val service: Api, database: CacheDatabase) {
 
     companion object {
         private const val CACHE_DIALOG_SIZE = 50
-        private const val DIALOG_PAGE_SIZE = 30
+        const val DIALOG_PAGE_SIZE = 30
         const val DIALOG_NEXT_PAGE = 5
     }
 

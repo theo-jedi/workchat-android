@@ -7,6 +7,7 @@ import com.theost.workchat.database.entities.mapToChannel
 import com.theost.workchat.database.entities.mapToChannelEntity
 import com.theost.workchat.network.api.Api
 import com.theost.workchat.network.dto.mapToChannel
+import com.theost.workchat.utils.StringUtils
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
@@ -51,9 +52,9 @@ class ChannelsRepository(private val service: Api, database: CacheDatabase) {
         }
     }
 
-    private fun getChannelsFromCache(
+    fun getChannelsFromCache(
         channelsType: ChannelsType,
-        subscribedChannels: List<Int>
+        subscribedChannels: List<Int> = emptyList()
     ): Single<Result<List<Channel>>> {
         return if (channelsType == ChannelsType.SUBSCRIBED) {
             channelsDao.getAll()
@@ -77,6 +78,16 @@ class ChannelsRepository(private val service: Api, database: CacheDatabase) {
         channelsDao.insertAll(channels.map { channel -> channel.mapToChannelEntity() })
             .subscribeOn(Schedulers.io())
             .subscribe()
+    }
+
+    fun addChannel(
+        channelName: String,
+        channelDescription: String
+    ): Single<Result<String>> {
+        return service.addChannel(StringUtils.namesToStream(channelName, channelDescription))
+            .map { response -> Result.success(response.message) }
+            .onErrorReturn { Result.failure(it) }
+            .subscribeOn(Schedulers.io())
     }
 
 }

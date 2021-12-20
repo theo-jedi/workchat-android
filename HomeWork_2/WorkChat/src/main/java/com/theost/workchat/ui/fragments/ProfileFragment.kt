@@ -1,11 +1,11 @@
 package com.theost.workchat.ui.fragments
 
 import android.content.Context
-import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.swiperefreshlayout.widget.CircularProgressDrawable
 import com.bumptech.glide.Glide
@@ -33,11 +33,13 @@ class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileState>()
     private val binding get() = _binding!!
 
     private val circularProgressDrawable by lazy {
-        CircularProgressDrawable(requireContext()).apply {
-            setColorSchemeColors(Color.WHITE)
-            strokeWidth = 14f
-            centerRadius = 60f
-            start()
+        context?.let { context ->
+            CircularProgressDrawable(requireContext()).apply {
+                setColorSchemeColors(ContextCompat.getColor(context, R.color.background_dark))
+                strokeWidth = 14f
+                centerRadius = 60f
+                start()
+            }
         }
     }
 

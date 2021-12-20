@@ -81,7 +81,6 @@ class ChannelsFragment : ElmFragment<ChannelsEvent, ChannelsEffect, ChannelsStat
         if (!state.isSearchEnabled && state.channelsType == ChannelsType.SUBSCRIBED) {
             context?.let { PrefUtils.putSubscribedChannels(it, state.subscribedChannels) }
         }
-
         adapter.submitList(state.items)
     }
 
@@ -128,13 +127,11 @@ class ChannelsFragment : ElmFragment<ChannelsEvent, ChannelsEffect, ChannelsStat
     private fun hideLoading() {
         binding.shimmerLayout.shimmer.visibility = View.GONE
         binding.channelsList.visibility = View.VISIBLE
-        binding.createButton.visibility = View.VISIBLE
     }
 
     private fun showLoading() {
         binding.shimmerLayout.shimmer.visibility = View.VISIBLE
         binding.channelsList.visibility = View.GONE
-        binding.createButton.visibility = View.GONE
     }
 
     private fun showLoadingError() {

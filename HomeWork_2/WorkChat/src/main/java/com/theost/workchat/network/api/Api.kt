@@ -31,6 +31,13 @@ interface Api {
     @GET("users/me/subscriptions")
     fun getSubscribedChannels(): Single<GetSubscribedChannelsResponse>
 
+    @FormUrlEncoded
+    @POST("users/me/subscriptions")
+    fun addChannel(
+        @Field("subscriptions")
+        stream: String
+    ): Single<CreateChannelResponse>
+
     @GET("users/me/{stream_id}/topics")
     fun getChannelTopics(
         @Path(value = "stream_id")

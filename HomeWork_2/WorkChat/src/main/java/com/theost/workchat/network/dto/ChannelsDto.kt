@@ -25,6 +25,14 @@ data class GetSubscribedChannelsResponse(
 )
 
 @Serializable
+data class CreateChannelResponse(
+    @SerialName("result")
+    val result: String,
+    @SerialName("msg")
+    val message: String
+)
+
+@Serializable
 data class ChannelDto(
     @SerialName("stream_id")
     val id: Int,

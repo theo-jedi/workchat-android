@@ -29,5 +29,17 @@
     <string name="copied">Скопированно</string>
     <string name="error">Ошибка</string>
 
+    <string name="create">Создать</string>
+    <string name="channel">Канал</string>
+    <string name="topic">Топик</string>
+
+    <string name="channel_name">Имя канала</string>
+    <string name="topic_name">Имя топика</string>
+    <string name="description">Описание</string>
+    <string name="message">Сообщение</string>
+
+    <string name="next">Далее</string>
+
     <string name="network_error">Ошибка. Проверьте подключение к интернету!</string>
+    <string name="database_error">Ошибка загрузки данных.</string>
 </resources>

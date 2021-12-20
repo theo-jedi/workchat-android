@@ -3,6 +3,8 @@ package com.theost.workchat.elm.dialog
 import android.util.Log
 import com.theost.workchat.data.models.state.*
 import com.theost.workchat.data.models.ui.ListLoader
+import com.theost.workchat.data.repositories.MessagesRepository
+import com.theost.workchat.utils.ApiUtils
 import vivid.money.elmslie.core.store.dsl_reducer.DslReducer
 import kotlin.math.absoluteValue
 
@@ -17,51 +19,70 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
                     messages = event.messages
                 )
             }
-            if (event.items.isNotEmpty()) {
-                when (event.updateType) {
-                    UpdateType.INITIAL -> {
-                        if (isFirstLoad) {
-                            state { copy(scrollStatus = ScrollStatus.SCROLL_BOTTOM) }
-                            effects { +DialogEffect.HideDialogLoading }
-                        } else {
-                            Log.d("dialog_reducer", "Dialog updated")
-                        }
-                    }
-                    UpdateType.RELOAD -> {
+            if (!isFirstLoad && event.items.isEmpty()) {
+                effects { +DialogEffect.ShowEmpty }
+            }
+            when (event.updateType) {
+                UpdateType.INITIAL -> {
+                    if (isFirstLoad) {
                         state { copy(scrollStatus = ScrollStatus.SCROLL_BOTTOM) }
-                        effects { +DialogEffect.ScrollToBottom }
-                        effects { +DialogEffect.HideSendingMessageLoading }
-                    }
-                    UpdateType.PAGINATION -> {
-                        state { copy(scrollStatus = ScrollStatus.SCROLL_TOP) }
-                    }
-                    UpdateType.UPDATE -> {
-                        if (state.editedMessageId != -1) {
-                            state { copy(editedMessageId = -1, editedMessageContent = "") }
-                            effects { +DialogEffect.HideEditingMessageLoading }
-                            effects { +DialogEffect.HideMessageEdit }
-                            effects { +DialogEffect.ClearSendingMessageContent }
-                        } else {
-                            Log.d("dialog_reducer", "Reaction updated")
-                        }
-                    }
-                    UpdateType.DELETE -> {
-                        state { copy(scrollStatus = ScrollStatus.STAY) }
+                        effects { +DialogEffect.HideDialogLoading }
+                    } else {
+                        Log.d("dialog_reducer", "Dialog updated")
                     }
                 }
-            } else {
-                Log.d("dialog_reducer", "Messages list is empty")
+                UpdateType.RELOAD -> {
+                    state { copy(scrollStatus = ScrollStatus.SCROLL_BOTTOM) }
+                    effects { +DialogEffect.ScrollToBottom }
+                    effects { +DialogEffect.HideSendingMessageLoading }
+                }
+                UpdateType.PAGINATION -> {
+                    state { copy(scrollStatus = ScrollStatus.SCROLL_TOP) }
+                }
+                UpdateType.UPDATE -> {
+                    if (state.editedMessageId != -1) {
+                        state { copy(editedMessageId = -1, editedMessageContent = "") }
+                        effects { +DialogEffect.HideEditingMessageLoading }
+                        effects { +DialogEffect.HideMessageEdit }
+                        effects { +DialogEffect.ClearSendingMessageContent }
+                    } else {
+                        Log.d("dialog_reducer", "Reaction updated")
+                    }
+                }
+                UpdateType.DELETE -> {
+                    state { copy(scrollStatus = ScrollStatus.STAY) }
+                }
             }
         }
         is DialogEvent.Internal.MessagesLoadingSuccess -> {
-            if (event.updateType == UpdateType.PAGINATION) {
-                if (state.messages.isNotEmpty() && event.messages.last().id == state.messages.last().id) {
-                    state { copy(paginationStatus = PaginationStatus.FULLY) }
-                } else {
-                    state { copy(paginationStatus = PaginationStatus.PARTIAL) }
+            if (event.updateType == UpdateType.INITIAL && event.messages.isEmpty()) {
+                commands { +DialogCommand.LoadItems(event.messages, event.updateType) }
+                effects { +DialogEffect.HideDialogLoading }
+                effects { +DialogEffect.ShowEmpty }
+            } else {
+                if (event.updateType == UpdateType.PAGINATION) {
+                    if (state.messages.isNotEmpty() && event.messages.last().id == state.messages.last().id) {
+                        state { copy(paginationStatus = PaginationStatus.FULLY) }
+                    } else {
+                        state { copy(paginationStatus = PaginationStatus.PARTIAL) }
+                    }
                 }
+                effects { +DialogEffect.HideEmpty }
             }
-            commands { +DialogCommand.LoadItems(event.messages, event.updateType) }
+            if (ApiUtils.containsEmptyMessage(event.messages)) {
+                if (event.messages.size > 1) {
+                    commands {
+                        +DialogCommand.LoadItems(
+                            ApiUtils.removeEmptyMessage(event.messages),
+                            event.updateType
+                        )
+                    }
+                } else {
+                    Log.d("dialog_reducer", "Messages list is empty")
+                }
+            } else {
+                commands { +DialogCommand.LoadItems(event.messages, event.updateType) }
+            }
         }
         is DialogEvent.Internal.MessageSendingSuccess -> {
             state { copy(savedPosition = 0) }
@@ -150,21 +171,25 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
                 && state.status != ResourceStatus.LOADING
                 && event.savedPosition != state.savedPosition
             ) {
-                state {
-                    copy(
-                        status = ResourceStatus.LOADING,
-                        scrollStatus = ScrollStatus.STAY,
-                        items = items + listOf(ListLoader()),
-                        savedPosition = event.savedPosition
-                    )
-                }
-                commands {
-                    +DialogCommand.LoadNextMessages(
-                        state.channelName,
-                        state.topicName,
-                        state.currentUserId,
-                        state.messages
-                    )
+                if (state.items.count() >= MessagesRepository.DIALOG_PAGE_SIZE) {
+                    state {
+                        copy(
+                            status = ResourceStatus.LOADING,
+                            scrollStatus = ScrollStatus.STAY,
+                            items = items + listOf(ListLoader()),
+                            savedPosition = event.savedPosition
+                        )
+                    }
+                    commands {
+                        +DialogCommand.LoadNextMessages(
+                            state.channelName,
+                            state.topicName,
+                            state.currentUserId,
+                            state.messages
+                        )
+                    }
+                } else {
+                    state { copy(paginationStatus = PaginationStatus.FULLY) }
                 }
             } else {
                 Log.d("dialog_reducer", "Dialog is loading or fully loaded")

@@ -1,6 +1,7 @@
 package com.theost.workchat.utils
 
 import com.theost.workchat.network.dto.NarrowDto
+import com.theost.workchat.network.dto.StreamDto
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 
@@ -46,13 +47,20 @@ object StringUtils {
         return text.trim().lowercase().contains(query.trim().lowercase())
     }
 
-    fun namesToNarrow(channelName: String, topicName: String) : String {
+    fun namesToNarrow(channelName: String, topicName: String): String {
         return Json.encodeToString(
             serializer(),
             listOf(
                 NarrowDto("stream", channelName),
                 NarrowDto("topic", topicName)
             )
+        )
+    }
+
+    fun namesToStream(channelName: String, channelDescription: String): String {
+        return Json.encodeToString(
+            serializer(),
+            listOf(StreamDto(channelName, channelDescription))
         )
     }
 
