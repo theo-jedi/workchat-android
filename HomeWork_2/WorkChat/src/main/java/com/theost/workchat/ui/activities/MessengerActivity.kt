@@ -18,8 +18,6 @@ import com.theost.workchat.utils.DisplayUtils
 
 class MessengerActivity : FragmentActivity(), NavigationHolder, PeopleListener, TopicListener {
 
-    private var userId = 0
-
     private lateinit var binding: ActivityMessengerBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,7 +46,7 @@ class MessengerActivity : FragmentActivity(), NavigationHolder, PeopleListener, 
         when (itemId) {
             R.id.navChannels -> navigateFragment(StreamsFragment.newFragment(), "channels")
             R.id.navPeople -> navigateFragment(PeopleFragment.newFragment(), "people")
-            R.id.navProfile -> navigateFragment(ProfileFragment.newFragment(userId), "profile")
+            R.id.navProfile -> navigateFragment(ProfileFragment.newFragment(), "profile")
         }
     }
 
@@ -64,12 +62,12 @@ class MessengerActivity : FragmentActivity(), NavigationHolder, PeopleListener, 
             .translationY(binding.bottomNavigation.height.toFloat()).duration = 150
     }
 
-    override fun onProfileSelected(profileId: Int) {
-        startFragment(ProfileFragment.newFragment(profileId))
+    override fun onProfileSelected(userId: Int) {
+        startFragment(ProfileFragment.newFragment(userId))
     }
 
-    override fun showTopicDialog(topicId: Int) {
-        startFragment(DialogFragment.newFragment(topicId))
+    override fun showTopicDialog(channelName: String, topicName: String) {
+        startFragment(DialogFragment.newFragment(channelName, topicName))
     }
 
     private fun navigateFragment(fragment: Fragment, tag: String) {

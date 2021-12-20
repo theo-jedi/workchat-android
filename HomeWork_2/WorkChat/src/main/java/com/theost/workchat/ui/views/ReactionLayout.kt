@@ -68,7 +68,6 @@ class ReactionLayout @JvmOverloads constructor(
             if (!isFirstColumn) currentX += reactionHorizontalMargin
             currentX += child.measuredWidth
 
-            println(isFirstRow)
             rowMaxY = if (!isFirstRow) {
                 maxOf(rowMaxY, reactionVerticalMargin + child.measuredHeight)
             } else {

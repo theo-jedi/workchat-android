@@ -28,12 +28,24 @@
     </androidx.cardview.widget.CardView>
 
     <View
-        android:id="@+id/userStatus"
+        android:id="@+id/userStatusOnline"
         android:layout_width="16dp"
         android:layout_height="16dp"
         android:layout_gravity="bottom|end"
-        android:background="@drawable/ic_status"
+        android:background="@drawable/ic_status_online"
         android:elevation="2dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/avatarLayout" />
+
+    <View
+        android:id="@+id/userStatusIdle"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_gravity="bottom|end"
+        android:background="@drawable/ic_status_idle"
+        android:elevation="2dp"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/avatarLayout" />
 

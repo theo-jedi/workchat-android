@@ -41,7 +41,7 @@ class ReactionBottomSheetFragment(
 
         viewModel.loadingStatus.observe(viewLifecycleOwner) { status ->
             when (status) {
-                ResourceStatus.LOADING -> binding.loadingBar.visibility = View.VISIBLE
+                ResourceStatus.LOADING -> showLoading()
                 ResourceStatus.SUCCESS -> configureLayout()
                 ResourceStatus.ERROR -> showLoadingError()
                 else -> {}
@@ -61,8 +61,14 @@ class ReactionBottomSheetFragment(
     private fun configureLayout() {
         binding.loadingBar.visibility = View.GONE
         if (adapter.itemCount == 0) {
-            //binding.emptyView.visibility = View.VISIBLE
+            binding.emptyView.visibility = View.VISIBLE
         }
+    }
+
+    private fun showLoading() {
+        binding.loadingBar.visibility = View.VISIBLE
+        binding.errorView.visibility = View.GONE
+        binding.retryButton.visibility = View.GONE
     }
 
     private fun showLoadingError() {

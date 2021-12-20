@@ -21,8 +21,9 @@ import com.theost.workchat.ui.viewmodels.ChannelsViewModel
 class ChannelsFragment : Fragment(), SearchHandler {
 
     private var channelsType = ChannelsType.ALL
-    private val userId = 0
     private val adapter = BaseAdapter()
+
+    private var selectedChannelName: String = ""
 
     private val viewModel: ChannelsViewModel by viewModels()
 
@@ -38,24 +39,28 @@ class ChannelsFragment : Fragment(), SearchHandler {
         _binding = FragmentChannelsBinding.inflate(layoutInflater)
 
         binding.channelsList.adapter = adapter.apply {
-            addDelegate(ChannelAdapterDelegate() { channelId, isSelected ->
+            addDelegate(ChannelAdapterDelegate() { channelId, channelName, isSelected ->
+                selectedChannelName = if (selectedChannelName != channelName) channelName else ""
                 viewModel.updateTopics(channelId, isSelected)
             })
-            addDelegate(TopicAdapterDelegate() { topicId ->
-                (activity as TopicListener).showTopicDialog(topicId)
+            addDelegate(TopicAdapterDelegate() { topicName ->
+                (activity as TopicListener).showTopicDialog(selectedChannelName, topicName)
             })
         }
 
         viewModel.loadingStatus.observe(viewLifecycleOwner) { status ->
             when (status) {
-                ResourceStatus.SUCCESS -> hideShimmerLayout()
+                ResourceStatus.SUCCESS -> hideLoading()
                 ResourceStatus.ERROR -> { showLoadingError() }
                 ResourceStatus.LOADING ->  {}
                 else -> {}
             }
         }
-        viewModel.allData.observe(viewLifecycleOwner) { adapter.submitList(it) }
+        viewModel.allData.observe(viewLifecycleOwner) { adapter.submitList(it)}
+
         loadData()
+
+        configureEmptyLayout()
 
         return binding.root
     }
@@ -73,16 +78,29 @@ class ChannelsFragment : Fragment(), SearchHandler {
     }
 
     private fun loadData() {
-        viewModel.loadData(userId, channelsType)
+        viewModel.loadData(channelsType)
     }
 
     override fun onSearch(query: String) {
         viewModel.filterData(query)
     }
 
+    private fun hideLoading() {
+        hideShimmerLayout()
+        updateEmptyLayout()
+    }
+
     private fun hideShimmerLayout() {
         binding.shimmerLayout.shimmer.visibility = View.GONE
         binding.channelsList.visibility = View.VISIBLE
+    }
+
+    private fun configureEmptyLayout() {
+        binding.emptyLayout.emptyView.text = getString(R.string.no_channels)
+    }
+
+    private fun updateEmptyLayout() {
+        binding.emptyLayout.emptyView.visibility = if (adapter.itemCount > 0) View.GONE else View.VISIBLE
     }
 
     private fun showLoadingError() {

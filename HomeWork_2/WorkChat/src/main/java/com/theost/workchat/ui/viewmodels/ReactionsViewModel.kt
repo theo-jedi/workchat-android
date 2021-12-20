@@ -15,13 +15,17 @@ class ReactionsViewModel : ViewModel() {
     private val _loadingStatus = MutableLiveData<ResourceStatus>()
     val loadingStatus: LiveData<ResourceStatus> = _loadingStatus
 
-
     fun loadData() {
         _loadingStatus.postValue(ResourceStatus.LOADING)
-        ReactionsRepository.getEmojiReactions().subscribe({ resource ->
-            val reactions = resource.data!!.map { ListReaction(it.id, it.emoji) }
-            _allData.postValue(reactions)
-            _loadingStatus.postValue(ResourceStatus.SUCCESS)
+        ReactionsRepository.getReactions().subscribe({ resource ->
+            if (resource.data != null) {
+                val reactions = resource.data.map { ListReaction(it.name, it.emoji) }
+                _allData.postValue(reactions)
+                _loadingStatus.postValue(ResourceStatus.SUCCESS)
+            } else {
+                resource.error?.printStackTrace()
+                _loadingStatus.postValue(ResourceStatus.ERROR)
+            }
         }, {
             it.printStackTrace()
             _loadingStatus.postValue(ResourceStatus.ERROR)

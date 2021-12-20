@@ -23,7 +23,6 @@ import com.theost.workchat.utils.DisplayUtils
 
 class PeopleFragment : Fragment() {
 
-    private var userId: Int = 0
     private val adapter = BaseAdapter()
 
     private val viewModel: PeopleViewModel by viewModels()
@@ -41,8 +40,8 @@ class PeopleFragment : Fragment() {
         configureToolbar()
 
         binding.usersList.adapter = adapter.apply {
-            addDelegate(PeopleAdapterDelegate { profileId ->
-                (activity as PeopleListener).onProfileSelected(profileId)
+            addDelegate(PeopleAdapterDelegate { userId ->
+                (activity as PeopleListener).onProfileSelected(userId)
             })
         }
 
@@ -61,7 +60,7 @@ class PeopleFragment : Fragment() {
     }
 
     private fun loadData() {
-        viewModel.loadData(userId)
+        viewModel.loadData()
     }
 
     override fun onDestroy() {

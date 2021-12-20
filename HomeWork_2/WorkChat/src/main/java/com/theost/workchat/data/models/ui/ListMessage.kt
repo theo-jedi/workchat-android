@@ -1,14 +1,15 @@
 package com.theost.workchat.data.models.ui
 
+import android.text.Spanned
 import com.theost.workchat.data.models.state.MessageType
 import com.theost.workchat.ui.interfaces.DelegateItem
 
 data class ListMessage(
     val id: Int,
-    val avatar: Int?,
-    val username: String,
-    val message: String,
+    val content: Spanned,
     val time: String,
+    val senderName: String,
+    val senderAvatarUrl: String,
     val reactions: List<ListMessageReaction>,
     val messageType: MessageType
 ) : DelegateItem {

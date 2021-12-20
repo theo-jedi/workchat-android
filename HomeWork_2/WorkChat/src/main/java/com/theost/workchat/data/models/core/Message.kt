@@ -4,8 +4,10 @@ import java.util.*
 
 data class Message(
     val id: Int,
-    val userId: Int,
-    val dialogId: Int,
-    val text: String,
-    val date: Date
+    val content: String,
+    val time: Date,
+    val senderId: Int,
+    val senderName: String,
+    val senderAvatarUrl: String,
+    val reactions: List<Reaction>
 )

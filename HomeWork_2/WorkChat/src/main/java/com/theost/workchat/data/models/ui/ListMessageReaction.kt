@@ -3,11 +3,11 @@ package com.theost.workchat.data.models.ui
 import com.theost.workchat.ui.interfaces.DelegateItem
 
 data class ListMessageReaction(
-    val id: Int,
+    val name: String,
     val emoji: String,
     val count: Int,
     val isSelected: Boolean
 ) : DelegateItem {
-    override fun id(): Any = id
-    override fun content(): Any = emoji
+    override fun id(): Any = name
+    override fun content(): Any = count
 }

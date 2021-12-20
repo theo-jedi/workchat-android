@@ -2,11 +2,14 @@ package com.theost.workchat.ui.views
 
 import android.content.Context
 import android.content.res.TypedArray
+import android.text.SpannableString
+import android.text.Spanned
 import android.util.AttributeSet
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
+import com.bumptech.glide.Glide
 import com.theost.workchat.R
 
 class MessageIncomeView @JvmOverloads constructor(
@@ -16,11 +19,11 @@ class MessageIncomeView @JvmOverloads constructor(
     defStyleRes: Int = 0
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
-    var avatar: Int = PARAMETER_UNSET
+    var avatar: String = ""
         set(value) {
             field = value
             val avatarImageView = (getChildAt(0) as CardView).getChildAt(0) as ImageView
-            if (avatar != PARAMETER_UNSET) avatarImageView.setImageResource(value)
+            if (avatar != "") Glide.with(this).load(avatar).into(avatarImageView)
         }
     var username: String = ""
         set(value) {
@@ -34,7 +37,7 @@ class MessageIncomeView @JvmOverloads constructor(
             val messageLayout = getChildAt(1) as MessageIncomeLayout
             messageLayout.time = value
         }
-    var message: String = ""
+    var message: Spanned = SpannableString("")
         set(value) {
             field = value
             val messageLayout = getChildAt(1) as MessageIncomeLayout
@@ -67,9 +70,9 @@ class MessageIncomeView @JvmOverloads constructor(
             defStyleAttr,
             defStyleRes
         )
-        avatar = typedArray.getResourceId(R.styleable.MessageIncomeView_avatar, PARAMETER_UNSET)
+        avatar = typedArray.getString(R.styleable.MessageIncomeView_avatar) ?: ""
         username = typedArray.getString(R.styleable.MessageIncomeView_username).orEmpty()
-        message = typedArray.getString(R.styleable.MessageIncomeView_message).orEmpty()
+        message = SpannableString(typedArray.getString(R.styleable.MessageIncomeView_message).orEmpty())
         time = typedArray.getString(R.styleable.MessageIncomeView_time).orEmpty()
         bubble = typedArray.getColor(R.styleable.MessageIncomeView_bubble, PARAMETER_UNSET)
         corners = typedArray.getDimension(R.styleable.MessageIncomeView_corners, CORNERS_DEFAULT)
@@ -87,7 +90,7 @@ class MessageIncomeView @JvmOverloads constructor(
         messageLayout.corners = corners
 
         val avatarImageView = (getChildAt(0) as CardView).getChildAt(0) as ImageView
-        if (avatar != PARAMETER_UNSET) avatarImageView.setImageResource(avatar)
+        if (avatar != "") Glide.with(this).load(avatar).into(avatarImageView)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {

@@ -6,18 +6,19 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import com.bumptech.glide.Glide
 import com.google.android.material.snackbar.Snackbar
 import com.theost.workchat.R
-import com.theost.workchat.data.models.core.User
 import com.theost.workchat.data.models.state.ResourceStatus
+import com.theost.workchat.data.models.state.UserStatus
+import com.theost.workchat.data.models.ui.ListUser
 import com.theost.workchat.databinding.FragmentProfileBinding
 import com.theost.workchat.ui.interfaces.NavigationHolder
 import com.theost.workchat.ui.viewmodels.ProfileViewModel
 
 class ProfileFragment : Fragment() {
 
-    private var userId: Int = 0
-    private var profileId: Int = 0
+    private var userId: Int = -1
 
     private val viewModel: ProfileViewModel by viewModels()
 
@@ -50,19 +51,13 @@ class ProfileFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        profileId = savedInstanceState?.getInt(PROFILE_ID_EXTRA)
-            ?: (arguments?.getInt(PROFILE_ID_EXTRA) ?: 0)
-    }
-
-    private fun configureLayout() {
-        if (profileId == userId) {
-            binding.userLogout.visibility = View.VISIBLE
-        }
+        userId = savedInstanceState?.getInt(PROFILE_ID_EXTRA)
+            ?: (arguments?.getInt(PROFILE_ID_EXTRA) ?: -1)
     }
 
     private fun configureToolbar() {
         binding.toolbarLayout.toolbar.title = getString(R.string.profile)
-        if (profileId != userId) {
+        if (userId != -1) {
             binding.toolbarLayout.toolbar.setNavigationIcon(R.drawable.ic_back)
             binding.toolbarLayout.toolbar.setNavigationOnClickListener {
                 activity?.onBackPressed()
@@ -73,7 +68,7 @@ class ProfileFragment : Fragment() {
     }
 
     private fun loadData() {
-        viewModel.loadData(profileId)
+        viewModel.loadData(userId)
     }
 
     override fun onDestroy() {
@@ -81,11 +76,17 @@ class ProfileFragment : Fragment() {
         _binding = null
     }
 
-    private fun setData(user: User?) {
-        binding.userName.text = user?.name
-        binding.userAbout.text = user?.about
-        binding.userAvatar.setImageResource(user?.avatar ?: R.mipmap.sample_avatar)
-        binding.userStatus.visibility = if (user?.status == true) View.VISIBLE else View.INVISIBLE
+    private fun setData(user: ListUser) {
+        Glide.with(this).load(user.avatarUrl).into(binding.userAvatar)
+
+        binding.userName.text = user.name
+        binding.userAbout.text = user.about
+
+        when (user.status) {
+            UserStatus.ONLINE -> binding.userStatusOnline.visibility = View.VISIBLE
+            UserStatus.IDLE -> binding.userStatusIdle.visibility = View.VISIBLE
+            else -> {}
+        }
     }
 
     private fun hideShimmerLayout() {
@@ -93,9 +94,7 @@ class ProfileFragment : Fragment() {
         binding.avatarLayout.visibility = View.VISIBLE
         binding.userName.visibility = View.VISIBLE
         binding.userAbout.visibility = View.VISIBLE
-        binding.userStatus.visibility = View.VISIBLE
-
-        configureLayout()
+        //binding.userStatus.visibility = if () View.VISIBLE else View.INVISIBLE
     }
 
     private fun showLoadingError() {
@@ -107,10 +106,10 @@ class ProfileFragment : Fragment() {
     companion object {
         private const val PROFILE_ID_EXTRA = "profile_id"
 
-        fun newFragment(profileId: Int): Fragment {
+        fun newFragment(userId: Int = -1): Fragment {
             val fragment = ProfileFragment()
             val bundle = Bundle()
-            bundle.putInt(PROFILE_ID_EXTRA, profileId)
+            bundle.putInt(PROFILE_ID_EXTRA, userId)
             fragment.arguments = bundle
             return fragment
         }

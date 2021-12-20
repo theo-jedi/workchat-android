@@ -47,7 +47,7 @@ class StreamsFragment : Fragment() {
 
         channelsPagesCallback = object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
-                searchView.setQuery("", false)
+                if (searchView.hasFocus()) searchView.setQuery("", false)
                 currentPagesPosition = channelsPages.currentItem
             }
         }
