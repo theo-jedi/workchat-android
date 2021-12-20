@@ -24,12 +24,8 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
             }
             when (event.updateType) {
                 UpdateType.INITIAL -> {
-                    if (isFirstLoad) {
-                        state { copy(scrollStatus = ScrollStatus.SCROLL_BOTTOM) }
-                        effects { +DialogEffect.HideDialogLoading }
-                    } else {
-                        Log.d("dialog_reducer", "Dialog updated")
-                    }
+                    if (isFirstLoad) state { copy(scrollStatus = ScrollStatus.SCROLL_BOTTOM) }
+                    effects { +DialogEffect.HideDialogLoading }
                 }
                 UpdateType.RELOAD -> {
                     state { copy(scrollStatus = ScrollStatus.SCROLL_BOTTOM) }
@@ -147,6 +143,7 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
         }
         is DialogEvent.Internal.DataLoadingError -> {
             state { copy(status = ResourceStatus.ERROR) }
+            if (state.items.isNotEmpty()) effects { +DialogEffect.HideDialogLoading }
             effects { +DialogEffect.ShowLoadingError }
         }
         is DialogEvent.Internal.ReactionSendingError -> {
@@ -199,9 +196,7 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
             when (state.scrollStatus) {
                 ScrollStatus.SCROLL_BOTTOM -> effects { +DialogEffect.ScrollToBottom }
                 ScrollStatus.SCROLL_TOP -> effects { +DialogEffect.ScrollToTop(state.savedPosition) }
-                ScrollStatus.STAY -> {
-                    Log.d("dialog_reducer", "ScrollStatus - STAY")
-                }
+                ScrollStatus.STAY -> { Log.d("dialog_reducer", "ScrollStatus - STAY") }
             }
         }
         is DialogEvent.Ui.OnMessageSendClicked -> {
