@@ -8,6 +8,7 @@ import java.util.*
 data class ListMessage(
     val id: Int,
     val content: Spanned,
+    val htmlContent: String,
     val time: String,
     val date: Date,
     val senderName: String,

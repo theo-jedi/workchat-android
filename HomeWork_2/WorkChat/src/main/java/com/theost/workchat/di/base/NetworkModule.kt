@@ -2,6 +2,7 @@ package com.theost.workchat.di.base
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.theost.workchat.network.api.Api
+import com.theost.workchat.network.api.ApiConfig
 import com.theost.workchat.network.api.AuthInterceptor
 import dagger.Module
 import dagger.Provides
@@ -30,7 +31,7 @@ class NetworkModule {
     @Reusable
     fun provideRetrofitClient(httpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-            .baseUrl(DOMAIN)
+            .baseUrl(ApiConfig.DOMAIN)
             .client(httpClient)
             .addConverterFactory(
                 @OptIn(ExperimentalSerializationApi::class)
@@ -44,28 +45,17 @@ class NetworkModule {
     @Reusable
     fun provideHttpClient(): OkHttpClient {
         return OkHttpClient.Builder()
-            .addNetworkInterceptor(HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY })
-            .addInterceptor(AuthInterceptor(DEFAULT_EMAIL, DEFAULT_API_KEY))
-            .connectTimeout(CONNECT_TIMEOUT, TimeUnit.SECONDS)
-            .writeTimeout(WRITE_TIMEOUT, TimeUnit.SECONDS)
-            .readTimeout(READ_TIMEOUT, TimeUnit.SECONDS)
+            .addNetworkInterceptor(HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            })
+            .addInterceptor(AuthInterceptor(ApiConfig.AUTH_EMAIL, ApiConfig.AUTH_API_KEY))
+            .connectTimeout(ApiConfig.CONNECT_TIMEOUT, TimeUnit.SECONDS)
+            .writeTimeout(ApiConfig.WRITE_TIMEOUT, TimeUnit.SECONDS)
+            .readTimeout(ApiConfig.READ_TIMEOUT, TimeUnit.SECONDS)
             .build()
     }
 
     @Provides
     @Reusable
-    fun provideMessengerUrl(): String = DOMAIN
-
-    companion object {
-        private const val BASE_URL = "https://tinkoff-android-fall21.zulipchat.com"
-        private const val DOMAIN = "$BASE_URL/api/v1/"
-
-        private const val CONNECT_TIMEOUT = 10L
-        private const val WRITE_TIMEOUT = 30L
-        private const val READ_TIMEOUT = 10L
-
-        private const val DEFAULT_EMAIL = "feds.msc@gmail.com"
-        private const val DEFAULT_API_KEY = "rd3KQacRLprtLaIE4agsL1IbHDpwRhFn"
-    }
-
+    fun provideMessengerUrl(): String = ApiConfig.DOMAIN
 }

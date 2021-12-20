@@ -2,6 +2,7 @@ package com.theost.workchat.utils
 
 import com.theost.workchat.data.models.core.Message
 import com.theost.workchat.data.models.ui.ListMessage
+import com.theost.workchat.network.api.ApiConfig
 import java.util.*
 
 object ApiUtils {
@@ -16,6 +17,20 @@ object ApiUtils {
         } else {
             url
         }
+    }
+
+    fun getPhotoUrl(message: String): String {
+        return try {
+            val url = message.split("href=\"/user_uploads/")[1].split("\"")[0]
+            ApiConfig.BASE_URL + "/user_uploads/" + url
+        } catch (e: Exception) {
+            e.printStackTrace()
+            ""
+        }
+    }
+
+    fun containsPhoto(message: String): Boolean {
+        return message.contains("user_uploads")
     }
 
     // Returns empty message with negative id

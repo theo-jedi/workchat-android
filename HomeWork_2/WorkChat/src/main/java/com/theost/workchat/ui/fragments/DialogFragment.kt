@@ -24,10 +24,7 @@ import com.theost.workchat.di.ui.DaggerDialogComponent
 import com.theost.workchat.elm.dialog.*
 import com.theost.workchat.ui.adapters.callbacks.PaginationAdapterHelper
 import com.theost.workchat.ui.adapters.core.PaginationAdapter
-import com.theost.workchat.ui.adapters.delegates.DateAdapterDelegate
-import com.theost.workchat.ui.adapters.delegates.LoaderAdapterDelegate
-import com.theost.workchat.ui.adapters.delegates.MessageIncomeAdapterDelegate
-import com.theost.workchat.ui.adapters.delegates.MessageOutcomeAdapterDelegate
+import com.theost.workchat.ui.adapters.delegates.*
 import com.theost.workchat.ui.interfaces.WindowHolder
 import com.theost.workchat.utils.ContextUtils
 import com.theost.workchat.utils.PrefUtils
@@ -77,6 +74,8 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
             registerAdapterDataObserver(adapterDataObserver)
             addDelegate(LoaderAdapterDelegate())
             addDelegate(DateAdapterDelegate())
+            addDelegate(PhotoIncomeAdapterDelegate())
+            addDelegate(PhotoOutcomeAdapterDelegate())
             addDelegate(MessageIncomeAdapterDelegate({ dialogAction, message ->
                 store.accept(
                     DialogEvent.Ui.OnMessageClicked(

@@ -8,7 +8,9 @@ import com.theost.workchat.data.models.state.MessageType
 import com.theost.workchat.data.models.ui.ListDate
 import com.theost.workchat.data.models.ui.ListMessage
 import com.theost.workchat.data.models.ui.ListMessageReaction
+import com.theost.workchat.data.models.ui.ListPhoto
 import com.theost.workchat.ui.interfaces.DelegateItem
+import com.theost.workchat.utils.ApiUtils
 import com.theost.workchat.utils.DateUtils
 
 object DialogItemHelper {
@@ -57,6 +59,7 @@ object DialogItemHelper {
                     id = message.id,
                     senderName = message.senderName,
                     content = messageContent,
+                    htmlContent = message.content,
                     senderAvatarUrl = message.senderAvatarUrl,
                     date = message.date,
                     time = DateUtils.getTime(message.date),
@@ -68,22 +71,22 @@ object DialogItemHelper {
         return listMessages
     }
 
-    private fun mapToMessageContent(content: String, emojis: List<Reaction>): SpannableString {
+    private fun mapToMessageContent(htmlContent: String, emojis: List<Reaction>): SpannableString {
+        val content = HtmlCompat.fromHtml(
+            htmlContent.replace(Regex("<img.+?>"), ""),
+            HtmlCompat.FROM_HTML_MODE_COMPACT
+        ).trim()
+
         return SpannableString(
-            HtmlCompat.fromHtml(
-                if (content.contains(":")) {
-                    var isFirstColon = false
-                    content.split(":").joinToString("") {
-                        val emoji = emojis.find { emoji -> emoji.name == it }
-                        val text = if (isFirstColon) ":$it" else it
-                        isFirstColon = emoji?.emoji == null
-                        emoji?.emoji ?: text
-                    }
-                } else {
-                    content
-                },
-                HtmlCompat.FROM_HTML_MODE_COMPACT
-            ).trim()
+            if (content.contains(":")) {
+                var isFirstColon = false
+                content.split(":").joinToString("") {
+                    val emoji = emojis.find { emoji -> emoji.name == it }
+                    val text = if (isFirstColon) ":$it" else it
+                    isFirstColon = emoji?.emoji == null
+                    emoji?.emoji ?: text
+                }
+            } else content
         )
     }
 
@@ -111,9 +114,23 @@ object DialogItemHelper {
     fun mapToListItems(messages: List<ListMessage>): List<DelegateItem> {
         val listItems = mutableListOf<DelegateItem>()
         messages.forEachIndexed { i, message ->
+            if (ApiUtils.containsPhoto(message.htmlContent)) {
+                listItems.add(
+                    ListPhoto(
+                        message.id,
+                        ApiUtils.getPhotoUrl(message.htmlContent),
+                        message.messageType
+                    )
+                )
+            }
+
             listItems.add(message)
 
-            if (i == messages.lastIndex || DateUtils.notSameDay(message.date, messages[i + 1].date)) {
+            if (i == messages.lastIndex || DateUtils.notSameDay(
+                    message.date,
+                    messages[i + 1].date
+                )
+            ) {
                 listItems.add(ListDate(DateUtils.getDayDate(message.date)))
             }
         }

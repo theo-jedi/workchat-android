@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="68dp"
+    android:layout_marginTop="10dp"
+    android:alpha="0"
+    android:background="@drawable/bg_photo_outcome"
+    android:padding="4dp"
+    android:visibility="gone">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/message_bubble_outcome"
+        app:cardCornerRadius="18dp">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/photoView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:scaleType="fitXY" />
+
+    </androidx.cardview.widget.CardView>
+
+</FrameLayout>
