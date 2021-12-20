@@ -32,6 +32,9 @@ class MessengerActivity : ElmActivity<MessengerEvent, MessengerEffect, Messenger
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        DaggerMessengerComponent.factory().create(WorkChatApp.appComponent).inject(this)
+
         binding = ActivityMessengerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -39,8 +42,6 @@ class MessengerActivity : ElmActivity<MessengerEvent, MessengerEffect, Messenger
             store.accept(MessengerEvent.Ui.OnNavigationClick(menuItem.itemId))
             true
         }
-
-        DaggerMessengerComponent.factory().create(WorkChatApp.appComponent).inject(this)
     }
 
     override fun onBackPressed() {
