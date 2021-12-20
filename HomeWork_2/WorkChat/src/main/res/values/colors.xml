@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="green">#2A9D8F</color>
-    <color name="dark_green">#006153</color>
+    <color name="yellow">#E9C46A</color>
+    <color name="orange">#ED6A5E</color>
+    <color name="pink">#A5508E</color>
+    <color name="purple">#6F73D2</color>
 
     <color name="white">#FFFFFFFF</color>
     <color name="lighter_gray">#CCCCCC</color>
@@ -14,9 +17,8 @@
     <color name="black_4">#282828</color>
     <color name="black_5">#464646</color>
 
-    <color name="background">@color/black_1</color>
-    <color name="message_background">@color/black_3</color>
-    <color name="input_background">@color/black_4</color>
+    <color name="background_dark">@color/black_1</color>
+    <color name="background_light">@color/black_3</color>
 
     <color name="message_bubble_income">@color/black_2</color>
     <color name="message_bubble_outcome">@color/green</color>

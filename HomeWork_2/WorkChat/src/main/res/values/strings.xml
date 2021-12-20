@@ -1,9 +1,20 @@
 <resources>
     <string name="app_name">WorkChat</string>
+    <string name="profile">Профиль</string>
+
+    <string name="search">Поиск</string>
+    <string name="channels">Каналы</string>
+    <string name="people">Люди</string>
+
     <string name="add_emoji">Добавить эмоджи</string>
     <string name="write_message">Написать…</string>
+    <string name="log_out">Выйти</string>
+
     <string name="deleted_user">Неизвестно</string>
     <string name="deleted_message">Сообщение удалено</string>
 
-    <string name="dev_start_dialogs_activity">Открыть активность диалога</string>
+    <string name="online">В сети</string>
+    <string name="offline">Не в сети</string>
+
+    <string name="no_messages">Нет сообщений</string>
 </resources>

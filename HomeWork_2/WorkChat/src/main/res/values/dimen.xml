@@ -3,4 +3,5 @@
     <dimen name="message_margin">10dp</dimen>
     <dimen name="emoji_view_width">55dp</dimen>
     <dimen name="emoji_view_height">37dp</dimen>
+    <dimen name="navigation_bar_height">56dp</dimen>
 </resources>
