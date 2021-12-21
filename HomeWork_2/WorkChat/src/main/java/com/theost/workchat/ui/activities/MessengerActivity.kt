@@ -16,6 +16,7 @@ import com.theost.workchat.ui.interfaces.PeopleListener
 import com.theost.workchat.ui.interfaces.TopicListener
 import com.theost.workchat.ui.interfaces.WindowHolder
 import com.theost.workchat.utils.DisplayUtils
+import com.theost.workchat.utils.FileUtils
 import com.theost.workchat.utils.PrefUtils
 import vivid.money.elmslie.android.base.ElmActivity
 import vivid.money.elmslie.core.store.Store
@@ -193,6 +194,11 @@ class MessengerActivity : ElmActivity<MessengerEvent, MessengerEffect, Messenger
             .replace(R.id.fragmentContainer, fragment, null)
             .addToBackStack(null)
             .commit()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        FileUtils.deleteTempFiles(this)
     }
 
     companion object {

@@ -66,7 +66,8 @@ class DialogActor(
                 reactionsRepository.getReactionsFromCache().toObservable()
                     .concatMap { reactionsResult ->
                         if (reactionsResult.isSuccess && reactionsResult.getOrNull()
-                                ?.isNotEmpty() == true) {
+                                ?.isNotEmpty() == true
+                        ) {
                             Observable.just(reactionsResult)
                         } else {
                             Observable.empty()
@@ -98,7 +99,8 @@ class DialogActor(
                 reactionsRepository.getReactionsFromCache().toObservable()
                     .concatMap { reactionsResult ->
                         if (reactionsResult.isSuccess && reactionsResult.getOrNull()
-                                ?.isNotEmpty() == true) {
+                                ?.isNotEmpty() == true
+                        ) {
                             Observable.just(reactionsResult)
                         } else {
                             Observable.empty()
@@ -158,6 +160,13 @@ class DialogActor(
                 command.reactionType
             ).mapEvents(DialogEvent.Internal.ReactionSendingSuccess(command.messageId)) { error ->
                 DialogEvent.Internal.ReactionSendingError(error)
+            }
+        }
+        is DialogCommand.SendPhoto -> {
+            messagesRepository.addPhoto(command.file).toObservable().map { photoResult ->
+                photoResult.fold(onSuccess = { url ->
+                    DialogEvent.Internal.PhotoSendingSuccess(url)
+                }, { error -> DialogEvent.Internal.DataSendingError(error) })
             }
         }
     }

@@ -33,6 +33,15 @@ object ApiUtils {
         return message.contains("user_uploads")
     }
 
+    fun getPhotoUriMessage(uri: String): String {
+        val name = if (uri.contains("/")) uri.split("/").last() else uri
+        return "[$name]($uri)"
+    }
+
+    fun isPhotoSizeValid(length: Long): Boolean {
+        return length <= ApiConfig.FILE_MAX_LENGTH
+    }
+
     // Returns empty message with negative id
     // Using to highlight cache data
     fun addEmptyMessage(messages: List<Message>): List<Message> {

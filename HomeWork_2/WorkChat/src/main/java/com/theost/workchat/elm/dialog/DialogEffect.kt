@@ -24,6 +24,9 @@ sealed class DialogEffect {
     object ShowCopySuccess : DialogEffect()
     object ShowCopyError : DialogEffect()
     object HideMessageEdit : DialogEffect()
+    object ShowFilePicker : DialogEffect()
+    object ShowPhotoCopyFileError : DialogEffect()
+    object ShowPhotoCopySizeError : DialogEffect()
 
     data class ShowActionsPicker(
         val messageType: MessageType,

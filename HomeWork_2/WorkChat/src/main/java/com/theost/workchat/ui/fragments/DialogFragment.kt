@@ -1,6 +1,8 @@
 package com.theost.workchat.ui.fragments
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableString
@@ -9,6 +11,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
@@ -26,7 +30,9 @@ import com.theost.workchat.ui.adapters.callbacks.PaginationAdapterHelper
 import com.theost.workchat.ui.adapters.core.PaginationAdapter
 import com.theost.workchat.ui.adapters.delegates.*
 import com.theost.workchat.ui.interfaces.WindowHolder
+import com.theost.workchat.utils.ApiUtils
 import com.theost.workchat.utils.ContextUtils
+import com.theost.workchat.utils.FileUtils
 import com.theost.workchat.utils.PrefUtils
 import vivid.money.elmslie.android.base.ElmFragment
 import vivid.money.elmslie.core.store.Store
@@ -57,6 +63,29 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
             val layoutManager = binding.messagesList.layoutManager as LinearLayoutManager
             val position = layoutManager.findFirstVisibleItemPosition()
             store.accept(DialogEvent.Ui.OnScrolled(position, dy))
+        }
+    }
+
+    private val filePickerLauncher: ActivityResultLauncher<Intent> = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+            context?.let { context ->
+                result.data?.data?.let { uri ->
+                    val file = FileUtils.createTempFileCopy(context, uri)
+                    if (file != null) {
+                        if (ApiUtils.isPhotoSizeValid(file.length())) {
+                            store.accept(DialogEvent.Ui.OnPhotoSend(file))
+                        } else {
+                            store.accept(DialogEvent.Ui.OnPhotoCopyingSizeError)
+                        }
+                    } else {
+                        store.accept(DialogEvent.Ui.OnPhotoCopyingFileError)
+                    }
+                }
+            }
+        } else {
+            store.accept(DialogEvent.Ui.OnPhotoCopyingFileError)
         }
     }
 
@@ -162,6 +191,8 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
             is DialogEffect.ShowLoadingError -> showRetryError()
             is DialogEffect.ShowPaginationError -> showError()
             is DialogEffect.ShowSendingError -> showError()
+            is DialogEffect.ShowPhotoCopyFileError -> showErrorToast(R.string.file_format_error)
+            is DialogEffect.ShowPhotoCopySizeError -> showErrorToast(R.string.file_size_error)
             is DialogEffect.ShowSendingMessageLoading -> showSendingLoading()
             is DialogEffect.HideSendingMessageLoading -> hideSendingLoading()
             is DialogEffect.ShowEditingMessageLoading -> showEditingLoading()
@@ -184,6 +215,7 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
             is DialogEffect.HideMessageEdit -> hideMessageEdit()
             is DialogEffect.ShowDownButton -> showDownButton()
             is DialogEffect.HideDownButton -> hideDownButton()
+            is DialogEffect.ShowFilePicker -> showFilePicker()
             is DialogEffect.ShowReactionPicker -> showReactionPicker(effect.messageId)
             is DialogEffect.ShowActionsPicker -> showActionsPicker(
                 effect.messageType,
@@ -316,6 +348,10 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
         }
     }
 
+    private fun showErrorToast(resId: Int) {
+        context?.let { context -> Toast.makeText(context, resId, Toast.LENGTH_SHORT) }
+    }
+
     private fun showError() {
         activity?.let { activity ->
             val snackbar = Snackbar.make(
@@ -380,6 +416,11 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
                 )
             }.show(activity.supportFragmentManager, null)
         }
+    }
+
+    private fun showFilePicker() {
+        val intent = Intent(Intent.ACTION_GET_CONTENT).apply { type = "image/*" }
+        filePickerLauncher.launch(intent)
     }
 
     override fun onDestroy() {

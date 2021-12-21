@@ -7,6 +7,8 @@ object ApiConfig {
     const val AUTH_EMAIL = "feds.msc@gmail.com"
     const val AUTH_API_KEY = "rd3KQacRLprtLaIE4agsL1IbHDpwRhFn"
 
+    const val FILE_MAX_LENGTH = 25 * 1024 * 1024
+
     const val CONNECT_TIMEOUT = 10L
     const val WRITE_TIMEOUT = 30L
     const val READ_TIMEOUT = 10L

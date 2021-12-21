@@ -3,6 +3,7 @@ package com.theost.workchat.network.api
 import com.theost.workchat.network.dto.*
 import io.reactivex.Completable
 import io.reactivex.Single
+import okhttp3.MultipartBody
 import retrofit2.http.*
 
 interface Api {
@@ -93,6 +94,13 @@ interface Api {
         @Path("msg_id")
         messageId: Int
     ): Single<DeleteMessageResponse>
+
+    @Multipart
+    @POST("user_uploads")
+    fun addPhoto(
+        @Part
+        photo: MultipartBody.Part
+    ): Single<AddPhotoResponse>
 
     @GET("/static/generated/emoji/emoji_codes.json")
     fun getReactions(): Single<GetReactionsResponse>

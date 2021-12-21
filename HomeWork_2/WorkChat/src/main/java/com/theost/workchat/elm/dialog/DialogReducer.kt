@@ -80,6 +80,15 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
                 commands { +DialogCommand.LoadItems(event.messages, event.updateType) }
             }
         }
+        is DialogEvent.Internal.PhotoSendingSuccess -> {
+            commands {
+                +DialogCommand.AddMessage(
+                    state.channelName,
+                    state.topicName,
+                    ApiUtils.getPhotoUriMessage(event.uri)
+                )
+            }
+        }
         is DialogEvent.Internal.MessageSendingSuccess -> {
             state { copy(savedPosition = 0) }
             commands {
@@ -167,6 +176,7 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
             if (state.paginationStatus != PaginationStatus.FULLY
                 && state.status != ResourceStatus.LOADING
                 && event.savedPosition != state.savedPosition
+                && state.items.isNotEmpty()
                 && state.isScrolled
             ) {
                 if (state.items.count() >= MessagesRepository.DIALOG_PAGE_SIZE) {
@@ -209,6 +219,11 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
                 }
             }
         }
+        is DialogEvent.Ui.OnPhotoSend -> {
+            state { copy(status = ResourceStatus.LOADING) }
+            commands { +DialogCommand.SendPhoto(event.file) }
+            effects { +DialogEffect.ShowSendingMessageLoading }
+        }
         is DialogEvent.Ui.OnMessageSendClicked -> {
             if (state.inputStatus == InputStatus.FILLED) {
                 state { copy(status = ResourceStatus.LOADING) }
@@ -221,7 +236,7 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
                 }
                 effects { +DialogEffect.ShowSendingMessageLoading }
             } else {
-                { /* file attachment */ }
+                effects { +DialogEffect.ShowFilePicker }
             }
         }
         is DialogEvent.Ui.OnMessageEditClicked -> {
@@ -262,7 +277,7 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
             if (event.position == 0) state { copy(isScrolled = true) }
             if (event.position <= DOWN_BUTTON_POSITION) {
                 state { copy(downStatus = DownStatus.HIDDEN, scrollOffset = 0) }
-                if (event.position >= state.items.count() - MessagesRepository.DIALOG_PAGE_SIZE) {
+                if (state.items.isNotEmpty() && event.position >= state.items.count() - MessagesRepository.DIALOG_PAGE_SIZE) {
                     commands {
                         +DialogCommand.LoadNextMessages(
                             state.channelName,
@@ -362,6 +377,12 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
             state { copy(editedMessageId = -1, editedMessageContent = "") }
             effects { +DialogEffect.HideMessageEdit }
             effects { +DialogEffect.ClearSendingMessageContent }
+        }
+        is DialogEvent.Ui.OnPhotoCopyingFileError -> {
+            effects { +DialogEffect.ShowPhotoCopyFileError }
+        }
+        is DialogEvent.Ui.OnPhotoCopyingSizeError -> {
+            effects { +DialogEffect.ShowPhotoCopySizeError }
         }
     }
 

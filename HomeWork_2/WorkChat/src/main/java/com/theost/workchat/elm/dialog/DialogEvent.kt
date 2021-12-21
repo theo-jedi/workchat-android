@@ -6,6 +6,7 @@ import com.theost.workchat.data.models.state.MessageType
 import com.theost.workchat.data.models.state.UpdateType
 import com.theost.workchat.data.models.ui.ListMessage
 import com.theost.workchat.ui.interfaces.DelegateItem
+import java.io.File
 
 sealed class DialogEvent {
     sealed class Ui : DialogEvent() {
@@ -13,6 +14,8 @@ sealed class DialogEvent {
         object OnItemsInserted : Ui()
         object OnCloseEdit : Ui()
         object OnDownClicked : Ui()
+        object OnPhotoCopyingFileError : Ui()
+        object OnPhotoCopyingSizeError : Ui()
 
         data class LoadNextMessages(val savedPosition: Int) : Ui()
 
@@ -41,6 +44,7 @@ sealed class DialogEvent {
 
         data class OnScrolled(val position: Int, val offset: Int) : Ui()
         data class OnInputTextChanged(val text: String) : Ui()
+        data class OnPhotoSend(val file: File) : Ui()
         data class OnMessageSendClicked(val content: String) : Ui()
         data class OnMessageCopy(val isCopied: Boolean) : Ui()
     }
@@ -59,6 +63,7 @@ sealed class DialogEvent {
 
         object MessageSendingSuccess : Internal()
 
+        data class PhotoSendingSuccess(val uri: String) : Internal()
         data class MessageEditingSuccess(val messageId: Int) : Internal()
         data class MessageEditingError(val error: Throwable) : Internal()
         data class MessageDeletionSuccess(val messageId: Int) : Internal()

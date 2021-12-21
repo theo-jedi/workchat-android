@@ -14,6 +14,11 @@ import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
+
 
 class MessagesRepository(private val service: Api, database: CacheDatabase) {
 
@@ -173,6 +178,17 @@ class MessagesRepository(private val service: Api, database: CacheDatabase) {
                 removeMessageFromDatabase(messageId = messageId)
                     .andThen(Single.just(response))
             }
+            .subscribeOn(Schedulers.io())
+    }
+
+    fun addPhoto(file: File): Single<Result<String>> {
+        val image = file.asRequestBody("image/*".toMediaType())
+        val body: MultipartBody.Part =
+            MultipartBody.Part.Companion.createFormData("image", file.name, image)
+
+        return service.addPhoto(body)
+            .map { response -> Result.success(response.uri) }
+            .onErrorReturn { Result.failure(it) }
             .subscribeOn(Schedulers.io())
     }
 

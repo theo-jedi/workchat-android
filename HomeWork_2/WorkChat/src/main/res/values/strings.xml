@@ -42,4 +42,6 @@
 
     <string name="network_error">Ошибка. Проверьте подключение к интернету!</string>
     <string name="database_error">Ошибка загрузки данных.</string>
+    <string name="file_format_error">Ошибка чтения файла</string>
+    <string name="file_size_error">Слишком большой файл</string>
 </resources>
