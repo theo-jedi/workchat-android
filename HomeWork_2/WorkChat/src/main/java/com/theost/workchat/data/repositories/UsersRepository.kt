@@ -112,7 +112,8 @@ class UsersRepository(private val service: Api, database: CacheDatabase) {
             .flatMap { result ->
                 val status = result.getOrNull()
                 if (status != null && status != UserStatus.OFFLINE) {
-                    addPresenceToDatabase(userId, status)
+                    removePresenceFromDatabase(userId)
+                        .andThen(addPresenceToDatabase(userId, status))
                         .andThen(Single.just(result))
                 } else {
                     removePresenceFromDatabase(userId)
