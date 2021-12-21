@@ -17,13 +17,14 @@ class ReactionsRepository(private val service: Api, database: CacheDatabase) {
         return service.getReactions()
             .map { response -> Result.success(response.mapToReactions()) }
             .onErrorReturn { Result.failure(it) }
-            .doOnSuccess { result ->
-                if (result.isSuccess) {
-                    val reactions = result.getOrNull()
-                    if (reactions != null) {
-                        removeReactionsFromDatabase()
-                        addReactionsToDatabase(reactions)
-                    }
+            .flatMap { result ->
+                val reactions = result.getOrNull()
+                if (reactions != null) {
+                    removeReactionsFromDatabase()
+                        .andThen(addReactionsToDatabase(reactions))
+                        .andThen(Single.just(result))
+                } else {
+                    Single.just(result)
                 }
             }
             .subscribeOn(Schedulers.io())
@@ -36,14 +37,13 @@ class ReactionsRepository(private val service: Api, database: CacheDatabase) {
             .subscribeOn(Schedulers.io())
     }
 
-    private fun addReactionsToDatabase(reactions: List<Reaction>) {
-        reactionsDao.insertAll(reactions.map { reaction -> reaction.mapToReactionEntity() })
+    private fun addReactionsToDatabase(reactions: List<Reaction>): Completable {
+        return reactionsDao.insertAll(reactions.map { reaction -> reaction.mapToReactionEntity() })
             .subscribeOn(Schedulers.io())
-            .subscribe()
     }
 
-    private fun removeReactionsFromDatabase() {
-        reactionsDao.deleteAll().subscribeOn(Schedulers.io()).subscribe()
+    private fun removeReactionsFromDatabase(): Completable {
+        return reactionsDao.deleteAll().subscribeOn(Schedulers.io())
     }
 
     fun addReaction(messageId: Int, reactionName: String): Completable {

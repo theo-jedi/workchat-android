@@ -49,13 +49,14 @@ class MessagesRepository(private val service: Api, database: CacheDatabase) {
             )
         }.onErrorReturn {
             Result.failure(it)
-        }.doOnSuccess { result ->
-            if (result.isSuccess) {
-                val messages = result.getOrNull()
-                if (messages != null) {
-                    removeMessagesFromDatabase(channelName, topicName)
-                    addMessagesToDatabase(channelName, topicName, messages)
-                }
+        }.flatMap { result ->
+            val messages = result.getOrNull()
+            if (messages != null) {
+                removeMessagesFromDatabase(channelName, topicName)
+                    .andThen(addMessagesToDatabase(channelName, topicName, messages))
+                    .andThen(Single.just(result))
+            } else {
+                Single.just(result)
             }
         }.subscribeOn(Schedulers.io())
     }
@@ -77,10 +78,13 @@ class MessagesRepository(private val service: Api, database: CacheDatabase) {
             )
         }.onErrorReturn {
             Result.failure(it)
-        }.doOnSuccess { result ->
-            if (result.isSuccess) {
-                val messages = result.getOrNull()
-                if (messages != null) addMessagesToDatabase(channelName, topicName, messages)
+        }.flatMap { result ->
+            val messages = result.getOrNull()
+            if (messages != null) {
+                addMessagesToDatabase(channelName, topicName, messages)
+                    .andThen(Single.just(result))
+            } else {
+                Single.just(result)
             }
         }.subscribeOn(Schedulers.io())
     }
@@ -99,10 +103,13 @@ class MessagesRepository(private val service: Api, database: CacheDatabase) {
             Result.success(response.messages.first().mapToMessage())
         }.onErrorReturn {
             Result.failure(it)
-        }.doOnSuccess { result ->
-            if (result.isSuccess) {
-                val message = result.getOrNull()
-                if (message != null) addMessagesToDatabase(channelName, topicName, listOf(message))
+        }.flatMap { result ->
+            val message = result.getOrNull()
+            if (message != null) {
+                addMessagesToDatabase(channelName, topicName, listOf(message))
+                    .andThen(Single.just(result))
+            } else {
+                Single.just(result)
             }
         }.subscribeOn(Schedulers.io())
     }
@@ -127,22 +134,22 @@ class MessagesRepository(private val service: Api, database: CacheDatabase) {
         channelName: String,
         topicName: String,
         messages: List<Message>
-    ) {
-        messagesDao.insertAll(messages.map { message ->
+    ): Completable {
+        return messagesDao.insertAll(messages.map { message ->
             message.mapToMessageEntity(
                 channelName,
                 topicName
             )
-        }).subscribeOn(Schedulers.io()).subscribe()
+        }).subscribeOn(Schedulers.io())
     }
 
-    private fun removeMessagesFromDatabase(channelName: String, topicName: String) {
-        messagesDao.deleteTopicMessages(channelName, topicName)
-            .subscribeOn(Schedulers.io()).subscribe()
+    private fun removeMessagesFromDatabase(channelName: String, topicName: String): Completable {
+        return messagesDao.deleteTopicMessages(channelName, topicName)
+            .subscribeOn(Schedulers.io())
     }
 
-    private fun removeMessageFromDatabase(messageId: Int) {
-        messagesDao.delete(messageId).subscribeOn(Schedulers.io()).subscribe()
+    private fun removeMessageFromDatabase(messageId: Int): Completable {
+        return messagesDao.delete(messageId).subscribeOn(Schedulers.io())
     }
 
     fun addMessage(channelName: String, topicName: String, content: String): Completable {
@@ -162,7 +169,10 @@ class MessagesRepository(private val service: Api, database: CacheDatabase) {
 
     fun deleteMessage(messageId: Int): Single<DeleteMessageResponse> {
         return service.deleteMessage(messageId = messageId)
-            .doOnSuccess { removeMessageFromDatabase(messageId = messageId) }
+            .flatMap { response ->
+                removeMessageFromDatabase(messageId = messageId)
+                    .andThen(Single.just(response))
+            }
             .subscribeOn(Schedulers.io())
     }
 

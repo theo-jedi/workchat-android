@@ -7,9 +7,7 @@ import com.theost.workchat.data.repositories.ChannelsRepository
 import com.theost.workchat.data.repositories.TopicsRepository
 import com.theost.workchat.utils.StringUtils
 import io.reactivex.Observable
-import io.reactivex.schedulers.Schedulers
 import vivid.money.elmslie.core.ActorCompat
-import java.util.concurrent.TimeUnit
 
 
 class ChannelsActor(
@@ -51,8 +49,6 @@ class ChannelsActor(
         }
         is ChannelsCommand.SearchChannels -> {
             Observable.just(command.channels)
-                .distinctUntilChanged()
-                .debounce(500, TimeUnit.MILLISECONDS, Schedulers.io())
                 .map { channels ->
                     channels.filter { channel ->
                         StringUtils.containsQuery(channel.name, command.query)

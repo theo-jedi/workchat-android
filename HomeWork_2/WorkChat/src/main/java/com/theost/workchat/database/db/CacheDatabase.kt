@@ -8,6 +8,7 @@ import com.theost.workchat.database.entities.*
 @Database(
     entities = [
         UserEntity::class,
+        PresenceEntity::class,
         ChannelEntity::class,
         TopicEntity::class,
         MessageEntity::class,
@@ -18,6 +19,7 @@ import com.theost.workchat.database.entities.*
 )
 abstract class CacheDatabase : RoomDatabase() {
     abstract fun usersDao(): UsersDao
+    abstract fun presenceDao(): PresenceDao
     abstract fun channelsDao(): ChannelsDao
     abstract fun topicsDao(): TopicsDao
     abstract fun messagesDao(): MessagesDao

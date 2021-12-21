@@ -8,6 +8,7 @@ import com.theost.workchat.database.entities.mapToChannelEntity
 import com.theost.workchat.network.api.Api
 import com.theost.workchat.network.dto.mapToChannel
 import com.theost.workchat.utils.StringUtils
+import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
@@ -31,10 +32,13 @@ class ChannelsRepository(private val service: Api, database: CacheDatabase) {
             service.getSubscribedChannels()
                 .map { response -> Result.success(response.channels.map { channelDto -> channelDto.mapToChannel() }) }
                 .onErrorReturn { Result.failure(it) }
-                .doOnSuccess { result ->
-                    if (result.isSuccess) {
-                        val channels = result.getOrNull()
-                        if (channels != null) addChannelsToDatabase(channels)
+                .flatMap { result ->
+                    val channels = result.getOrNull()
+                    if (channels != null) {
+                        addChannelsToDatabase(channels)
+                            .andThen(Single.just(result))
+                    } else {
+                        Single.just(result)
                     }
                 }
                 .subscribeOn(Schedulers.io())
@@ -42,10 +46,14 @@ class ChannelsRepository(private val service: Api, database: CacheDatabase) {
             service.getChannels()
                 .map { response -> Result.success(response.channels.map { channelDto -> channelDto.mapToChannel() }) }
                 .onErrorReturn { Result.failure(it) }
-                .doOnSuccess { result ->
-                    if (result.isSuccess) {
-                        val channels = result.getOrNull()
-                        if (channels != null) addChannelsToDatabase(channels)
+                .flatMap { result ->
+                    val channels = result.getOrNull()
+                    if (channels != null) {
+                        removeChannelsFromDatabase()
+                            .andThen(addChannelsToDatabase(channels))
+                            .andThen(Single.just(result))
+                    } else {
+                        Single.just(result)
                     }
                 }
                 .subscribeOn(Schedulers.io())
@@ -74,10 +82,14 @@ class ChannelsRepository(private val service: Api, database: CacheDatabase) {
         }
     }
 
-    private fun addChannelsToDatabase(channels: List<Channel>) {
-        channelsDao.insertAll(channels.map { channel -> channel.mapToChannelEntity() })
+    private fun addChannelsToDatabase(channels: List<Channel>): Completable {
+        return channelsDao.insertAll(channels.map { channel -> channel.mapToChannelEntity() })
             .subscribeOn(Schedulers.io())
-            .subscribe()
+    }
+
+    private fun removeChannelsFromDatabase(): Completable {
+        return channelsDao.deleteAll()
+            .subscribeOn(Schedulers.io())
     }
 
     fun addChannel(

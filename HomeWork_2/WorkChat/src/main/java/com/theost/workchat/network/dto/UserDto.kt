@@ -48,7 +48,9 @@ data class UserDto(
     @SerialName("timezone")
     val timezone: String,
     @SerialName("is_bot")
-    val isBot: Boolean
+    val isBot: Boolean,
+    @SerialName("is_active")
+    val isActive: Boolean
 )
 
 @Serializable

@@ -9,7 +9,15 @@ class PeopleReducer : DslReducer<PeopleEvent, PeopleState, PeopleEffect, PeopleC
         is PeopleEvent.Internal.PeopleLoadingSuccess -> {
             if (event.people.isNotEmpty()) {
                 state { copy(status = ResourceStatus.SUCCESS, people = event.people) }
+                commands { +PeopleCommand.LoadStatuses(event.people) }
                 effects { +PeopleEffect.HideLoading }
+            } else {
+                Log.d("people_reducer", "People list is empty")
+            }
+        }
+        is PeopleEvent.Internal.StatusesLoadingSuccess -> {
+            if (event.people.isNotEmpty()) {
+                state { copy(people = event.people) }
             } else {
                 Log.d("people_reducer", "People list is empty")
             }

@@ -6,6 +6,7 @@ import com.theost.workchat.database.entities.mapToTopic
 import com.theost.workchat.database.entities.mapToTopicEntity
 import com.theost.workchat.network.api.Api
 import com.theost.workchat.network.dto.mapToTopic
+import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
@@ -28,13 +29,14 @@ class TopicsRepository(private val service: Api, database: CacheDatabase) {
                 .sortedBy { topic -> topic.name }
             )}
             .onErrorReturn { Result.failure(it) }
-            .doOnSuccess { result ->
-                if (result.isSuccess) {
-                    val topics = result.getOrNull()
-                    if (topics != null) {
-                        removeTopicsFromDatabase(channelId)
-                        addTopicsToDatabase(topics)
-                    }
+            .flatMap { result ->
+                val topics = result.getOrNull()
+                if (topics != null) {
+                    removeTopicsFromDatabase(channelId)
+                        .andThen(addTopicsToDatabase(topics))
+                        .andThen(Single.just(result))
+                } else {
+                    Single.just(result)
                 }
             }
             .subscribeOn(Schedulers.io())
@@ -50,14 +52,13 @@ class TopicsRepository(private val service: Api, database: CacheDatabase) {
             .subscribeOn(Schedulers.io())
     }
 
-    private fun addTopicsToDatabase(topics: List<Topic>) {
-        topicsDao.insertAll(topics.map { topic -> topic.mapToTopicEntity() })
+    private fun addTopicsToDatabase(topics: List<Topic>): Completable {
+        return topicsDao.insertAll(topics.map { topic -> topic.mapToTopicEntity() })
             .subscribeOn(Schedulers.io())
-            .subscribe()
     }
 
-    private fun removeTopicsFromDatabase(channelId: Int) {
-        topicsDao.deleteChannelTopics(channelId).subscribeOn(Schedulers.io()).subscribe()
+    private fun removeTopicsFromDatabase(channelId: Int): Completable {
+        return topicsDao.deleteChannelTopics(channelId).subscribeOn(Schedulers.io())
     }
 
 }
