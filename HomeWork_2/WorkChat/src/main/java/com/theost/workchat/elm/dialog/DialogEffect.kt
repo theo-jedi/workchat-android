@@ -1,5 +1,6 @@
 package com.theost.workchat.elm.dialog
 
+import com.theost.workchat.data.models.state.ContentType
 import com.theost.workchat.data.models.state.MessageType
 
 sealed class DialogEffect {
@@ -30,6 +31,7 @@ sealed class DialogEffect {
 
     data class ShowActionsPicker(
         val messageType: MessageType,
+        val contentType: ContentType,
         val messageId: Int,
         val content: String
     ) : DialogEffect()

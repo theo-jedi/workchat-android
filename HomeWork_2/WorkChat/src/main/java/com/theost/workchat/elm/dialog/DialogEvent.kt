@@ -1,9 +1,6 @@
 package com.theost.workchat.elm.dialog
 
-import com.theost.workchat.data.models.state.DialogAction
-import com.theost.workchat.data.models.state.MessageAction
-import com.theost.workchat.data.models.state.MessageType
-import com.theost.workchat.data.models.state.UpdateType
+import com.theost.workchat.data.models.state.*
 import com.theost.workchat.data.models.ui.ListMessage
 import com.theost.workchat.ui.interfaces.DelegateItem
 import java.io.File
@@ -22,6 +19,7 @@ sealed class DialogEvent {
         data class OnMessageClicked(
             val dialogAction: DialogAction,
             val messageType: MessageType,
+            val contentType: ContentType,
             val messageId: Int,
             val content: String
         ) : Ui()

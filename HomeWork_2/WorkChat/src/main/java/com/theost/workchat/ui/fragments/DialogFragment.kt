@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.theost.workchat.R
 import com.theost.workchat.application.WorkChatApp
+import com.theost.workchat.data.models.state.ContentType
 import com.theost.workchat.data.models.state.MessageAction
 import com.theost.workchat.data.models.state.MessageType
 import com.theost.workchat.databinding.FragmentDialogBinding
@@ -110,6 +111,7 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
                     DialogEvent.Ui.OnMessageClicked(
                         dialogAction,
                         message.messageType,
+                        message.contentType,
                         message.id,
                         message.content.toString()
                     )
@@ -126,6 +128,7 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
                     DialogEvent.Ui.OnMessageClicked(
                         dialogAction,
                         message.messageType,
+                        message.contentType,
                         message.id,
                         message.content.toString()
                     )
@@ -219,6 +222,7 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
             is DialogEffect.ShowReactionPicker -> showReactionPicker(effect.messageId)
             is DialogEffect.ShowActionsPicker -> showActionsPicker(
                 effect.messageType,
+                effect.contentType,
                 effect.messageId,
                 effect.content
             )
@@ -394,9 +398,14 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
         binding.toolbarLayout.toolbar.title = title
     }
 
-    private fun showActionsPicker(messageType: MessageType, messageId: Int, content: String) {
+    private fun showActionsPicker(
+        messageType: MessageType,
+        contentType: ContentType,
+        messageId: Int,
+        content: String
+    ) {
         activity?.let { activity ->
-            ActionsFragment.newFragment(messageType) { dialogAction ->
+            ActionsFragment.newFragment(messageType, contentType) { dialogAction ->
                 store.accept(DialogEvent.Ui.OnDialogActionClicked(dialogAction, messageId, content))
             }.show(activity.supportFragmentManager, null)
         }

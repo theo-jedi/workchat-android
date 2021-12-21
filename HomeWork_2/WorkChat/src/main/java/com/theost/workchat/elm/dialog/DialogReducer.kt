@@ -327,6 +327,7 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
                     effects {
                         +DialogEffect.ShowActionsPicker(
                             event.messageType,
+                            event.contentType,
                             event.messageId,
                             event.content
                         )

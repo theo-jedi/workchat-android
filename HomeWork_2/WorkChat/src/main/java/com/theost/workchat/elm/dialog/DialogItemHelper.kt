@@ -4,6 +4,7 @@ import android.text.SpannableString
 import androidx.core.text.HtmlCompat
 import com.theost.workchat.data.models.core.Message
 import com.theost.workchat.data.models.core.Reaction
+import com.theost.workchat.data.models.state.ContentType
 import com.theost.workchat.data.models.state.MessageType
 import com.theost.workchat.data.models.ui.ListDate
 import com.theost.workchat.data.models.ui.ListMessage
@@ -53,6 +54,8 @@ object DialogItemHelper {
             val listReactions = mapToListReactions(reactions, currentUserId)
             val messageType =
                 if (message.senderId == currentUserId) MessageType.OUTCOME else MessageType.INCOME
+            val contentType =
+                if (ApiUtils.containsPhoto(message.content)) ContentType.PHOTO else ContentType.TEXT
 
             listMessages.add(
                 ListMessage(
@@ -64,7 +67,8 @@ object DialogItemHelper {
                     date = message.date,
                     time = DateUtils.getTime(message.date),
                     reactions = listReactions,
-                    messageType = messageType
+                    messageType = messageType,
+                    contentType = contentType
                 )
             )
         }
@@ -114,7 +118,7 @@ object DialogItemHelper {
     fun mapToListItems(messages: List<ListMessage>): List<DelegateItem> {
         val listItems = mutableListOf<DelegateItem>()
         messages.forEachIndexed { i, message ->
-            if (ApiUtils.containsPhoto(message.htmlContent)) {
+            if (message.contentType == ContentType.PHOTO) {
                 listItems.add(
                     ListPhoto(
                         message.id,
