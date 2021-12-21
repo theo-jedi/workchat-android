@@ -33,8 +33,7 @@ object ApiUtils {
         return message.contains("user_uploads")
     }
 
-    fun getPhotoUriMessage(uri: String): String {
-        val name = if (uri.contains("/")) uri.split("/").last() else uri
+    fun getPhotoUriMessage(uri: String, name: String): String {
         return "[$name]($uri)"
     }
 

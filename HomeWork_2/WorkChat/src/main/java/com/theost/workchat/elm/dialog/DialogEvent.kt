@@ -10,6 +10,7 @@ sealed class DialogEvent {
         object LoadMessages : Ui()
         object OnItemsInserted : Ui()
         object OnCloseEdit : Ui()
+        object OnClosePhoto : Ui()
         object OnDownClicked : Ui()
         object OnPhotoCopyingFileError : Ui()
         object OnPhotoCopyingSizeError : Ui()
@@ -61,7 +62,7 @@ sealed class DialogEvent {
 
         object MessageSendingSuccess : Internal()
 
-        data class PhotoSendingSuccess(val uri: String) : Internal()
+        data class PhotoSendingSuccess(val uri: String, val name: String) : Internal()
         data class MessageEditingSuccess(val messageId: Int) : Internal()
         data class MessageEditingError(val error: Throwable) : Internal()
         data class MessageDeletionSuccess(val messageId: Int) : Internal()

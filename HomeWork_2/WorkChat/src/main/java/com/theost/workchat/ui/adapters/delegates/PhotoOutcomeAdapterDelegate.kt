@@ -52,42 +52,44 @@ class PhotoOutcomeAdapterDelegate : AdapterDelegate {
                 binding.photoView.layout(0, 0, 0, 0)
             }
 
-            val authorizedUrl = GlideUrl(
-                listPhoto.url,
-                LazyHeaders.Builder().addHeader(
-                    "Authorization",
-                    Credentials.basic(ApiConfig.AUTH_EMAIL, ApiConfig.AUTH_API_KEY)
-                ).build()
-            )
+            if (listPhoto.url.isNotEmpty()) {
+                val authorizedUrl = GlideUrl(
+                    listPhoto.url,
+                    LazyHeaders.Builder().addHeader(
+                        "Authorization",
+                        Credentials.basic(ApiConfig.AUTH_EMAIL, ApiConfig.AUTH_API_KEY)
+                    ).build()
+                )
 
-            GlideApp.with(binding.root)
-                .load(authorizedUrl)
-                .override(Target.SIZE_ORIGINAL)
-                .listener(object : RequestListener<Drawable> {
-                    override fun onResourceReady(
-                        resource: Drawable?,
-                        model: Any?,
-                        target: Target<Drawable>,
-                        dataSource: DataSource,
-                        isFirstResource: Boolean
-                    ): Boolean {
-                        binding.root.visibility = View.VISIBLE
-                        binding.photoView.setImageDrawable(resource)
-                        if (!isLoaded) {
-                            binding.root.animate().alpha(1f).duration = 600
-                            isLoaded = true
+                GlideApp.with(binding.root)
+                    .load(authorizedUrl)
+                    .override(Target.SIZE_ORIGINAL)
+                    .listener(object : RequestListener<Drawable> {
+                        override fun onResourceReady(
+                            resource: Drawable?,
+                            model: Any?,
+                            target: Target<Drawable>,
+                            dataSource: DataSource,
+                            isFirstResource: Boolean
+                        ): Boolean {
+                            binding.root.visibility = View.VISIBLE
+                            binding.photoView.setImageDrawable(resource)
+                            if (!isLoaded) {
+                                binding.root.animate().alpha(1f).duration = 600
+                                isLoaded = true
+                            }
+                            return true
                         }
-                        return true
-                    }
 
-                    override fun onLoadFailed(
-                        e: GlideException?,
-                        model: Any,
-                        target: Target<Drawable>,
-                        isFirstResource: Boolean
-                    ): Boolean = false
-                })
-                .into(binding.photoView)
+                        override fun onLoadFailed(
+                            e: GlideException?,
+                            model: Any,
+                            target: Target<Drawable>,
+                            isFirstResource: Boolean
+                        ): Boolean = false
+                    })
+                    .into(binding.photoView)
+            }
         }
     }
 }

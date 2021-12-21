@@ -164,9 +164,15 @@ class DialogActor(
         }
         is DialogCommand.SendPhoto -> {
             messagesRepository.addPhoto(command.file).toObservable().map { photoResult ->
-                photoResult.fold(onSuccess = { url ->
-                    DialogEvent.Internal.PhotoSendingSuccess(url)
-                }, { error -> DialogEvent.Internal.DataSendingError(error) })
+                photoResult.fold(
+                    onSuccess = { uri ->
+                        DialogEvent.Internal.PhotoSendingSuccess(
+                            uri,
+                            command.file.name
+                        )
+                    },
+                    onFailure = { error -> DialogEvent.Internal.DataSendingError(error) }
+                )
             }
         }
     }

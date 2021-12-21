@@ -154,12 +154,16 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
             store.accept(DialogEvent.Ui.OnInputTextChanged(editable.toString().trim()))
         }
 
-        binding.inputLayout.linkedClose.setOnClickListener {
+        binding.inputLayout.editClose.setOnClickListener {
             store.accept(DialogEvent.Ui.OnCloseEdit)
         }
 
         binding.inputLayout.editButton.setOnClickListener {
             store.accept(DialogEvent.Ui.OnMessageEditClicked(binding.inputLayout.messageInput.text.toString()))
+        }
+
+        binding.inputLayout.photoClose.setOnClickListener {
+            store.accept(DialogEvent.Ui.OnClosePhoto)
         }
 
         configureToolbar()
@@ -207,6 +211,7 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
             is DialogEffect.HideEmpty -> hideEmptyView()
             is DialogEffect.ShowTitle -> configureTitle(effect.channel, effect.topic)
             is DialogEffect.ShowSendMessageAction -> showSendMessageAction()
+            is DialogEffect.ShowSendEmptyMessageAction -> showSendEmptyMessageAction()
             is DialogEffect.ShowAttachMessageAction -> showAttachMessageAction()
             is DialogEffect.ScrollSmoothToBottom -> scrollSmoothToBottom()
             is DialogEffect.ScrollToBottom -> scrollToBottom()
@@ -216,6 +221,8 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
             is DialogEffect.CopyMessage -> copyMessage(effect.content)
             is DialogEffect.ShowMessageEdit -> showMessageEdit(effect.content)
             is DialogEffect.HideMessageEdit -> hideMessageEdit()
+            is DialogEffect.ShowPhotoSend -> showPhotoSend(effect.content)
+            is DialogEffect.HidePhotoSend -> hidePhotoSend()
             is DialogEffect.ShowDownButton -> showDownButton()
             is DialogEffect.HideDownButton -> hideDownButton()
             is DialogEffect.ShowFilePicker -> showFilePicker()
@@ -238,26 +245,47 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
 
     private fun showMessageEdit(content: String) {
         binding.inputLayout.actionButton.visibility = View.INVISIBLE
-        binding.inputLayout.linkedMessage.visibility = View.VISIBLE
-        binding.inputLayout.linkedIcon.visibility = View.VISIBLE
-        binding.inputLayout.linkedClose.visibility = View.VISIBLE
+        binding.inputLayout.editMessage.visibility = View.VISIBLE
+        binding.inputLayout.editIcon.visibility = View.VISIBLE
+        binding.inputLayout.editClose.visibility = View.VISIBLE
         binding.inputLayout.editButton.visibility = View.VISIBLE
 
-        binding.inputLayout.linkedMessage.text = content
+        binding.inputLayout.editMessage.text = content
         binding.inputLayout.messageInput.setText(content)
         binding.inputLayout.messageInput.setSelection(content.length)
     }
 
     private fun hideMessageEdit() {
-        binding.inputLayout.linkedMessage.visibility = View.GONE
-        binding.inputLayout.linkedIcon.visibility = View.GONE
-        binding.inputLayout.linkedClose.visibility = View.GONE
+        binding.inputLayout.editMessage.visibility = View.GONE
+        binding.inputLayout.editIcon.visibility = View.GONE
+        binding.inputLayout.editClose.visibility = View.GONE
         binding.inputLayout.editButton.visibility = View.INVISIBLE
         binding.inputLayout.actionButton.visibility = View.VISIBLE
     }
 
+
+    private fun showPhotoSend(content: String) {
+        binding.inputLayout.photoMessage.visibility = View.VISIBLE
+        binding.inputLayout.photoIcon.visibility = View.VISIBLE
+        binding.inputLayout.photoClose.visibility = View.VISIBLE
+
+        binding.inputLayout.photoMessage.text = content
+        binding.inputLayout.messageInput.setText(content)
+        binding.inputLayout.messageInput.setSelection(content.length)
+    }
+
+    private fun hidePhotoSend() {
+        binding.inputLayout.photoMessage.visibility = View.GONE
+        binding.inputLayout.photoIcon.visibility = View.GONE
+        binding.inputLayout.photoClose.visibility = View.GONE
+    }
+
     private fun showSendMessageAction() {
         binding.inputLayout.actionButton.setImageResource(R.drawable.ic_send)
+    }
+
+    private fun showSendEmptyMessageAction() {
+        binding.inputLayout.actionButton.setImageResource(R.drawable.ic_send_empty)
     }
 
     private fun showAttachMessageAction() {

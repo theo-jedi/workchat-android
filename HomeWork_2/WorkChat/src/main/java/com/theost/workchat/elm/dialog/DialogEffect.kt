@@ -17,6 +17,7 @@ sealed class DialogEffect {
     object ShowEmpty : DialogEffect()
     object HideEmpty : DialogEffect()
     object ShowSendMessageAction : DialogEffect()
+    object ShowSendEmptyMessageAction : DialogEffect()
     object ShowAttachMessageAction : DialogEffect()
     object ShowDownButton : DialogEffect()
     object HideDownButton : DialogEffect()
@@ -25,6 +26,7 @@ sealed class DialogEffect {
     object ShowCopySuccess : DialogEffect()
     object ShowCopyError : DialogEffect()
     object HideMessageEdit : DialogEffect()
+    object HidePhotoSend : DialogEffect()
     object ShowFilePicker : DialogEffect()
     object ShowPhotoCopyFileError : DialogEffect()
     object ShowPhotoCopySizeError : DialogEffect()
@@ -40,5 +42,6 @@ sealed class DialogEffect {
     data class ShowTitle(val channel: String, val topic: String) : DialogEffect()
     data class ShowReactionPicker(val messageId: Int) : DialogEffect()
     data class ShowMessageEdit(val content: String) : DialogEffect()
+    data class ShowPhotoSend(val content: String) : DialogEffect()
     data class CopyMessage(val content: String) : DialogEffect()
 }

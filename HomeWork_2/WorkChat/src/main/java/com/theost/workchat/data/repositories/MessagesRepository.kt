@@ -18,6 +18,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
+import java.util.*
 
 
 class MessagesRepository(private val service: Api, database: CacheDatabase) {
@@ -184,7 +185,11 @@ class MessagesRepository(private val service: Api, database: CacheDatabase) {
     fun addPhoto(file: File): Single<Result<String>> {
         val image = file.asRequestBody("image/*".toMediaType())
         val body: MultipartBody.Part =
-            MultipartBody.Part.Companion.createFormData("image", file.name, image)
+            MultipartBody.Part.Companion.createFormData(
+                file.name,
+                UUID.randomUUID().toString() + file.extension,
+                image
+            )
 
         return service.addPhoto(body)
             .map { response -> Result.success(response.uri) }

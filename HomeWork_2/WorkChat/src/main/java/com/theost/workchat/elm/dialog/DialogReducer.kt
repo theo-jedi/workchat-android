@@ -81,16 +81,18 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
             }
         }
         is DialogEvent.Internal.PhotoSendingSuccess -> {
-            commands {
-                +DialogCommand.AddMessage(
-                    state.channelName,
-                    state.topicName,
-                    ApiUtils.getPhotoUriMessage(event.uri)
+            state {
+                copy(
+                    status = ResourceStatus.SUCCESS,
+                    contentType = ContentType.PHOTO,
+                    photoUri = event.uri
                 )
             }
+            effects { +DialogEffect.HideSendingMessageLoading }
+            effects { +DialogEffect.ShowPhotoSend(event.name) }
         }
         is DialogEvent.Internal.MessageSendingSuccess -> {
-            state { copy(savedPosition = 0) }
+            state { copy(savedPosition = 0, contentType = ContentType.TEXT, photoUri = "") }
             commands {
                 +DialogCommand.LoadMessages(
                     state.channelName,
@@ -100,6 +102,7 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
                     UpdateType.RELOAD
                 )
             }
+            effects { +DialogEffect.HidePhotoSend }
             effects { +DialogEffect.ClearSendingMessageContent }
         }
         is DialogEvent.Internal.MessageEditingSuccess -> {
@@ -227,16 +230,30 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
         is DialogEvent.Ui.OnMessageSendClicked -> {
             if (state.inputStatus == InputStatus.FILLED) {
                 state { copy(status = ResourceStatus.LOADING) }
-                commands {
-                    +DialogCommand.AddMessage(
-                        state.channelName,
-                        state.topicName,
-                        event.content
-                    )
+                if (state.contentType == ContentType.PHOTO) {
+                    commands {
+                        +DialogCommand.AddMessage(
+                            state.channelName,
+                            state.topicName,
+                            ApiUtils.getPhotoUriMessage(state.photoUri, event.content)
+                        )
+                    }
+                } else {
+                    commands {
+                        +DialogCommand.AddMessage(
+                            state.channelName,
+                            state.topicName,
+                            event.content
+                        )
+                    }
                 }
                 effects { +DialogEffect.ShowSendingMessageLoading }
             } else {
-                effects { +DialogEffect.ShowFilePicker }
+                if (state.contentType == ContentType.TEXT) {
+                    effects { +DialogEffect.ShowFilePicker }
+                } else {
+                    Log.d("dialog_reducer", "Image name is empty")
+                }
             }
         }
         is DialogEvent.Ui.OnMessageEditClicked -> {
@@ -308,7 +325,11 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
             if (event.text.isEmpty()) {
                 if (state.inputStatus == InputStatus.FILLED) {
                     state { copy(inputStatus = InputStatus.EMPTY) }
-                    effects { +DialogEffect.ShowAttachMessageAction }
+                    if (state.contentType == ContentType.PHOTO) {
+                        effects { +DialogEffect.ShowSendEmptyMessageAction }
+                    } else {
+                        effects { +DialogEffect.ShowAttachMessageAction }
+                    }
                 } else {
                     { /* do nothing */ }
                 }
@@ -377,6 +398,11 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
         is DialogEvent.Ui.OnCloseEdit -> {
             state { copy(editedMessageId = -1, editedMessageContent = "") }
             effects { +DialogEffect.HideMessageEdit }
+            effects { +DialogEffect.ClearSendingMessageContent }
+        }
+        DialogEvent.Ui.OnClosePhoto -> {
+            state { copy(contentType = ContentType.TEXT, photoUri = "") }
+            effects { +DialogEffect.HidePhotoSend }
             effects { +DialogEffect.ClearSendingMessageContent }
         }
         is DialogEvent.Ui.OnPhotoCopyingFileError -> {

@@ -1,17 +1,14 @@
 package com.theost.workchat.utils
 
-import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
-import android.webkit.MimeTypeMap
+import androidx.documentfile.provider.DocumentFile
 import java.io.File
-import java.util.*
-
 
 object FileUtils {
 
     fun createTempFileCopy(context: Context, uri: Uri): File? {
-        val file = createTempFile(context, getFileExtension(context, uri))
+        val file = createTempFile(context, getFileName(context, uri))
         val inputStream = context.contentResolver.openInputStream(uri)
         return if (inputStream != null && file.exists()) {
             val outputStream = file.outputStream()
@@ -25,28 +22,15 @@ object FileUtils {
         }
     }
 
-    private fun createTempFile(context: Context, extension: String): File {
-        return File.createTempFile(
-            UUID.randomUUID().toString(),
-            extension,
-            getTempDirectory(context)
-        )
+    private fun createTempFile(context: Context, name: String): File {
+        return File(getTempDirectory(context), name).apply {
+            if (exists()) delete()
+            createNewFile()
+        }
     }
 
-    private fun getFileExtension(context: Context, uri: Uri): String {
-        return when {
-            uri.scheme == ContentResolver.SCHEME_CONTENT -> {
-                val extension = MimeTypeMap.getSingleton()
-                    .getExtensionFromMimeType(context.contentResolver.getType(uri)).toString()
-                return ".$extension"
-            }
-            uri.path != null -> {
-                val extension =
-                    MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(File(uri.path!!)).toString())
-                return ".$extension"
-            }
-            else -> ""
-        }
+    private fun getFileName(context: Context, uri: Uri): String {
+        return DocumentFile.fromSingleUri(context, uri)?.name ?: "unknown"
     }
 
     fun deleteTempFiles(context: Context) {
