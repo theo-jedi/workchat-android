@@ -81,7 +81,7 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
                     status = ResourceStatus.ERROR,
                     items = items.filterNot { it is ListLoader })
             }
-            effects { +DialogEffect.ShowLoadingError }
+            effects { +DialogEffect.ShowPaginationError }
         }
         is DialogEvent.Internal.DataLoadingError -> {
             state { copy(status = ResourceStatus.ERROR) }
@@ -184,6 +184,9 @@ class DialogReducer : DslReducer<DialogEvent, DialogState, DialogEffect, DialogC
                     { /* do nothing */ }
                 }
             }
+        }
+        is DialogEvent.Ui.OnLayoutChanged -> {
+            effects { +DialogEffect.AdjustScroll(event.scrollOffset) }
         }
         is DialogEvent.Ui.OnMessageClicked -> {
             effects { +DialogEffect.ShowReactionPicker(event.messageId) }

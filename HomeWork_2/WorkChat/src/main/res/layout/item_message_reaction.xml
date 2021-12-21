@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.theost.workchat.ui.views.ReactionView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="55dp"
+    android:layout_height="37dp"
+    android:background="@drawable/bg_reaction_view"
+    android:maxWidth="55dp"
+    android:maxHeight="37dp"
+    android:minWidth="55dp"
+    android:minHeight="37dp"
+    app:countTextColor="@color/lighter_gray"
+    app:countTextSize="17sp" />

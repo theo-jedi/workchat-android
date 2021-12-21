@@ -51,7 +51,7 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
         binding.usersList.setHasFixedSize(true)
         binding.usersList.adapter = adapter.apply {
             addDelegate(PeopleAdapterDelegate { userId ->
-                (activity as PeopleListener).openProfile(userId)
+                activity?.let { activity -> (activity as PeopleListener).openProfile(userId) }
             })
         }
 
@@ -97,7 +97,7 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
     }
 
     private fun openProfile(userId: Int) {
-        (activity as PeopleListener).openProfile(userId)
+        activity?.let { activity -> (activity as PeopleListener).openProfile(userId) }
     }
 
     private fun hideEmptyView() {
@@ -119,16 +119,18 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
     }
 
     private fun showLoadingError() {
-        val snackbar = Snackbar.make(
-            binding.root,
-            getString(R.string.network_error),
-            Snackbar.LENGTH_INDEFINITE
-        ).setAction(R.string.retry) { store.accept(PeopleEvent.Ui.LoadPeople) }
-        (activity as WindowHolder).showSnackbar(snackbar)
+        activity?.let { activity ->
+            val snackbar = Snackbar.make(
+                binding.root,
+                getString(R.string.network_error),
+                Snackbar.LENGTH_INDEFINITE
+            ).setAction(R.string.retry) { store.accept(PeopleEvent.Ui.LoadPeople) }
+            (activity as WindowHolder).showSnackbar(snackbar)
+        }
     }
 
     private fun configureToolbar() {
-        (activity as NavigationHolder).showNavigation()
+        activity?.let { activity -> (activity as NavigationHolder).showNavigation() }
         binding.toolbarLayout.toolbar.title = getString(R.string.people)
         val searchMenuItem = binding.toolbarLayout.toolbar.menu.findItem(R.id.actionSearch)
         val searchManager = context?.getSystemService(SEARCH_SERVICE) as SearchManager

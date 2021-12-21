@@ -10,6 +10,7 @@ import com.theost.workchat.data.models.state.UserStatus
 import com.theost.workchat.data.models.ui.ListUser
 import com.theost.workchat.databinding.ItemPeopleBinding
 import com.theost.workchat.ui.interfaces.AdapterDelegate
+import com.theost.workchat.ui.interfaces.DelegateItem
 
 class PeopleAdapterDelegate(private val clickListener: (userId: Int) -> Unit) : AdapterDelegate {
 
@@ -18,11 +19,11 @@ class PeopleAdapterDelegate(private val clickListener: (userId: Int) -> Unit) : 
         return ViewHolder(binding, clickListener)
     }
 
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, item: Any, position: Int) {
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, item: DelegateItem, position: Int) {
         (holder as ViewHolder).bind(item as ListUser)
     }
 
-    override fun isOfViewType(item: Any): Boolean = item is ListUser
+    override fun isOfViewType(item: DelegateItem): Boolean = item is ListUser
 
     class ViewHolder(
         private val binding: ItemPeopleBinding,

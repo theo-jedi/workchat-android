@@ -78,7 +78,7 @@ class MessengerActivity : ElmActivity<MessengerEvent, MessengerEffect, Messenger
             is MessengerEffect.HideNavigation -> hideNavigation()
             is MessengerEffect.ShowNavigation -> showNavigation()
             is MessengerEffect.HideFloatingViews -> hideFloatingViews()
-            is MessengerEffect.NavigateStreams -> navigateFragment(StreamsFragment(), FRAGMENT_CHANNELS_TAG)
+            is MessengerEffect.NavigateStreams -> navigateFragment(StreamsFragment.newFragment(), FRAGMENT_CHANNELS_TAG)
             is MessengerEffect.NavigatePeople -> navigateFragment(PeopleFragment.newFragment(), FRAGMENT_PEOPLE_TAG)
             is MessengerEffect.NavigateProfile -> navigateFragment(ProfileFragment.newFragment(), FRAGMENT_PROFILE_TAG)
             is MessengerEffect.OpenProfile -> startFragment(ProfileFragment.newFragment(effect.userId))

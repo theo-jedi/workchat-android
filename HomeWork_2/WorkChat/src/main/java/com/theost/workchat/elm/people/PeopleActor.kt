@@ -9,25 +9,41 @@ import io.reactivex.schedulers.Schedulers
 import vivid.money.elmslie.core.ActorCompat
 import java.util.concurrent.TimeUnit
 
-class PeopleActor(private val usersRepository: UsersRepository) : ActorCompat<PeopleCommand, PeopleEvent> {
+class PeopleActor(private val usersRepository: UsersRepository) :
+    ActorCompat<PeopleCommand, PeopleEvent> {
     override fun execute(command: PeopleCommand): Observable<PeopleEvent> = when (command) {
         is PeopleCommand.LoadPeople -> {
-            usersRepository.getUsers().map { result ->
-                result.fold({ users ->
-                    PeopleEvent.Internal.PeopleLoadingSuccess(users
-                        .filterNot { user -> user.id == command.currentUserId }
-                        .sortedBy { user -> user.name }
-                        .map { user ->
-                            ListUser(
-                                id = user.id,
-                                name = user.name,
-                                about = user.about,
-                                avatarUrl = user.avatarUrl,
-                                status = UserStatus.OFFLINE
-                            )
+
+            usersRepository.getUsers().concatMap { usersResult ->
+                usersResult.fold({ resultUsers ->
+                    Observable.fromIterable(
+                        resultUsers.filterNot { user -> user.isBot || user.id == command.currentUserId }
+                            .sortedBy { user -> user.name }
+                    ).concatMap { resultUser ->
+                        Observable.zip(
+                            usersRepository.getUserPresence(resultUser.id),
+                            Observable.just(resultUser)
+                        ) { presenceResult, user ->
+                            presenceResult.fold({ status ->
+                                ListUser(
+                                    id = user.id,
+                                    name = user.name,
+                                    about = user.about,
+                                    avatarUrl = user.avatarUrl,
+                                    status = status
+                                )
+                            }, {
+                                ListUser(
+                                    id = user.id,
+                                    name = user.name,
+                                    about = user.about,
+                                    avatarUrl = user.avatarUrl,
+                                    status = UserStatus.OFFLINE
+                                )
+                            })
                         }
-                    )
-                }, { error -> PeopleEvent.Internal.DataLoadingError(error) })
+                    }.toList().mapSuccessEvent { users -> PeopleEvent.Internal.PeopleLoadingSuccess(users) }
+                }, { error -> Observable.just(PeopleEvent.Internal.DataLoadingError(error)) })
             }
         }
         is PeopleCommand.SearchPeople -> {

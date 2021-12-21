@@ -1,26 +1,29 @@
 package com.theost.workchat.ui.adapters.delegates
 
+import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.theost.workchat.data.models.ui.ListDate
+import com.theost.workchat.databinding.ItemDateBinding
 import com.theost.workchat.ui.interfaces.AdapterDelegate
-import com.theost.workchat.ui.views.DateView
+import com.theost.workchat.ui.interfaces.DelegateItem
 
 class DateAdapterDelegate : AdapterDelegate {
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
-        return ViewHolder(DateView(parent.context))
+        val binding = ItemDateBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, item: Any, position: Int) {
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, item: DelegateItem, position: Int) {
         (holder as ViewHolder).bind(item as ListDate)
     }
 
-    override fun isOfViewType(item: Any): Boolean = item is ListDate
+    override fun isOfViewType(item: DelegateItem): Boolean = item is ListDate
 
-    class ViewHolder(private val dateView: DateView) : RecyclerView.ViewHolder(dateView) {
+    class ViewHolder(private val binding: ItemDateBinding) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(listDate: ListDate) {
-            dateView.text = listDate.date
+            binding.dateView.text = listDate.date
         }
     }
 }

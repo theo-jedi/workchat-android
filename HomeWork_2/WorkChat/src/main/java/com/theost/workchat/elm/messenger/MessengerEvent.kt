@@ -7,7 +7,7 @@ sealed class MessengerEvent {
         data class OnNavigationClick(val itemId: Int) : MessengerEvent()
         data class OnProfileClick(val userId: Int) : MessengerEvent()
         data class OnDialogClick(val channelName: String, val topicName: String) : MessengerEvent()
-        data class Init( val itemId: Int) : MessengerEvent()
+        data class Init(val itemId: Int) : MessengerEvent()
     }
 
     sealed class Internal : MessengerEvent() {

@@ -8,25 +8,26 @@ import com.theost.workchat.data.models.core.Topic
 @Entity(tableName = "topics")
 data class TopicEntity(
     @PrimaryKey
+    @ColumnInfo(name = "uid")
+    val uid: String,
     @ColumnInfo(name = "topic_name")
     val name: String,
     @ColumnInfo(name = "channel_id")
-    val channelId: Int,
-    @ColumnInfo(name = "last_message_id")
-    val lastMessageId: Int
+    val channelId: Int
 )
 
 fun TopicEntity.mapToTopic(): Topic {
     return Topic(
+        uid = uid,
         name = name,
-        lastMessageId = lastMessageId
+        channelId = channelId
     )
 }
 
-fun Topic.mapToTopicEntity(channelId: Int): TopicEntity {
+fun Topic.mapToTopicEntity(): TopicEntity {
     return TopicEntity(
+        uid = uid,
         name = name,
-        channelId = channelId,
-        lastMessageId = lastMessageId
+        channelId = channelId
     )
 }

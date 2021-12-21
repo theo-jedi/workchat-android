@@ -17,7 +17,9 @@ data class UserEntity(
     @ColumnInfo(name = "user_about")
     val about: String,
     @ColumnInfo(name = "user_avatar_url")
-    val avatarUrl: String
+    val avatarUrl: String,
+    @ColumnInfo(name = "user_is_bot")
+    val isBot: Boolean
 )
 
 fun UserEntity.mapToUser(): User {
@@ -26,7 +28,8 @@ fun UserEntity.mapToUser(): User {
         name = name,
         email = email,
         about = about,
-        avatarUrl = avatarUrl
+        avatarUrl = avatarUrl,
+        isBot = isBot
     )
 }
 
@@ -36,6 +39,7 @@ fun User.mapToUserEntity(): UserEntity {
         name = name,
         email = email,
         about = about,
-        avatarUrl = avatarUrl
+        avatarUrl = avatarUrl,
+        isBot = isBot
     )
 }

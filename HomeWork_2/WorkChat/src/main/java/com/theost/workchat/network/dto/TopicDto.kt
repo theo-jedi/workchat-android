@@ -22,9 +22,10 @@ data class TopicDto(
     val lastMessageId: Int
 )
 
-fun TopicDto.mapToTopic() : Topic {
+fun TopicDto.mapToTopic(channelId: Int) : Topic {
     return Topic(
+        uid = "${channelId}_$name",
         name = name,
-        lastMessageId = lastMessageId
+        channelId = channelId
     )
 }
