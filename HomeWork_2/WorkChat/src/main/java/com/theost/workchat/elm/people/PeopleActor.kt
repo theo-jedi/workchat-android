@@ -55,7 +55,7 @@ class PeopleActor(private val usersRepository: UsersRepository) :
                     result.fold(onSuccess = { status ->
                         ListUser(user.id, user.name, user.about, user.avatarUrl, status)
                     }, onFailure = {
-                        ListUser(user.id, user.name, user.about, user.avatarUrl, user.status)
+                        ListUser(user.id, user.name, user.about, user.avatarUrl, UserStatus.OFFLINE)
                     })
                 }
             }.toList().mapSuccessEvent { people ->
