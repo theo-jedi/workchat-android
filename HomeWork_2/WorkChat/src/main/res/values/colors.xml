@@ -23,4 +23,6 @@
 
     <color name="message_bubble_income">@color/black_2</color>
     <color name="message_bubble_outcome">@color/green</color>
+
+    <color name="mtrl_textinput_default_box_stroke_color">@color/black_4</color>
 </resources>

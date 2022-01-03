@@ -24,6 +24,9 @@ interface TopicsDao {
     @Delete
     fun delete(topic: TopicEntity): Completable
 
+    @Query("DELETE FROM topics WHERE channel_id = :channelId")
+    fun deleteChannelTopics(channelId: Int): Completable
+
     @Query("DELETE FROM topics")
     fun deleteAll(): Completable
 

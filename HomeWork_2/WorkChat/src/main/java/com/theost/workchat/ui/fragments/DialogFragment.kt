@@ -1,6 +1,8 @@
 package com.theost.workchat.ui.fragments
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableString
@@ -8,24 +10,30 @@ import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.theost.workchat.R
 import com.theost.workchat.application.WorkChatApp
+import com.theost.workchat.data.models.state.ContentType
 import com.theost.workchat.data.models.state.MessageAction
+import com.theost.workchat.data.models.state.MessageType
 import com.theost.workchat.databinding.FragmentDialogBinding
 import com.theost.workchat.di.ui.DaggerDialogComponent
 import com.theost.workchat.elm.dialog.*
 import com.theost.workchat.ui.adapters.callbacks.PaginationAdapterHelper
 import com.theost.workchat.ui.adapters.core.PaginationAdapter
-import com.theost.workchat.ui.adapters.delegates.DateAdapterDelegate
-import com.theost.workchat.ui.adapters.delegates.LoaderAdapterDelegate
-import com.theost.workchat.ui.adapters.delegates.MessageIncomeAdapterDelegate
-import com.theost.workchat.ui.adapters.delegates.MessageOutcomeAdapterDelegate
+import com.theost.workchat.ui.adapters.delegates.*
 import com.theost.workchat.ui.interfaces.WindowHolder
+import com.theost.workchat.utils.ApiUtils
+import com.theost.workchat.utils.ContextUtils
+import com.theost.workchat.utils.FileUtils
 import com.theost.workchat.utils.PrefUtils
 import vivid.money.elmslie.android.base.ElmFragment
 import vivid.money.elmslie.core.store.Store
@@ -50,6 +58,38 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
         }
     }
 
+    private val scrollListener = object : RecyclerView.OnScrollListener() {
+        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+            super.onScrolled(recyclerView, dx, dy)
+            val layoutManager = binding.messagesList.layoutManager as LinearLayoutManager
+            val position = layoutManager.findFirstVisibleItemPosition()
+            store.accept(DialogEvent.Ui.OnScrolled(position, dy))
+        }
+    }
+
+    private val filePickerLauncher: ActivityResultLauncher<Intent> = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+            context?.let { context ->
+                result.data?.data?.let { uri ->
+                    val file = FileUtils.createTempFileCopy(context, uri)
+                    if (file != null) {
+                        if (ApiUtils.isPhotoSizeValid(file.length())) {
+                            store.accept(DialogEvent.Ui.OnPhotoSend(file))
+                        } else {
+                            store.accept(DialogEvent.Ui.OnPhotoCopyingSizeError)
+                        }
+                    } else {
+                        store.accept(DialogEvent.Ui.OnPhotoCopyingFileError)
+                    }
+                }
+            }
+        } else {
+            store.accept(DialogEvent.Ui.OnPhotoCopyingFileError)
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -64,8 +104,18 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
             registerAdapterDataObserver(adapterDataObserver)
             addDelegate(LoaderAdapterDelegate())
             addDelegate(DateAdapterDelegate())
-            addDelegate(MessageIncomeAdapterDelegate({ messageId ->
-                store.accept(DialogEvent.Ui.OnMessageClicked(messageId))
+            addDelegate(PhotoIncomeAdapterDelegate())
+            addDelegate(PhotoOutcomeAdapterDelegate())
+            addDelegate(MessageIncomeAdapterDelegate({ dialogAction, message ->
+                store.accept(
+                    DialogEvent.Ui.OnMessageClicked(
+                        dialogAction,
+                        message.messageType,
+                        message.contentType,
+                        message.id,
+                        message.content.toString()
+                    )
+                )
             }, { actionType, messageId, reaction ->
                 store.accept(
                     DialogEvent.Ui.OnReactionClicked(
@@ -73,8 +123,16 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
                     )
                 )
             }))
-            addDelegate(MessageOutcomeAdapterDelegate({ messageId ->
-                store.accept(DialogEvent.Ui.OnMessageClicked(messageId))
+            addDelegate(MessageOutcomeAdapterDelegate({ dialogAction, message ->
+                store.accept(
+                    DialogEvent.Ui.OnMessageClicked(
+                        dialogAction,
+                        message.messageType,
+                        message.contentType,
+                        message.id,
+                        message.content.toString()
+                    )
+                )
             }, { actionType, messageId, reaction ->
                 store.accept(
                     DialogEvent.Ui.OnReactionClicked(
@@ -84,16 +142,28 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
             }))
         }
 
+        binding.messagesList.addOnScrollListener(scrollListener)
+
+        binding.downButton.setOnClickListener { store.accept(DialogEvent.Ui.OnDownClicked) }
+
         binding.inputLayout.actionButton.setOnClickListener {
-            store.accept(DialogEvent.Ui.OnMessageActionClicked(getMessageText()))
+            store.accept(DialogEvent.Ui.OnMessageSendClicked(getMessageText()))
         }
 
         binding.inputLayout.messageInput.addTextChangedListener { editable ->
             store.accept(DialogEvent.Ui.OnInputTextChanged(editable.toString().trim()))
         }
 
-        binding.messagesList.addOnLayoutChangeListener { _, _, _, _, newBottom, _, _, _, oldBottom ->
-            store.accept(DialogEvent.Ui.OnLayoutChanged(oldBottom - newBottom))
+        binding.inputLayout.editClose.setOnClickListener {
+            store.accept(DialogEvent.Ui.OnCloseEdit)
+        }
+
+        binding.inputLayout.editButton.setOnClickListener {
+            store.accept(DialogEvent.Ui.OnMessageEditClicked(binding.inputLayout.messageInput.text.toString()))
+        }
+
+        binding.inputLayout.photoClose.setOnClickListener {
+            store.accept(DialogEvent.Ui.OnClosePhoto)
         }
 
         configureToolbar()
@@ -128,25 +198,94 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
             is DialogEffect.ShowLoadingError -> showRetryError()
             is DialogEffect.ShowPaginationError -> showError()
             is DialogEffect.ShowSendingError -> showError()
+            is DialogEffect.ShowPhotoCopyFileError -> showErrorToast(R.string.file_format_error)
+            is DialogEffect.ShowPhotoCopySizeError -> showErrorToast(R.string.file_size_error)
             is DialogEffect.ShowSendingMessageLoading -> showSendingLoading()
             is DialogEffect.HideSendingMessageLoading -> hideSendingLoading()
+            is DialogEffect.ShowEditingMessageLoading -> showEditingLoading()
+            is DialogEffect.HideEditingMessageLoading -> hideEditingLoading()
             is DialogEffect.ClearSendingMessageContent -> clearMessageContent()
             is DialogEffect.ShowDialogLoading -> showDialogLoading()
             is DialogEffect.HideDialogLoading -> hideDialogLoading()
             is DialogEffect.ShowEmpty -> showEmptyView()
             is DialogEffect.HideEmpty -> hideEmptyView()
-            is DialogEffect.ShowReactionPicker -> showReactionPicker(effect.messageId)
             is DialogEffect.ShowTitle -> configureTitle(effect.channel, effect.topic)
             is DialogEffect.ShowSendMessageAction -> showSendMessageAction()
+            is DialogEffect.ShowSendEmptyMessageAction -> showSendEmptyMessageAction()
             is DialogEffect.ShowAttachMessageAction -> showAttachMessageAction()
+            is DialogEffect.ScrollSmoothToBottom -> scrollSmoothToBottom()
             is DialogEffect.ScrollToBottom -> scrollToBottom()
             is DialogEffect.ScrollToTop -> scrollToTop(effect.position)
-            is DialogEffect.AdjustScroll -> adjustScroll(effect.scrollOffset)
+            is DialogEffect.ShowCopySuccess -> showCopySuccess()
+            is DialogEffect.ShowCopyError -> showCopyError()
+            is DialogEffect.CopyMessage -> copyMessage(effect.content)
+            is DialogEffect.ShowMessageEdit -> showMessageEdit(effect.content)
+            is DialogEffect.HideMessageEdit -> hideMessageEdit()
+            is DialogEffect.ShowPhotoSend -> showPhotoSend(effect.content)
+            is DialogEffect.HidePhotoSend -> hidePhotoSend()
+            is DialogEffect.ShowDownButton -> showDownButton()
+            is DialogEffect.HideDownButton -> hideDownButton()
+            is DialogEffect.ShowFilePicker -> showFilePicker()
+            is DialogEffect.ShowReactionPicker -> showReactionPicker(effect.messageId)
+            is DialogEffect.ShowActionsPicker -> showActionsPicker(
+                effect.messageType,
+                effect.contentType,
+                effect.messageId,
+                effect.content
+            )
         }
+    }
+
+    private fun copyMessage(content: String) {
+        context?.let { context ->
+            val isCopied = ContextUtils.copyToClipboard(context, "Message", content)
+            store.accept(DialogEvent.Ui.OnMessageCopy(isCopied))
+        }
+    }
+
+    private fun showMessageEdit(content: String) {
+        binding.inputLayout.actionButton.visibility = View.INVISIBLE
+        binding.inputLayout.editMessage.visibility = View.VISIBLE
+        binding.inputLayout.editIcon.visibility = View.VISIBLE
+        binding.inputLayout.editClose.visibility = View.VISIBLE
+        binding.inputLayout.editButton.visibility = View.VISIBLE
+
+        binding.inputLayout.editMessage.text = content
+        binding.inputLayout.messageInput.setText(content)
+        binding.inputLayout.messageInput.setSelection(content.length)
+    }
+
+    private fun hideMessageEdit() {
+        binding.inputLayout.editMessage.visibility = View.GONE
+        binding.inputLayout.editIcon.visibility = View.GONE
+        binding.inputLayout.editClose.visibility = View.GONE
+        binding.inputLayout.editButton.visibility = View.INVISIBLE
+        binding.inputLayout.actionButton.visibility = View.VISIBLE
+    }
+
+
+    private fun showPhotoSend(content: String) {
+        binding.inputLayout.photoMessage.visibility = View.VISIBLE
+        binding.inputLayout.photoIcon.visibility = View.VISIBLE
+        binding.inputLayout.photoClose.visibility = View.VISIBLE
+
+        binding.inputLayout.photoMessage.text = content
+        binding.inputLayout.messageInput.setText(content)
+        binding.inputLayout.messageInput.setSelection(content.length)
+    }
+
+    private fun hidePhotoSend() {
+        binding.inputLayout.photoMessage.visibility = View.GONE
+        binding.inputLayout.photoIcon.visibility = View.GONE
+        binding.inputLayout.photoClose.visibility = View.GONE
     }
 
     private fun showSendMessageAction() {
         binding.inputLayout.actionButton.setImageResource(R.drawable.ic_send)
+    }
+
+    private fun showSendEmptyMessageAction() {
+        binding.inputLayout.actionButton.setImageResource(R.drawable.ic_send_empty)
     }
 
     private fun showAttachMessageAction() {
@@ -157,16 +296,24 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
         return binding.inputLayout.messageInput.text.toString().trim()
     }
 
+    private fun showDownButton() {
+        binding.downButton.visibility = View.VISIBLE
+    }
+
+    private fun hideDownButton() {
+        binding.downButton.visibility = View.GONE
+    }
+
+    private fun scrollSmoothToBottom() {
+        binding.messagesList.smoothScrollToPosition(0)
+    }
+
     private fun scrollToBottom() {
         binding.messagesList.scrollToPosition(0)
     }
 
     private fun scrollToTop(position: Int) {
         binding.messagesList.scrollToPosition(position)
-    }
-
-    private fun adjustScroll(scrollOffset: Int) {
-        binding.messagesList.smoothScrollBy(0, scrollOffset)
     }
 
     private fun showEmptyView() {
@@ -191,6 +338,18 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
         binding.inputLayout.loadingBar.visibility = View.GONE
     }
 
+    private fun showEditingLoading() {
+        binding.inputLayout.editButton.visibility = View.INVISIBLE
+        binding.inputLayout.loadingBar.visibility = View.VISIBLE
+        binding.inputLayout.messageInput.isEnabled = false
+    }
+
+    private fun hideEditingLoading() {
+        binding.inputLayout.editButton.visibility = View.VISIBLE
+        binding.inputLayout.loadingBar.visibility = View.GONE
+        binding.inputLayout.messageInput.isEnabled = true
+    }
+
     private fun showDialogLoading() {
         binding.loadingBar.visibility = View.VISIBLE
         binding.messagesList.visibility = View.GONE
@@ -207,6 +366,22 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
         binding.inputLayout.messageInput.animate().alpha(1.0f)
         binding.inputLayout.actionButton.isEnabled = true
         binding.inputLayout.messageInput.isEnabled = true
+    }
+
+    private fun showCopySuccess() {
+        context?.let { context ->
+            Toast.makeText(context, getString(R.string.copied), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun showCopyError() {
+        context?.let { context ->
+            Toast.makeText(context, getString(R.string.error), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun showErrorToast(resId: Int) {
+        context?.let { context -> Toast.makeText(context, resId, Toast.LENGTH_SHORT) }
     }
 
     private fun showError() {
@@ -251,6 +426,19 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
         binding.toolbarLayout.toolbar.title = title
     }
 
+    private fun showActionsPicker(
+        messageType: MessageType,
+        contentType: ContentType,
+        messageId: Int,
+        content: String
+    ) {
+        activity?.let { activity ->
+            ActionsFragment.newFragment(messageType, contentType) { dialogAction ->
+                store.accept(DialogEvent.Ui.OnDialogActionClicked(dialogAction, messageId, content))
+            }.show(activity.supportFragmentManager, null)
+        }
+    }
+
     private fun showReactionPicker(messageId: Int) {
         activity?.let { activity ->
             ReactionsFragment.newFragment { reaction ->
@@ -267,9 +455,15 @@ class DialogFragment : ElmFragment<DialogEvent, DialogEffect, DialogState>() {
         }
     }
 
+    private fun showFilePicker() {
+        val intent = Intent(Intent.ACTION_GET_CONTENT).apply { type = "image/*" }
+        filePickerLauncher.launch(intent)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         adapter.unregisterAdapterDataObserver(adapterDataObserver)
+        binding.messagesList.removeOnScrollListener(scrollListener)
         _binding = null
     }
 

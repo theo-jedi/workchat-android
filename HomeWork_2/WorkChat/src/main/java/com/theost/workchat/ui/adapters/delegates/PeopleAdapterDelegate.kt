@@ -33,17 +33,26 @@ class PeopleAdapterDelegate(private val clickListener: (userId: Int) -> Unit) : 
         fun bind(listItem: ListUser) {
             Glide.with(binding.root)
                 .load(listItem.avatarUrl)
-                .placeholder(R.drawable.ic_loading_avatar)
-                .error(R.drawable.ic_error_avatar)
+                .placeholder(R.drawable.ic_avatar_loading)
+                .error(R.drawable.ic_avatar_error)
                 .into(binding.userAvatar)
 
             binding.root.setOnClickListener { clickListener(listItem.id) }
             binding.userName.text = listItem.name
             binding.userAbout.text = listItem.about
             when (listItem.status) {
-                UserStatus.ONLINE -> binding.userStatusOnline.visibility = View.VISIBLE
-                UserStatus.IDLE -> binding.userStatusIdle.visibility = View.VISIBLE
-                else -> {}
+                UserStatus.ONLINE -> {
+                    binding.userStatusOnline.visibility = View.VISIBLE
+                    binding.userStatusIdle.visibility = View.INVISIBLE
+                }
+                UserStatus.IDLE -> {
+                    binding.userStatusIdle.visibility = View.VISIBLE
+                    binding.userStatusOnline.visibility = View.INVISIBLE
+                }
+                else -> {
+                    binding.userStatusOnline.visibility = View.INVISIBLE
+                    binding.userStatusIdle.visibility = View.INVISIBLE
+                }
             }
         }
 

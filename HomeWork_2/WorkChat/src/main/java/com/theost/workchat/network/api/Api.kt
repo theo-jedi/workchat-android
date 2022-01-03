@@ -3,6 +3,7 @@ package com.theost.workchat.network.api
 import com.theost.workchat.network.dto.*
 import io.reactivex.Completable
 import io.reactivex.Single
+import okhttp3.MultipartBody
 import retrofit2.http.*
 
 interface Api {
@@ -30,6 +31,13 @@ interface Api {
 
     @GET("users/me/subscriptions")
     fun getSubscribedChannels(): Single<GetSubscribedChannelsResponse>
+
+    @FormUrlEncoded
+    @POST("users/me/subscriptions")
+    fun addChannel(
+        @Field("subscriptions")
+        stream: String
+    ): Single<CreateChannelResponse>
 
     @GET("users/me/{stream_id}/topics")
     fun getChannelTopics(
@@ -71,6 +79,28 @@ interface Api {
         @Field("type")
         type: String = "stream"
     ): Completable
+
+    @FormUrlEncoded
+    @PATCH("messages/{msg_id}")
+    fun editMessage(
+        @Path("msg_id")
+        messageId: Int,
+        @Field("content")
+        content: String,
+    ): Completable
+
+    @DELETE("messages/{msg_id}")
+    fun deleteMessage(
+        @Path("msg_id")
+        messageId: Int
+    ): Single<DeleteMessageResponse>
+
+    @Multipart
+    @POST("user_uploads")
+    fun addPhoto(
+        @Part
+        photo: MultipartBody.Part
+    ): Single<AddPhotoResponse>
 
     @GET("/static/generated/emoji/emoji_codes.json")
     fun getReactions(): Single<GetReactionsResponse>

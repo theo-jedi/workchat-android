@@ -3,6 +3,7 @@ package com.theost.workchat.elm.dialog
 import com.theost.workchat.data.models.state.ResourceType
 import com.theost.workchat.data.models.state.UpdateType
 import com.theost.workchat.data.models.ui.ListMessage
+import java.io.File
 
 sealed class DialogCommand {
     data class LoadMessages(
@@ -25,6 +26,8 @@ sealed class DialogCommand {
         val updateType: UpdateType
     ) : DialogCommand()
 
+    data class SendPhoto(val file: File) : DialogCommand()
+
     data class LoadMessage(
         val channelName: String,
         val topicName: String,
@@ -38,6 +41,13 @@ sealed class DialogCommand {
         val topicName: String,
         val content: String
     ) : DialogCommand()
+
+    data class EditMessage(
+        val messageId: Int,
+        val content: String
+    ) : DialogCommand()
+
+    data class DeleteMessage(val messageId: Int) : DialogCommand()
 
     data class AddReaction(val messageId: Int, val reactionName: String) : DialogCommand()
 

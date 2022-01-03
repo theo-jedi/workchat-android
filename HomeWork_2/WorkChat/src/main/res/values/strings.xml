@@ -21,5 +21,27 @@
     <string name="hide">Скрыть</string>
     <string name="retry">Повторить</string>
 
+    <string name="reaction">Реакция</string>
+    <string name="copy">Копировать</string>
+    <string name="edit">Редактировать</string>
+    <string name="delete">Удалить</string>
+
+    <string name="copied">Скопированно</string>
+    <string name="error">Ошибка</string>
+
+    <string name="create">Создать</string>
+    <string name="channel">Канал</string>
+    <string name="topic">Топик</string>
+
+    <string name="channel_name">Имя канала</string>
+    <string name="topic_name">Имя топика</string>
+    <string name="description">Описание</string>
+    <string name="message">Сообщение</string>
+
+    <string name="next">Далее</string>
+
     <string name="network_error">Ошибка. Проверьте подключение к интернету!</string>
+    <string name="database_error">Ошибка загрузки данных.</string>
+    <string name="file_format_error">Ошибка чтения файла</string>
+    <string name="file_size_error">Слишком большой файл</string>
 </resources>

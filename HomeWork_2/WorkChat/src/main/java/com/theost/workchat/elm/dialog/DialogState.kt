@@ -1,9 +1,6 @@
 package com.theost.workchat.elm.dialog
 
-import com.theost.workchat.data.models.state.InputStatus
-import com.theost.workchat.data.models.state.PaginationStatus
-import com.theost.workchat.data.models.state.ResourceStatus
-import com.theost.workchat.data.models.state.ScrollStatus
+import com.theost.workchat.data.models.state.*
 import com.theost.workchat.data.models.ui.ListMessage
 import com.theost.workchat.ui.interfaces.DelegateItem
 
@@ -12,10 +9,17 @@ data class DialogState(
     val paginationStatus: PaginationStatus = PaginationStatus.PARTIAL,
     val scrollStatus: ScrollStatus = ScrollStatus.STAY,
     val inputStatus: InputStatus = InputStatus.EMPTY,
+    val downStatus: DownStatus = DownStatus.HIDDEN,
+    val contentType: ContentType = ContentType.TEXT,
     val items: List<DelegateItem> = emptyList(),
     val messages: List<ListMessage> = emptyList(),
+    val photoUri: String = "",
+    val editedMessageId: Int = -1,
+    val editedMessageContent: String = "",
     val channelName: String = "",
     val topicName: String = "",
     val currentUserId: Int = -1,
-    val savedPosition: Int = 0
+    val savedPosition: Int = 0,
+    val scrollOffset: Int = 0,
+    val isScrolled: Boolean = false
 )

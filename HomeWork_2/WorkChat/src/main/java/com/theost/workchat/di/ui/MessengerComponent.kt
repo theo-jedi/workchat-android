@@ -13,7 +13,7 @@ import dagger.Provides
 @ScreenScope
 @Component(dependencies = [AppComponent::class], modules = [MessengerModule::class])
 interface MessengerComponent {
-    fun inject(fragment: MessengerActivity)
+    fun inject(activity: MessengerActivity)
 
     @Component.Factory
     interface Factory {

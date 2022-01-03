@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.view.inputmethod.InputMethodManager
 
+
 object DisplayUtils {
 
     fun hideKeyboard(activity: Activity?) {

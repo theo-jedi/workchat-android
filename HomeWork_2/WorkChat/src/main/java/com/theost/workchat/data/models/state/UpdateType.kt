@@ -1,5 +1,5 @@
 package com.theost.workchat.data.models.state
 
 enum class UpdateType {
-    INITIAL, RELOAD, UPDATE, PAGINATION
+    INITIAL, RELOAD, UPDATE, DELETE, PAGINATION
 }

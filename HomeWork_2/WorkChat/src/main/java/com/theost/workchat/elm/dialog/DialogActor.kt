@@ -31,19 +31,30 @@ class DialogActor(
                 command.topicName,
                 command.resourceType
             ).concatMap { messagesResult ->
-                reactionsRepository.getReactions().map { reactionsResult ->
-                    messagesResult.fold({ messages ->
-                        reactionsResult.fold({ reactions ->
-                            DialogEvent.Internal.MessagesLoadingSuccess(
-                                DialogItemHelper.mapToListMessages(
-                                    messages,
-                                    reactions,
-                                    command.currentUserId
-                                ), command.updateType
-                            )
+                reactionsRepository.getReactionsFromCache().toObservable()
+                    .concatMap { reactionsResult ->
+                        if (reactionsResult.isSuccess && reactionsResult.getOrNull()
+                                ?.isNotEmpty() == true
+                        ) {
+                            Observable.just(reactionsResult)
+                        } else {
+                            Observable.empty()
+                        }
+                    }
+                    .switchIfEmpty(reactionsRepository.getReactionsFromServer().toObservable())
+                    .map { reactionsResult ->
+                        messagesResult.fold({ messages ->
+                            reactionsResult.fold({ reactions ->
+                                DialogEvent.Internal.MessagesLoadingSuccess(
+                                    DialogItemHelper.mapToListMessages(
+                                        messages,
+                                        reactions,
+                                        command.currentUserId
+                                    ), command.updateType
+                                )
+                            }, { error -> DialogEvent.Internal.DataLoadingError(error) })
                         }, { error -> DialogEvent.Internal.DataLoadingError(error) })
-                    }, { error -> DialogEvent.Internal.DataLoadingError(error) })
-                }
+                    }
             }
         }
         is DialogCommand.LoadNextMessages -> {
@@ -52,20 +63,31 @@ class DialogActor(
                 command.topicName,
                 command.messages.last().id
             ).toObservable().concatMap { messagesResult ->
-                reactionsRepository.getReactions().map { reactionsResult ->
-                    messagesResult.fold({ messages ->
-                        reactionsResult.fold({ reactions ->
-                            DialogEvent.Internal.MessagesLoadingSuccess(
-                                DialogItemHelper.mergeMessages(
-                                    command.messages,
-                                    messages,
-                                    reactions,
-                                    command.currentUserId
-                                ), UpdateType.PAGINATION
-                            )
+                reactionsRepository.getReactionsFromCache().toObservable()
+                    .concatMap { reactionsResult ->
+                        if (reactionsResult.isSuccess && reactionsResult.getOrNull()
+                                ?.isNotEmpty() == true
+                        ) {
+                            Observable.just(reactionsResult)
+                        } else {
+                            Observable.empty()
+                        }
+                    }
+                    .switchIfEmpty(reactionsRepository.getReactionsFromServer().toObservable())
+                    .map { reactionsResult ->
+                        messagesResult.fold({ messages ->
+                            reactionsResult.fold({ reactions ->
+                                DialogEvent.Internal.MessagesLoadingSuccess(
+                                    DialogItemHelper.mergeMessages(
+                                        command.messages,
+                                        messages,
+                                        reactions,
+                                        command.currentUserId
+                                    ), UpdateType.PAGINATION
+                                )
+                            }, { error -> DialogEvent.Internal.PaginationLoadingError(error) })
                         }, { error -> DialogEvent.Internal.PaginationLoadingError(error) })
-                    }, { error -> DialogEvent.Internal.PaginationLoadingError(error) })
-                }
+                    }
             }
         }
         is DialogCommand.LoadMessage -> {
@@ -74,20 +96,31 @@ class DialogActor(
                 command.topicName,
                 command.messageId
             ).toObservable().concatMap { messageResult ->
-                reactionsRepository.getReactions().map { reactionsResult ->
-                    messageResult.fold({ message ->
-                        reactionsResult.fold({ reactions ->
-                            DialogEvent.Internal.MessagesLoadingSuccess(
-                                DialogItemHelper.replaceMessage(
-                                    command.messages,
-                                    message,
-                                    reactions,
-                                    command.currentUserId
-                                ), UpdateType.UPDATE
-                            )
+                reactionsRepository.getReactionsFromCache().toObservable()
+                    .concatMap { reactionsResult ->
+                        if (reactionsResult.isSuccess && reactionsResult.getOrNull()
+                                ?.isNotEmpty() == true
+                        ) {
+                            Observable.just(reactionsResult)
+                        } else {
+                            Observable.empty()
+                        }
+                    }
+                    .switchIfEmpty(reactionsRepository.getReactionsFromServer().toObservable())
+                    .map { reactionsResult ->
+                        messageResult.fold({ message ->
+                            reactionsResult.fold({ reactions ->
+                                DialogEvent.Internal.MessagesLoadingSuccess(
+                                    DialogItemHelper.replaceMessage(
+                                        command.messages,
+                                        message,
+                                        reactions,
+                                        command.currentUserId
+                                    ), UpdateType.UPDATE
+                                )
+                            }, { error -> DialogEvent.Internal.DataLoadingError(error) })
                         }, { error -> DialogEvent.Internal.DataLoadingError(error) })
-                    }, { error -> DialogEvent.Internal.DataLoadingError(error) })
-                }
+                    }
             }
         }
         is DialogCommand.AddMessage -> {
@@ -98,6 +131,20 @@ class DialogActor(
             ).mapEvents(DialogEvent.Internal.MessageSendingSuccess) { error ->
                 DialogEvent.Internal.DataSendingError(error)
             }
+        }
+        is DialogCommand.EditMessage -> {
+            messagesRepository.editMessage(
+                command.messageId,
+                command.content
+            ).mapEvents(DialogEvent.Internal.MessageEditingSuccess(command.messageId)) { error ->
+                DialogEvent.Internal.MessageEditingError(error)
+            }
+        }
+        is DialogCommand.DeleteMessage -> {
+            messagesRepository.deleteMessage(command.messageId)
+                .mapEvents(DialogEvent.Internal.MessageDeletionSuccess(command.messageId)) { error ->
+                    DialogEvent.Internal.MessageDeletionError(error)
+                }
         }
         is DialogCommand.AddReaction -> {
             reactionsRepository.addReaction(command.messageId, command.reactionName)
@@ -113,6 +160,19 @@ class DialogActor(
                 command.reactionType
             ).mapEvents(DialogEvent.Internal.ReactionSendingSuccess(command.messageId)) { error ->
                 DialogEvent.Internal.ReactionSendingError(error)
+            }
+        }
+        is DialogCommand.SendPhoto -> {
+            messagesRepository.addPhoto(command.file).toObservable().map { photoResult ->
+                photoResult.fold(
+                    onSuccess = { uri ->
+                        DialogEvent.Internal.PhotoSendingSuccess(
+                            uri,
+                            command.file.name
+                        )
+                    },
+                    onFailure = { error -> DialogEvent.Internal.DataSendingError(error) }
+                )
             }
         }
     }

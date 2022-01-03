@@ -12,7 +12,7 @@ class MessengerReducer :
             state { copy(status = ResourceStatus.SUCCESS, currentUserId = event.userId) }
         }
         is MessengerEvent.Internal.DataLoadingError -> {
-            /* do nothing */
+            Log.d("messenger_reducer", "User loading error")
         }
         is MessengerEvent.Ui.OnBackPress -> {
             effects { +MessengerEffect.HideFloatingViews }
@@ -26,6 +26,21 @@ class MessengerReducer :
             effects { +MessengerEffect.HideFloatingViews }
             effects { +MessengerEffect.HideNavigation }
             effects { +MessengerEffect.OpenDialog(event.channelName, event.topicName) }
+        }
+        is MessengerEvent.Ui.OnCreateChannelClick -> {
+            effects { +MessengerEffect.HideFloatingViews }
+            effects { +MessengerEffect.HideNavigation }
+            effects { +MessengerEffect.OpenChannelCreation }
+        }
+        is MessengerEvent.Ui.OnChannelsOpenClick -> {
+            effects { +MessengerEffect.HideFloatingViews }
+            effects { +MessengerEffect.HideNavigation }
+            effects { +MessengerEffect.UpdateChannels }
+        }
+        is MessengerEvent.Ui.OnCreateTopicClick -> {
+            effects { +MessengerEffect.HideFloatingViews }
+            effects { +MessengerEffect.HideNavigation }
+            effects { +MessengerEffect.OpenTopicCreation(event.channelName, event.channelDescription) }
         }
         is MessengerEvent.Ui.OnNavigationClick -> {
             if (state.currentUserId == -1) {

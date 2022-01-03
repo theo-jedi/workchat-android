@@ -3,11 +3,115 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:animateLayoutChanges="true"
     android:background="@color/background_light"
     android:paddingStart="10dp"
     android:paddingTop="10dp"
     android:paddingEnd="4dp"
     android:paddingBottom="10dp">
+
+    <!-- Photo -->
+
+    <ImageView
+        android:id="@+id/photoIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/edit"
+        android:src="@drawable/ic_photo"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/photoMessage"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/photoMessage"
+        app:tint="@color/green" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/photoMessage"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="15dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/light_gray"
+        android:textSize="16sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/messageInput"
+        app:layout_constraintEnd_toStartOf="@id/photoClose"
+        app:layout_constraintStart_toEndOf="@id/photoIcon" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/photoClose"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="6dp"
+        android:src="@drawable/ic_close"
+        android:tint="@color/black_5"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/photoMessage"
+        app:layout_constraintEnd_toEndOf="@id/actionButton"
+        app:layout_constraintTop_toTopOf="@id/photoMessage" />
+
+    <!-- Edit -->
+
+    <ImageView
+        android:id="@+id/editIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/edit"
+        android:src="@drawable/ic_edit"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/editMessage"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/editMessage"
+        app:tint="@color/green" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/editMessage"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="15dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/light_gray"
+        android:textSize="16sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/messageInput"
+        app:layout_constraintEnd_toStartOf="@id/editClose"
+        app:layout_constraintStart_toEndOf="@id/editIcon" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/editClose"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="6dp"
+        android:src="@drawable/ic_close"
+        android:tint="@color/black_5"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/editMessage"
+        app:layout_constraintEnd_toEndOf="@id/actionButton"
+        app:layout_constraintTop_toTopOf="@id/editMessage" />
+
+    <!-- Message -->
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/editButton"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:focusable="true"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:scaleType="center"
+        android:src="@drawable/ic_done"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="@+id/actionButton"
+        app:layout_constraintEnd_toEndOf="@id/actionButton"
+        app:layout_constraintStart_toStartOf="@id/actionButton"
+        app:layout_constraintTop_toTopOf="@+id/actionButton" />
 
     <androidx.appcompat.widget.AppCompatEditText
         android:id="@+id/messageInput"
@@ -24,9 +128,9 @@
         android:paddingBottom="15dp"
         android:textColor="@color/lighter_gray"
         android:textColorHint="@color/gray"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/actionButton"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/actionButton"
@@ -47,11 +151,11 @@
         android:id="@+id/loadingBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="gone"
         android:padding="1dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/actionButton"
         app:layout_constraintEnd_toEndOf="@+id/actionButton"
         app:layout_constraintStart_toStartOf="@+id/actionButton"
-        app:layout_constraintTop_toTopOf="@+id/actionButton"
-        app:layout_constraintBottom_toBottomOf="@+id/actionButton" />
+        app:layout_constraintTop_toTopOf="@+id/actionButton" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -11,6 +11,7 @@ sealed class PeopleEvent {
 
     sealed class Internal : PeopleEvent() {
         data class PeopleLoadingSuccess(val people: List<ListUser>) : Internal()
+        data class StatusesLoadingSuccess(val people: List<ListUser>) : Internal()
         data class PeopleSearchingSuccess(val people: List<ListUser>) : Internal()
         data class DataLoadingError(val error: Throwable) : Internal()
     }

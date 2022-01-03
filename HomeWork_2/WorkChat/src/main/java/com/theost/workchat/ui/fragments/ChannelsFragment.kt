@@ -81,7 +81,6 @@ class ChannelsFragment : ElmFragment<ChannelsEvent, ChannelsEffect, ChannelsStat
         if (!state.isSearchEnabled && state.channelsType == ChannelsType.SUBSCRIBED) {
             context?.let { PrefUtils.putSubscribedChannels(it, state.subscribedChannels) }
         }
-
         adapter.submitList(state.items)
     }
 
