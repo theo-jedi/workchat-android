@@ -1,6 +1,0 @@
-<resources>
-    <string name="app_name">HomeWorkOne</string>
-    <string name="load_data">Загрузить контакты</string>
-    <string name="error_data">Ошибка загрузки данных</string>
-    <string name="error_permission">Разрешение не получено</string>
-</resources>
